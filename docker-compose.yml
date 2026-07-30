@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bjff-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bjff}
+      POSTGRES_USER: ${POSTGRES_USER:-bjff}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cambiar}
+    ports:
+      - '5432:5432'
+    volumes:
+      - bjff-db-data:/var/lib/postgresql/data
+      # Línea base del esquema. Se aplican en orden alfabético al crear el volumen.
+      # Montados de a uno para no arrastrar database/migrations/ a la inicialización.
+      - ./database/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/02_functions_triggers.sql:/docker-entrypoint-initdb.d/02_functions_triggers.sql:ro
+      - ./database/03_views.sql:/docker-entrypoint-initdb.d/03_views.sql:ro
+      # Rol de aplicación con privilegios mínimos y base separada para pruebas. No
+      # pertenece a la línea base: es configuración del entorno de desarrollo.
+      - ./docker/initdb/99_setup.sh:/docker-entrypoint-initdb.d/99_setup.sh:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-bjff} -d ${POSTGRES_DB:-bjff}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bjff-db-data:
