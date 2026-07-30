@@ -1,2 +1,29 @@
+# Material privado de la BJFF. No debe publicarse ni incluirse en commits.
 bjff-collection.csv
 docs/dataset.md
+
+# Dependencias
+node_modules/
+
+# Compilación
+dist/
+build/
+*.tsbuildinfo
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Registros y temporales
+*.log
+npm-debug.log*
+coverage/
+*.tmp
+*.swp
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

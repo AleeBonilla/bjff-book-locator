@@ -1,0 +1,44 @@
+{
+  "name": "bjff-book-locator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Localizador de libros de la Biblioteca José Figueres Ferrer",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --build",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d db",
+    "migrate": "npm run migrate -w apps/api",
+    "pretest": "npm run build -w packages/classification",
+    "prebuild": "npm run build -w packages/classification"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^3.0.5",
+    "vite": "^6.0.7"
+  },
+  "overrides": {
+    "vite": "^6.0.7"
+  },
+  "type": "module"
+}
