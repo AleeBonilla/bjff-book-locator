@@ -58,6 +58,19 @@ S248m2
 └────── letra o letras iniciales
 ```
 
+El Cutter se reconoce por su forma —una o varias letras seguidas de al menos un
+dígito—, no por su posición. Si el código trae varios segmentos después del número
+DDC, el Cutter es el primero que tiene esa forma.
+
+La colección contiene tres variaciones de escritura con una sola lectura posible, que
+se normalizan en silencio:
+
+```text
+C8374- lge      espacio junto al guion       -> C8374lge
+C146 p          marca de obra separada       -> C146p
+C659ci C659ci   segmento repetido literal    -> C659ci
+```
+
 La comparación se realiza en este orden:
 
 1. letra o letras iniciales, alfabéticamente;
@@ -162,11 +175,33 @@ se colocan al final.
 ## Valores no canónicos
 
 La colección contiene puntos, comas y espacios adicionales dentro de algunos
-números DDC. No forman parte de la notación DDC canónica. El sistema puede
-normalizarlos para búsqueda, pero debe conservar el valor original y señalarlo
-para revisión catalográfica.
+números DDC. No forman parte de la notación DDC canónica.
 
-Ejemplos:
+El sistema siempre conserva el valor original. Que además lo señale para revisión
+catalográfica depende de si la normalización es determinista:
+
+- si el valor admite **una sola lectura**, se normaliza en silencio;
+- si admite **más de una**, se normaliza con la mejor lectura posible y se señala,
+  porque hace falta que alguien decida.
+
+La revisión catalográfica es para lo que exige una decisión humana, no para todo lo
+que se aparta de la forma canónica.
+
+### Agrupamiento de dígitos
+
+Los números DDC largos se escriben en bloques para poder leerlos. La colección usa
+como separador tanto el espacio como el punto:
+
+```text
+303.440 972 862 021
+303.440.972.862.021
+```
+
+Ambas formas son el mismo número, `303.440972862021`. El separador se retira y los
+bloques se concatenan. Es determinista: se normaliza en silencio.
+
+Un espacio inmediatamente posterior al punto decimal, sin dígito intermedio, es un
+error de captura con una sola lectura posible, y recibe el mismo trato.
 
 ```text
 613.208.32  -> 613.20832
@@ -174,6 +209,18 @@ Ejemplos:
 658. 8      -> 658.8
 352,85      -> 352.85
 ```
+
+### Valores que sí exigen revisión
+
+```text
+8693.7 M378a     número de clase con más de tres dígitos antes del punto
+371.4 M M423t    segmento alfabético que no se explica como Cutter ni marca de obra
+```
+
+El primero no tiene lectura única: la DDC sitúa el punto tras el tercer dígito, así
+que el valor está mal formado y solo la catalogación puede decidir cuál era. El
+segundo tiene un token suelto antes del Cutter que no corresponde a ninguna
+convención conocida.
 
 ## Fuentes
 
