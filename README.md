@@ -10,10 +10,56 @@ un panel autenticado.
 
 ## Estado
 
-El proyecto se encuentra en fase de diseño. Todavía no existe una aplicación.
+Hay dos funcionalidades implementadas:
 
-El repositorio contiene la base documental y el modelo de datos que se
-utilizarán para definir los requisitos formales con Spec Kit.
+| Funcionalidad | Qué cubre |
+|---|---|
+| [`001-collection-import`](specs/001-collection-import/) | Acceso autenticado, importación desde CSV con normalización determinista de los códigos, y consulta del resultado |
+| [`002-load-management`](specs/002-load-management/) | Eliminación de cargas, paginación de los registros y limpieza de la puntuación catalográfica de los títulos |
+
+El resto —plantillas, esquemas, distribuciones y búsqueda pública— sigue en fase de
+diseño.
+
+## Puesta en marcha
+
+Requiere Node.js 20 o superior y Docker.
+
+```bash
+cp .env.example .env
+docker compose up -d db
+npm install
+npm run seed:admin -w apps/api
+npm run dev
+```
+
+El panel queda en `http://localhost:5173` y la API en `http://localhost:3000`.
+
+La guía completa, con la matriz de validación por requisito, está en
+[`specs/001-collection-import/quickstart.md`](specs/001-collection-import/quickstart.md).
+
+### Comandos
+
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Levanta API y panel |
+| `npm test` | Ejecuta todas las pruebas contra `bjff_test`, separada de la de desarrollo |
+| `npm run lint` | Revisa el código |
+| `npm run typecheck` | Comprueba los tipos |
+| `npm run db:reset` | Recrea la base desde la línea base |
+
+## Estructura del código
+
+```text
+apps/
+  api/                  API REST con NestJS
+  web/                  Panel administrativo con React y Vite
+packages/
+  classification/       Normalización y orden de los códigos de clasificación
+  api-types/            Tipos compartidos del contrato REST
+```
+
+`packages/classification` no depende de ningún framework: concentra el orden
+determinista del que dependen la importación y, más adelante, la búsqueda pública.
 
 ## Primera funcionalidad
 
