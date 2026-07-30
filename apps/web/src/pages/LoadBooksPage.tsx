@@ -89,8 +89,12 @@ export function LoadBooksPage() {
                 <tr className="border-b border-slate-300 text-left dark:border-slate-700">
                   <th scope="col" className="py-2 pr-4">Fila</th>
                   <th scope="col" className="py-2 pr-4">Código de barras</th>
-                  <th scope="col" className="py-2 pr-4">Clasificación original</th>
-                  <th scope="col" className="py-2 pr-4">Clave comparable</th>
+                  <th scope="col" className="py-2 pr-4 whitespace-nowrap">
+                    Clasificación original
+                  </th>
+                  <th scope="col" className="py-2 pr-4 whitespace-nowrap">
+                    Clave comparable
+                  </th>
                   <th scope="col" className="py-2">Título</th>
                 </tr>
               </thead>
@@ -102,10 +106,12 @@ export function LoadBooksPage() {
                   >
                     <td className="py-2 pr-4 tabular-nums">{book.sourceRowNumber}</td>
                     <td className="py-2 pr-4">{book.sourceBarcode}</td>
-                    <td className="py-2 pr-4 font-mono text-xs">
+                    {/* Los códigos no se parten: leerlos en una línea es lo que
+                        permite compararlos de un vistazo entre filas. */}
+                    <td className="py-2 pr-4 font-mono text-xs whitespace-nowrap">
                       {book.classificationRaw ?? <Ausente />}
                     </td>
-                    <td className="py-2 pr-4 font-mono text-xs">
+                    <td className="py-2 pr-4 font-mono text-xs whitespace-nowrap">
                       {book.comparableKey ?? (
                         <span className="text-amber-700 dark:text-amber-400">
                           sin clave
