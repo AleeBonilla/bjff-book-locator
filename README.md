@@ -100,6 +100,10 @@ Cada archivo supone que los anteriores ya terminaron correctamente.
 
 ## Principios
 
+Las reglas de gobernanza del proyecto están en
+[`.specify/memory/constitution.md`](.specify/memory/constitution.md). Prevalecen sobre
+cualquier otra práctica y son la referencia para revisar cambios.
+
 - Las plantillas definen formas jerárquicas, no cantidades.
 - Solo las ubicaciones `POSITION` reciben distribución.
 - Estructura física y distribución tienen ciclos de vida separados.

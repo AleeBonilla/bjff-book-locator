@@ -92,6 +92,10 @@ que debe implementar el servicio.
 
 ## Reglas de mantenimiento
 
+Estas reglas desarrollan la constitución del proyecto,
+[`../.specify/memory/constitution.md`](../.specify/memory/constitution.md), que prevalece
+en caso de conflicto.
+
 - Usar siempre el término **códigos de clasificación**.
 - Usar enlaces Markdown estándar para relacionar documentos.
 - Mantener una sola responsabilidad principal por archivo.
