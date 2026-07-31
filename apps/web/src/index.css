@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+}
+
+/* El foco debe ser siempre visible: es la única guía de quien navega con teclado. */
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-sky-600;
+}

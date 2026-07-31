@@ -1,7 +1,7 @@
 ﻿codBarras;NumeroOrden;Autor;Clasificacion;isbn;Titulo;Z13_IMPRINT;Año;Colección;Z30_DESCRIPTION;Material;Estatus de Item;Estatus de Proceso;Z30_PROCESS_STATUS_DATE;Fecha Arribo;Biblioteca;Z68_ORDER_GROUP;PARTIDA;Z68_ORDER_DATE
 1001;9001;Autora, Prueba;001.4 B268-i-2 23;9789968319843;Investigación;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
-1002;9002;Autora, Prueba;004.0151 A111a 23;9789968319843;Obra de prueba;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
-1003;9003;Autora, Prueba;004.1 B222b 23;9789968319843;Obra de prueba;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1002;9002;Autora, Prueba;004.0151 A111a 23;9789968319843;Obra de prueba /;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1003;9003;Autora, Prueba;004.1 B222b 23;9789968319843;Titulo paralelo =;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
 1004;9004;Autora, Prueba;303.440 972 862 021 G216c 23;9789968319843;Agrupamiento Dewey;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
 1005;9005;Autora, Prueba;352,85 C333c 23;9789968319843;Coma decimal;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
 1006;9006;Autora, Prueba;378.728 6 D444d 23;9789968319843;Espacio interno en la clase;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
@@ -35,5 +35,16 @@
 1034;9034;Autora, Prueba;8693.7 M378a 23;9789968319843;Clase de cuatro dígitos;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
 1035;9035;Autora, Prueba;658 W721 A6 XYZ;9789968319843;Cutter con un token de más;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
 1036;9036;Autora, Prueba;;9789968319843;Sin signatura;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1037;9037;Autora, Prueba;658. 8 T111t 23;9789968319843;Espacio pegado al punto;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1038;9038;Autora, Prueba;700 U222u 23;9789968319843;Año ausente marcado como cero;San José, Costa Rica : EUNED, 2013.;0;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1039;9039;Autora, Prueba;701 V333v 23;9789968319843;Año fuera del intervalo;San José, Costa Rica : EUNED, 2013.;1200;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1040;9040;Autora, Prueba;702 W- 444w 23;9789968319843;Espacio junto a guion;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1041;9041;Autora, Prueba;Cu863 X555x 23;9789968319843;Prefijo Cu;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1042;9042;Autora, Prueba;CU863 Y666y 23;9789968319843;Prefijo CU equivalente a Cu;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1043;9043;Autora, Prueba;Zz863 A777a 23;9789968319843;Prefijo no documentado;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1044;9044;Autora, Prueba;703 B888b B888b 23;9789968319843;Cutter repetido;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1045;9045;Autora, Prueba;704.109.728.6 C777c 23;9789968319843;Agrupamiento con puntos;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1046;9046;Autora, Prueba;705 D111d e 23;9789968319843;Marca de obra separada;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
+1047;9047;Autora, Prueba;706 E E222e 23;9789968319843;Token previo al Cutter;San José, Costa Rica : EUNED, 2013.;2013;GRAL ;Ej.01;LIBRO;06;  ;20251103;00000000;BJFF ;B4        ;GIFT-DEFAULT             ;20250210
 ;;;;;;;;;;;;;;;;;;
-TOTAL;36;;;;;;;;;;;;;;;;;
+TOTAL;47;;;;;;;;;;;;;;;;;
