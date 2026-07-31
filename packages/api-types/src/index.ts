@@ -22,6 +22,25 @@ export type ApiErrorCode =
   | 'MISSING_REQUIRED_COLUMN'
   | 'LOAD_NOT_FOUND'
   | 'LOAD_IN_USE'
+  | 'TEMPLATE_NOT_FOUND'
+  | 'TEMPLATE_NODE_NOT_FOUND'
+  | 'SCHEME_NOT_FOUND'
+  | 'LOCATION_NOT_FOUND'
+  | 'TEMPLATE_NOT_EDITABLE'
+  | 'SCHEME_NOT_EDITABLE'
+  | 'INVALID_STATE_TRANSITION'
+  | 'TEMPLATE_NAME_CONFLICT'
+  | 'SCHEME_NAME_CONFLICT'
+  | 'SIBLING_NAME_CONFLICT'
+  | 'MAP_ELEMENT_CONFLICT'
+  | 'SUBTREE_CONFIRMATION_REQUIRED'
+  | 'INVALID_TEMPLATE_TREE'
+  | 'INVALID_SCHEME_TREE'
+  | 'INVALID_PARENT'
+  | 'TREE_CYCLE'
+  | 'ORDER_MISMATCH'
+  | 'INVALID_DISTRIBUTION_SETTINGS'
+  | 'SCHEME_LINEAGE_CYCLE'
   | 'VALIDATION_FAILED'
   | 'INTERNAL_ERROR';
 
@@ -121,4 +140,187 @@ export interface Registro {
 export interface Paginado<T> {
   items: T[];
   total: number;
+}
+
+// --- Modelado de estructura física ---
+
+export type StructureTemplateStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+export type SchemeStatus = 'DRAFT' | 'DEFINED' | 'DISTRIBUTED';
+export type LocationRole = 'CONTAINER' | 'POSITION';
+export type CapacityUnit = 'BOOKS' | 'CENTIMETERS' | 'WEIGHT';
+export type SchemeUnavailableReason =
+  'SCHEME_DISABLED' | 'SCHEME_NOT_DEFINED' | 'TEMPLATE_DISABLED' | 'NO_USABLE_POSITIONS';
+
+export interface AuditUser {
+  userId: number;
+  username: string;
+}
+
+export interface Capacity {
+  value: number;
+  unit: CapacityUnit;
+}
+
+export interface DistributionValues {
+  capacity: Capacity | null;
+  targetFillRatio: number | null;
+  allowOverflow: boolean | null;
+}
+
+export interface TemplateNode {
+  structureTemplateNodeId: number;
+  parentTemplateNodeId: number | null;
+  name: string;
+  role: LocationRole;
+  position: number;
+  visualKind: string | null;
+  enabled: boolean;
+  defaults: DistributionValues | null;
+  children: TemplateNode[];
+}
+
+export interface StructureTemplate {
+  structureTemplateId: number;
+  name: string;
+  description: string | null;
+  status: StructureTemplateStatus;
+  enabled: boolean;
+  createdBy: AuditUser | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StructureTemplateDetail extends StructureTemplate {
+  nodes: TemplateNode[];
+}
+
+export interface LocationSettings extends DistributionValues {
+  inheritToDescendants: boolean;
+  updatedBy: AuditUser | null;
+  updatedAt: string;
+}
+
+export interface SchemeLocation {
+  locationId: number;
+  parentLocationId: number | null;
+  structureTemplateId: number;
+  structureTemplateNodeId: number;
+  name: string;
+  role: LocationRole;
+  position: number;
+  leafSequence: number | null;
+  mapElementId: string | null;
+  enabled: boolean;
+  usable: boolean;
+  settings: LocationSettings | null;
+  children: SchemeLocation[];
+}
+
+export interface Scheme {
+  schemeId: number;
+  name: string;
+  description: string | null;
+  status: SchemeStatus;
+  enabled: boolean;
+  isActive: boolean;
+  basedOnSchemeId: number | null;
+  availableForNewRun: boolean;
+  unavailableReasons: SchemeUnavailableReason[];
+  createdBy: AuditUser | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SchemeDetail extends Scheme {
+  locations: SchemeLocation[];
+}
+
+export interface CreateNamedResourceRequest {
+  name: string;
+  description?: string | null;
+}
+
+export interface UpdateNamedResourceRequest {
+  name?: string;
+  description?: string | null;
+  enabled?: boolean;
+}
+
+export interface CreateTemplateNodeRequest {
+  parentTemplateNodeId: number | null;
+  name: string;
+  role: LocationRole;
+  position?: number;
+  visualKind?: string | null;
+  enabled?: boolean;
+  defaults?: DistributionValues | null;
+}
+
+export interface UpdateTemplateNodeRequest {
+  name?: string;
+  role?: LocationRole;
+  visualKind?: string | null;
+  enabled?: boolean;
+  defaults?: DistributionValues | null;
+}
+
+export interface MoveTreeItemRequest {
+  parentId: number | null;
+  position: number;
+}
+
+export interface OrderTreeItemsRequest {
+  parentId: number | null;
+  orderedIds: number[];
+}
+
+export interface MoveTemplateNodeRequest {
+  parentTemplateNodeId: number | null;
+  position: number;
+}
+
+export interface OrderTemplateNodesRequest {
+  parentTemplateNodeId: number | null;
+  orderedNodeIds: number[];
+}
+
+export interface MoveLocationRequest {
+  parentLocationId: number | null;
+  position: number;
+}
+
+export interface OrderLocationsRequest {
+  parentLocationId: number | null;
+  orderedLocationIds: number[];
+}
+
+export interface CreateLocationRequest {
+  parentLocationId: number | null;
+  structureTemplateId: number;
+  structureTemplateNodeId: number;
+  name: string;
+  position?: number;
+  mapElementId?: string | null;
+  enabled?: boolean;
+}
+
+export interface UpdateLocationRequest {
+  name?: string;
+  mapElementId?: string | null;
+  enabled?: boolean;
+}
+
+export type ReplaceLocationSettingsRequest = DistributionValues;
+
+export interface SubtreePreviewItem {
+  id: number;
+  parentId: number | null;
+  name: string;
+  role: LocationRole;
+}
+
+export interface SubtreePreview {
+  root: Omit<SubtreePreviewItem, 'parentId'>;
+  descendantCount: number;
+  items: SubtreePreviewItem[];
 }
