@@ -34,3 +34,22 @@ corresponda.
 - **Siguiente paso:** acordar el alcance de Prettier y ejecutar la normalización o
   ajustar `.prettierignore`.
 - **Relacionada con:** `.prettierrc`, `.prettierignore` y el script `format:check`.
+
+### PA-003 — Autoría de settings copiados entre schemes
+
+- **Estado:** ABIERTA
+- **Detectada:** 2026-07-31
+- **Contexto:** la implementación de la copia definida por
+  `specs/003-structure-modeling/spec.md` duplica cada fila vigente de
+  `location_distribution_settings`, pero los artefactos no indican si `updated_by`
+  debe conservar a la persona que configuró el origen o registrar a quien ejecutó la
+  copia.
+- **Pregunta:** ¿Qué persona debe aparecer como responsable del setting vigente en el
+  nuevo scheme: la autora del valor original o la autora de la copia?
+- **Impacto:** la elección cambia la interpretación de auditoría en schemes derivados
+  y podría atribuir un valor a alguien que no lo decidió.
+- **Siguiente paso:** acordar la semántica de autoría de una configuración copiada y
+  actualizar `docs/decisiones.md`, el contrato de 003 y la prueba de copia.
+- **Relacionada con:** FR-044 y FR-049 de
+  `specs/003-structure-modeling/spec.md`, decisión 7 de `docs/decisiones.md` y
+  `location_distribution_settings.updated_by` en `docs/db.md`.
