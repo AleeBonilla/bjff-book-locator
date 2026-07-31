@@ -10,7 +10,7 @@ import { hashPassword } from '../src/auth/password.js';
 import { ErrorEnvelopeFilter } from '../src/common/error-envelope.filter.js';
 import { testDb } from './setup.js';
 
-/** Archivo publicable de referencia. `bjff-collection.csv` nunca se usa en pruebas. */
+/** Archivo publicable de referencia; las pruebas nunca usan la colección privada. */
 export const EXAMPLE_CSV_PATH = (() => {
   // El directorio de trabajo depende de dónde se invoque Vitest.
   const candidates = [

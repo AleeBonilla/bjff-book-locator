@@ -205,8 +205,9 @@ importación, vaciando las tablas de la funcionalidad antes de cada caso.
 > transacción revertida al terminar. No es viable: las pruebas atraviesan HTTP y la
 > aplicación abre su propia conexión, así que no puede participar de la transacción del
 > test. Se sustituyó por `TRUNCATE ... RESTART IDENTITY CASCADE` antes de cada caso, con
-> los archivos ejecutados en serie (`fileParallelism: false` en la configuración raíz de
-> Vitest, donde sí surte efecto: por proyecto se ignora).
+> los archivos ejecutados en serie. En Vitest 3, las opciones de concurrencia de la
+> configuración raíz no se propagan de forma fiable a los proyectos; por eso el script
+> raíz pasa `--no-file-parallelism --maxWorkers=1` explícitamente.
 >
 > **Base separada.** Vaciar tablas obliga a que las pruebas tengan su propia base. Se
 > añadió `bjff_test`, creada por `docker/initdb/99_setup.sh` con la misma línea base y

@@ -93,7 +93,8 @@ cargas y la cuenta administrativa. El arnés aborta si `TEST_DATABASE_URL` no ap
 una base cuyo nombre termine en `_test`.
 
 Estado verificado el 2026-07-30: **147 pruebas en 18 archivos, todas en verde**,
-incluidas las de [`002-load-management`](../002-load-management/spec.md).
+incluidas las de [`002-load-management`](../002-load-management/spec.md). La prueba
+adicional de rendimiento se ejecuta por separado porque requiere `PERF=1`.
 
 Cobertura exigida por el principio V de la constitución:
 
@@ -170,14 +171,32 @@ comparables (**SC-003**).
 
 ## Medición de SC-006
 
-Ejecutada el 2026-07-30 sobre PostgreSQL 16 en Docker, con un archivo sintético de
-10 000 filas:
+Ejecutada de nuevo durante T074 el 2026-07-30 sobre PostgreSQL 16 en Docker, con un
+archivo sintético de 10 000 filas:
 
 | Métrica | Valor |
 |---|---:|
 | Filas importadas | 10 000 |
-| Tiempo total | **841 ms** |
+| Tiempo total | **868 ms** |
 | Objetivo | 30 000 ms |
 
-El margen es de unas 35 veces, así que la decisión de procesar de forma síncrona queda
+El margen es de unas 34 veces, así que la decisión de procesar de forma síncrona queda
 holgadamente respaldada.
+
+## Registro de ejecución de T074
+
+Matriz completa ejecutada el 2026-07-30:
+
+| Grupo | Evidencia | Resultado |
+|---|---|---|
+| Entorno | PostgreSQL saludable y presencia de `users`, `collection_loads`, `collection_load_errors` y `books` | PASS |
+| Compilación | `npm run build` | PASS |
+| Tipos | `npm run typecheck` en los cuatro workspaces | PASS |
+| Calidad estática | `npm run lint` | PASS |
+| Matriz funcional y de fallos | `npm test`: autenticación, importación, normalización, contadores, consultas, rechazos, atomicidad y privacidad de respuestas | PASS — 147 pruebas |
+| Rendimiento | `PERF=1` sobre `performance.spec.ts` | PASS — 10 000 filas en 868 ms |
+| Material privado | Ambos archivos privados ignorados, no versionados y sin referencias desde código o pruebas | PASS |
+
+Las filas de «Comprobaciones manuales», «Comprobaciones de fallo» y «Privacidad y
+registros» se contrastaron con sus pruebas unitarias o de integración correspondientes.
+Los resultados observados coinciden con los valores esperados de la matriz.
