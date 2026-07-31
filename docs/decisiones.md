@@ -396,3 +396,23 @@ locations que ya la instancian.
 
 **Consecuencia:** una forma nueva se modela en otra plantilla. `ARCHIVED`
 impide nuevas instancias sin eliminar las estructuras existentes.
+
+## 29. Registro explícito de decisiones y preguntas abiertas
+
+**Decisión:** mantener las decisiones importantes en `docs/decisiones.md` y las
+incertidumbres materiales en `docs/preguntas-abiertas.md`, asistidas por las skills
+locales `record-decisions` y `track-open-questions`.
+
+**Motivo:** una decisión que queda únicamente en una conversación no puede revisarse,
+y una duda convertida silenciosamente en supuesto suele reaparecer como defecto o
+bloqueo. Los dos tipos de información tienen ciclos distintos: la decisión es vigente;
+la pregunta permanece abierta hasta que exista evidencia o autoridad para resolverla.
+
+**Alternativas descartadas:** mezclar preguntas y decisiones en un solo documento,
+porque dificultaría distinguir lo acordado de lo pendiente; usar únicamente
+`tasks.md`, porque una tarea describe trabajo ejecutable y no necesariamente la
+incertidumbre que lo origina.
+
+**Consecuencia:** las preguntas resueltas no se borran, sino que conservan su
+resolución. Cuando una respuesta establezca un criterio duradero, se registra además
+como decisión y ambas entradas se enlazan.

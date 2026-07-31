@@ -1,0 +1,4 @@
+interface:
+  display_name: "Registrar preguntas abiertas"
+  short_description: "Conserva incertidumbres y riesgos sin resolver"
+  default_prompt: "Usa $track-open-questions para registrar estas dudas sin resolver y su impacto."

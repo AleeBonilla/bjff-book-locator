@@ -1,0 +1,4 @@
+interface:
+  display_name: "Registrar decisiones"
+  short_description: "Documenta decisiones importantes del proyecto"
+  default_prompt: "Usa $record-decisions para registrar esta decision importante y sus consecuencias."
