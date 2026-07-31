@@ -1,11 +1,29 @@
 import type {
   ApiErrorBody,
   Carga,
+  CreateNamedResourceRequest,
+  CreateLocationRequest,
+  CreateTemplateNodeRequest,
+  MoveTemplateNodeRequest,
+  MoveLocationRequest,
+  OrderLocationsRequest,
+  OrderTemplateNodesRequest,
   Paginado,
   ProblemaDeCarga,
   Registro,
+  ReplaceLocationSettingsRequest,
+  Scheme,
+  SchemeDetail,
+  SchemeLocation,
   ResumenDeCarga,
   SessionResponse,
+  StructureTemplate,
+  StructureTemplateDetail,
+  SubtreePreview,
+  TemplateNode,
+  UpdateNamedResourceRequest,
+  UpdateLocationRequest,
+  UpdateTemplateNodeRequest,
 } from '@bjff/api-types';
 
 /**
@@ -83,4 +101,129 @@ export const api = {
       `/api/collection-loads/${id}/books?${params.toString()}`,
     );
   },
+
+  templates: () => call<Paginado<StructureTemplate>>('/api/structure-templates'),
+
+  template: (id: number) =>
+    call<StructureTemplateDetail>(`/api/structure-templates/${id}`),
+
+  createTemplate: (body: CreateNamedResourceRequest) =>
+    call<StructureTemplateDetail>('/api/structure-templates', json('POST', body)),
+
+  updateTemplate: (id: number, body: UpdateNamedResourceRequest) =>
+    call<StructureTemplateDetail>(`/api/structure-templates/${id}`, json('PATCH', body)),
+
+  activateTemplate: (id: number) =>
+    call<StructureTemplateDetail>(`/api/structure-templates/${id}/activate`, {
+      method: 'POST',
+    }),
+
+  archiveTemplate: (id: number) =>
+    call<StructureTemplateDetail>(`/api/structure-templates/${id}/archive`, {
+      method: 'POST',
+    }),
+
+  createTemplateNode: (templateId: number, body: CreateTemplateNodeRequest) =>
+    call<TemplateNode>(
+      `/api/structure-templates/${templateId}/nodes`,
+      json('POST', body),
+    ),
+
+  updateTemplateNode: (
+    templateId: number,
+    nodeId: number,
+    body: UpdateTemplateNodeRequest,
+  ) =>
+    call<TemplateNode>(
+      `/api/structure-templates/${templateId}/nodes/${nodeId}`,
+      json('PATCH', body),
+    ),
+
+  moveTemplateNode: (templateId: number, nodeId: number, body: MoveTemplateNodeRequest) =>
+    call<void>(
+      `/api/structure-templates/${templateId}/nodes/${nodeId}/move`,
+      json('POST', body),
+    ),
+
+  orderTemplateNodes: (templateId: number, body: OrderTemplateNodesRequest) =>
+    call<void>(`/api/structure-templates/${templateId}/nodes/order`, json('PUT', body)),
+
+  templateNodeDeletionPreview: (templateId: number, nodeId: number) =>
+    call<SubtreePreview>(
+      `/api/structure-templates/${templateId}/nodes/${nodeId}/deletion-preview`,
+    ),
+
+  deleteTemplateNode: (templateId: number, nodeId: number, confirmed: boolean) =>
+    call<void>(
+      `/api/structure-templates/${templateId}/nodes/${nodeId}?confirmed=${confirmed}`,
+      { method: 'DELETE' },
+    ),
+
+  schemes: () => call<Paginado<Scheme>>('/api/schemes'),
+
+  scheme: (id: number) => call<SchemeDetail>(`/api/schemes/${id}`),
+
+  createScheme: (body: CreateNamedResourceRequest) =>
+    call<SchemeDetail>('/api/schemes', json('POST', body)),
+
+  updateScheme: (id: number, body: UpdateNamedResourceRequest) =>
+    call<SchemeDetail>(`/api/schemes/${id}`, json('PATCH', body)),
+
+  defineScheme: (id: number) =>
+    call<SchemeDetail>(`/api/schemes/${id}/define`, { method: 'POST' }),
+
+  copyScheme: (id: number, body: CreateNamedResourceRequest) =>
+    call<SchemeDetail>(`/api/schemes/${id}/copy`, json('POST', body)),
+
+  createLocation: (schemeId: number, body: CreateLocationRequest) =>
+    call<SchemeLocation>(`/api/schemes/${schemeId}/locations`, json('POST', body)),
+
+  updateLocation: (schemeId: number, locationId: number, body: UpdateLocationRequest) =>
+    call<SchemeLocation>(
+      `/api/schemes/${schemeId}/locations/${locationId}`,
+      json('PATCH', body),
+    ),
+
+  moveLocation: (schemeId: number, locationId: number, body: MoveLocationRequest) =>
+    call<void>(
+      `/api/schemes/${schemeId}/locations/${locationId}/move`,
+      json('POST', body),
+    ),
+
+  orderLocations: (schemeId: number, body: OrderLocationsRequest) =>
+    call<void>(`/api/schemes/${schemeId}/locations/order`, json('PUT', body)),
+
+  locationDeletionPreview: (schemeId: number, locationId: number) =>
+    call<SubtreePreview>(
+      `/api/schemes/${schemeId}/locations/${locationId}/deletion-preview`,
+    ),
+
+  deleteLocation: (schemeId: number, locationId: number, confirmed: boolean) =>
+    call<void>(
+      `/api/schemes/${schemeId}/locations/${locationId}?confirmed=${confirmed}`,
+      { method: 'DELETE' },
+    ),
+
+  replaceLocationSettings: (
+    schemeId: number,
+    locationId: number,
+    body: ReplaceLocationSettingsRequest,
+  ) =>
+    call<SchemeLocation | void>(
+      `/api/schemes/${schemeId}/locations/${locationId}/settings`,
+      json('PUT', body),
+    ),
+
+  deleteLocationSettings: (schemeId: number, locationId: number) =>
+    call<void>(`/api/schemes/${schemeId}/locations/${locationId}/settings`, {
+      method: 'DELETE',
+    }),
 };
+
+function json(method: string, body: unknown): RequestInit {
+  return {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  };
+}
