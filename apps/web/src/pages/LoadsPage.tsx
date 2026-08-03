@@ -30,9 +30,7 @@ export function LoadsPage() {
       setNotice(`Se eliminó la carga «${load.title}».`);
       reload();
     } catch (cause) {
-      setError(
-        cause instanceof ApiRequestError ? cause.message : 'No se pudo eliminar.',
-      );
+      setError(cause instanceof ApiRequestError ? cause.message : 'No se pudo eliminar.');
     } finally {
       setBusy(null);
     }
@@ -49,20 +47,35 @@ export function LoadsPage() {
   if (!items) return <p role="status">Cargando…</p>;
 
   return (
-    <section>
-      <h2 className="mb-4 text-xl font-semibold">Cargas de colección</h2>
+    <section aria-labelledby="loads-title">
+      <div className="mb-5">
+        <h2 id="loads-title" className="text-2xl font-semibold text-[#002855]">
+          Historial de importaciones
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Revisá el resultado, los registros y los problemas de cada archivo importado.
+        </p>
+      </div>
 
-      <p role="status" aria-live="polite" className="min-h-5 text-sm text-slate-600 dark:text-slate-400">
+      <p
+        role="status"
+        aria-live="polite"
+        className="min-h-5 text-sm text-slate-600 dark:text-slate-400"
+      >
         {notice}
       </p>
-      <p role="alert" aria-live="assertive" className="min-h-5 text-sm text-red-700 dark:text-red-400">
+      <p
+        role="alert"
+        aria-live="assertive"
+        className="min-h-5 text-sm text-red-700 dark:text-red-400"
+      >
         {error}
       </p>
 
       {items.length === 0 ? (
         <p className="text-slate-600 dark:text-slate-400">
           Todavía no hay ninguna carga.{' '}
-          <Link className="underline underline-offset-4" to="/cargas/importar">
+          <Link className="underline underline-offset-4" to="/importaciones/importar">
             Importar una colección
           </Link>
           .
@@ -71,18 +84,32 @@ export function LoadsPage() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <caption className="sr-only">
-              Cargas de colección ordenadas por fecha de creación, de la más reciente a
-              la más antigua.
+              Cargas de colección ordenadas por fecha de creación, de la más reciente a la
+              más antigua.
             </caption>
             <thead>
               <tr className="border-b border-slate-300 text-left dark:border-slate-700">
-                <th scope="col" className="py-2 pr-4">Título</th>
-                <th scope="col" className="py-2 pr-4">Estado</th>
-                <th scope="col" className="py-2 pr-4 text-right">Leídas</th>
-                <th scope="col" className="py-2 pr-4 text-right">Importadas</th>
-                <th scope="col" className="py-2 pr-4 text-right">Revisión</th>
-                <th scope="col" className="py-2 pr-4 text-right">Rechazadas</th>
-                <th scope="col" className="py-2 pr-4">Fecha</th>
+                <th scope="col" className="py-2 pr-4">
+                  Título
+                </th>
+                <th scope="col" className="py-2 pr-4">
+                  Estado
+                </th>
+                <th scope="col" className="py-2 pr-4 text-right">
+                  Leídas
+                </th>
+                <th scope="col" className="py-2 pr-4 text-right">
+                  Importadas
+                </th>
+                <th scope="col" className="py-2 pr-4 text-right">
+                  Revisión
+                </th>
+                <th scope="col" className="py-2 pr-4 text-right">
+                  Rechazadas
+                </th>
+                <th scope="col" className="py-2 pr-4">
+                  Fecha
+                </th>
                 <th scope="col" className="py-2">
                   <span className="sr-only">Acciones</span>
                 </th>
@@ -97,7 +124,7 @@ export function LoadsPage() {
                   <td className="py-2 pr-4">
                     <Link
                       className="underline underline-offset-4"
-                      to={`/cargas/${load.collectionLoadId}`}
+                      to={`/importaciones/historial/${load.collectionLoadId}`}
                     >
                       {load.title}
                     </Link>

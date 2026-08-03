@@ -45,7 +45,7 @@ export function LoadBooksPage() {
   return (
     <section>
       <p className="mb-2 text-sm">
-        <Link className="underline underline-offset-4" to={`/cargas/${loadId}`}>
+        <Link className="back-link" to={`/importaciones/historial/${loadId}`}>
           Volver al detalle de la carga
         </Link>
       </p>
@@ -77,7 +77,7 @@ export function LoadBooksPage() {
             aria-live="polite"
             className="mb-3 text-sm text-slate-600 dark:text-slate-400"
           >
-            Registros {first}–{last} de {total} · página {page + 1} de {totalPages}
+            Registros {first} a {last} de {total}. Página {page + 1} de {totalPages}
           </p>
 
           <div className="overflow-x-auto">
@@ -87,15 +87,21 @@ export function LoadBooksPage() {
               </caption>
               <thead>
                 <tr className="border-b border-slate-300 text-left dark:border-slate-700">
-                  <th scope="col" className="py-2 pr-4">Fila</th>
-                  <th scope="col" className="py-2 pr-4">Código de barras</th>
+                  <th scope="col" className="py-2 pr-4">
+                    Fila
+                  </th>
+                  <th scope="col" className="py-2 pr-4">
+                    Código de barras
+                  </th>
                   <th scope="col" className="py-2 pr-4 whitespace-nowrap">
                     Clasificación original
                   </th>
                   <th scope="col" className="py-2 pr-4 whitespace-nowrap">
                     Clave comparable
                   </th>
-                  <th scope="col" className="py-2">Título</th>
+                  <th scope="col" className="py-2">
+                    Título
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -153,7 +159,7 @@ export function LoadBooksPage() {
 function Ausente() {
   return (
     <span className="text-slate-500" aria-label="sin dato">
-      —
+      Sin dato
     </span>
   );
 }

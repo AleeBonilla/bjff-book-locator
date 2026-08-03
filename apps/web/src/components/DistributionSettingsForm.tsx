@@ -33,10 +33,12 @@ export function DistributionSettingsForm({
   return (
     <form
       onSubmit={(event) => void submit(event)}
-      className="mt-4 grid gap-3 rounded border p-4 md:grid-cols-2"
+      className="mt-5 grid gap-3 border-t border-slate-200 pt-5 md:grid-cols-2"
     >
-      <h3 className="font-semibold md:col-span-2">Configuración previa</h3>
-      <p className="text-xs text-slate-500 md:col-span-2">
+      <h3 className="font-semibold text-[#002855] md:col-span-2">
+        Configuración de distribución
+      </h3>
+      <p className="helper-text md:col-span-2">
         {inheritance === 'CONTAINER'
           ? 'El servidor marcará estos valores como heredables a las posiciones descendientes.'
           : 'Estos valores se aplican únicamente a esta posición.'}
@@ -49,7 +51,6 @@ export function DistributionSettingsForm({
           step="0.01"
           value={capacity}
           onChange={(event) => setCapacity(event.target.value)}
-          className="rounded border px-3 py-2"
         />
       </label>
       <label className="grid gap-1 text-sm">
@@ -58,7 +59,6 @@ export function DistributionSettingsForm({
           value={unit}
           disabled={capacity === ''}
           onChange={(event) => setUnit(event.target.value as CapacityUnit)}
-          className="rounded border px-3 py-2"
         >
           <option value="BOOKS">Libros</option>
           <option value="CENTIMETERS">Centímetros</option>
@@ -74,30 +74,25 @@ export function DistributionSettingsForm({
           step="0.0001"
           value={ratio}
           onChange={(event) => setRatio(event.target.value)}
-          className="rounded border px-3 py-2"
         />
       </label>
       <label className="grid gap-1 text-sm">
-        Overflow
-        <select
-          value={overflow}
-          onChange={(event) => setOverflow(event.target.value)}
-          className="rounded border px-3 py-2"
-        >
+        Permitir exceso
+        <select value={overflow} onChange={(event) => setOverflow(event.target.value)}>
           <option value="">Sin definir</option>
           <option value="true">Permitido</option>
           <option value="false">No permitido</option>
         </select>
       </label>
       <div className="flex gap-2 md:col-span-2">
-        <button disabled={busy} className="rounded bg-sky-700 px-3 py-2 text-white">
+        <button disabled={busy} className="button-primary">
           Guardar
         </button>
         <button
           type="button"
           disabled={busy}
           onClick={() => void onClear()}
-          className="rounded border px-3 py-2"
+          className="button-secondary"
         >
           Limpiar valores
         </button>

@@ -19,7 +19,7 @@ export function SubtreeConfirmation({
     <div
       role="alertdialog"
       aria-labelledby="subtree-title"
-      className="rounded border border-red-300 p-4"
+      className="surface border-red-300 p-4"
     >
       <h3 id="subtree-title" className="font-semibold">
         Eliminar {preview.root.name}
@@ -40,7 +40,7 @@ export function SubtreeConfirmation({
           type="button"
           disabled={busy}
           onClick={onConfirm}
-          className="rounded bg-red-700 px-3 py-2 text-white"
+          className="button-danger bg-red-700 text-white"
         >
           {busy ? 'Eliminando…' : 'Confirmar eliminación'}
         </button>
@@ -49,7 +49,7 @@ export function SubtreeConfirmation({
           type="button"
           disabled={busy}
           onClick={onCancel}
-          className="rounded border px-3 py-2"
+          className="button-secondary"
         >
           Cancelar
         </button>
