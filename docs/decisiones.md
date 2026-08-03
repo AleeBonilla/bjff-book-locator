@@ -512,3 +512,39 @@ incorporar GraphQL, porque REST cubre los dos patrones sin otra tecnología.
 después de mutar. El backend mantiene la autoridad sobre jerarquía, disponibilidad,
 orden y `leaf_sequence`; `packages/api-types` comparte únicamente las formas del
 contrato.
+
+## 34. Navegación administrativa por flujo de trabajo
+
+**Decisión:** la interfaz administrativa tiene solo dos áreas principales:
+**Importaciones** y **Esquemas**. Importaciones reúne la carga de archivos y el
+historial. Esquemas reúne los esquemas físicos y las plantillas que necesitan para
+modelarse.
+
+La creación de una jerarquía solicita el padre de forma explícita y permite iniciar la
+creación desde cualquier contenedor. Al modelar un esquema físico, una sola acción
+puede crear varias instancias hermanas con un nombre base y numeración consecutiva.
+
+La identidad visual usa como referencia el sitio de la Biblioteca José Figueres
+Ferrer: azul marino `#002855`, turquesa `#008285`, acento rojo `#E4002B`, fondos claros
+y tipografía sans serif. La marca propia se presenta sin símbolo, con el nombre **Book
+Locator** y el subtítulo **Biblioteca José Figueres Ferrer** en una tipografía
+secundaria de menor tamaño. En la cabecera interna ambos textos tienen un tamaño que
+permite leerlos con claridad. No se utilizan logotipos institucionales del TEC.
+
+**Motivo:** importación e historial son etapas de un mismo flujo, igual que plantillas
+y esquemas físicos. Separarlos como destinos principales aumenta la navegación y
+oculta dependencias. La selección implícita del árbol también hacía difícil saber bajo
+qué elemento se agregaría una nueva ubicación y obligaba a repetir acciones para crear
+estructuras físicas regulares.
+
+**Alternativas descartadas:** mantener cuatro destinos principales, porque expone
+entidades técnicas en lugar de tareas; usar únicamente la selección visual del árbol
+como padre, porque el contexto de creación no resulta evidente; exigir una operación
+por instancia, porque vuelve lenta la construcción de estructuras repetitivas.
+Acompañar el nombre con un símbolo propio de libro también se probó y se retiró para
+mantener una identidad más sencilla y centrada en el nombre.
+
+**Consecuencia:** las rutas anteriores se conservan como redirecciones de
+compatibilidad, pero no aparecen en la navegación. La interfaz sigue usando las
+operaciones REST granulares existentes; la creación múltiple coordina varias altas
+desde el cliente y vuelve a consultar el árbol al finalizar.
