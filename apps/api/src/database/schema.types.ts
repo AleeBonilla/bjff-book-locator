@@ -1,4 +1,10 @@
-import type { ColumnType, Generated, Insertable, Selectable } from 'kysely';
+import type {
+  ColumnType,
+  Generated,
+  Insertable,
+  Selectable,
+  Updateable,
+} from 'kysely';
 
 /**
  * Tipos de las tablas que usa esta funcionalidad.
@@ -17,6 +23,13 @@ export type SchemeStatus = 'DRAFT' | 'DEFINED' | 'DISTRIBUTED';
 export type StructureTemplateStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
 export type LocationRole = 'CONTAINER' | 'POSITION';
 export type CapacityUnit = 'BOOKS' | 'CENTIMETERS' | 'WEIGHT';
+export type DistributionStrategy =
+  | 'CAPACITY'
+  | 'WEIGHTED'
+  | 'ANCHORED'
+  | 'HYBRID'
+  | 'MANUAL';
+export type RangeSource = 'AUTO' | 'ANCHORED' | 'MANUAL';
 
 /** PostgreSQL entrega NUMERIC como texto; los repositorios convierten al responder. */
 export type NumericColumn = ColumnType<string, string | number, string | number>;
@@ -143,6 +156,99 @@ export interface LocationDistributionSettingsTable {
   updated_at: Generated<Date>;
 }
 
+export interface DistributionRunsTable {
+  distribution_run_id: Generated<number>;
+  scheme_id: number;
+  collection_load_id: number;
+  based_on_distribution_run_id: number | null;
+  strategy: Generated<DistributionStrategy>;
+  parameters: Generated<Record<string, unknown>>;
+  status: Generated<ProcessStatus>;
+  default_capacity_value: NumericColumn | null;
+  default_capacity_unit: CapacityUnit | null;
+  default_target_fill_ratio: NumericColumn;
+  default_allow_overflow: Generated<boolean>;
+  book_count: Generated<number>;
+  position_count: Generated<number>;
+  unassigned_count: Generated<number>;
+  is_published: Generated<boolean>;
+  published_at: Date | null;
+  error_message: string | null;
+  created_by: number | null;
+  created_at: Generated<Date>;
+  finished_at: Date | null;
+  revision: Generated<number>;
+}
+
+export interface DistributionPositionInputsTable {
+  distribution_position_input_id: Generated<number>;
+  distribution_run_id: number;
+  scheme_id: number;
+  location_id: number;
+  position_sequence: number;
+  capacity_value: NumericColumn | null;
+  capacity_unit: CapacityUnit | null;
+  target_fill_ratio: NumericColumn;
+  allow_overflow: boolean;
+  resolution: Generated<Record<string, unknown>>;
+  created_at: Generated<Date>;
+}
+
+export interface DistributionAnchorsTable {
+  distribution_anchor_id: Generated<number>;
+  distribution_run_id: number;
+  scheme_id: number;
+  location_id: number;
+  boundary_key: string;
+  boundary_code: string;
+  created_by: number | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export interface DistributionRangesTable {
+  distribution_range_id: Generated<number>;
+  distribution_run_id: number;
+  scheme_id: number;
+  location_id: number;
+  range_sequence: number;
+  range_start_key: string;
+  range_end_key: string;
+  range_start_code: string | null;
+  range_end_code: string | null;
+  source: Generated<RangeSource>;
+  book_count: Generated<number>;
+  reviewed_by: number | null;
+  reviewed_at: Date | null;
+  review_notes: string | null;
+  created_at: Generated<Date>;
+}
+
+export interface BookPlacementsTable {
+  book_placement_id: Generated<number>;
+  distribution_run_id: number;
+  scheme_id: number;
+  collection_load_id: number;
+  book_id: number;
+  location_id: number;
+  source: Generated<RangeSource>;
+  created_at: Generated<Date>;
+}
+
+export interface LocationPathsTable {
+  location_id: number;
+  scheme_id: number;
+  structure_template_id: number;
+  structure_template_node_id: number;
+  role: LocationRole;
+  parent_location_id: number | null;
+  name: string;
+  sort_order: number;
+  leaf_sequence: number | null;
+  path: string;
+  depth: number;
+}
+
 export interface Database {
   users: UsersTable;
   schemes: SchemesTable;
@@ -153,6 +259,12 @@ export interface Database {
   collection_loads: CollectionLoadsTable;
   collection_load_errors: CollectionLoadErrorsTable;
   books: BooksTable;
+  distribution_runs: DistributionRunsTable;
+  distribution_position_inputs: DistributionPositionInputsTable;
+  distribution_anchors: DistributionAnchorsTable;
+  distribution_ranges: DistributionRangesTable;
+  book_placements: BookPlacementsTable;
+  location_paths: LocationPathsTable;
 }
 
 export type UserRow = Selectable<UsersTable>;
@@ -165,6 +277,13 @@ export type StructureTemplateNodeRow = Selectable<StructureTemplateNodesTable>;
 export type LocationRow = Selectable<LocationsTable>;
 export type LocationDistributionSettingRow =
   Selectable<LocationDistributionSettingsTable>;
+export type DistributionRunRow = Selectable<DistributionRunsTable>;
+export type DistributionPositionInputRow = Selectable<DistributionPositionInputsTable>;
+export type DistributionAnchorRow = Selectable<DistributionAnchorsTable>;
+export type DistributionRangeRow = Selectable<DistributionRangesTable>;
+export type BookPlacementRow = Selectable<BookPlacementsTable>;
 
 export type NewBook = Insertable<BooksTable>;
 export type NewCollectionLoadError = Insertable<CollectionLoadErrorsTable>;
+export type NewDistributionRun = Insertable<DistributionRunsTable>;
+export type DistributionRunUpdate = Updateable<DistributionRunsTable>;

@@ -380,7 +380,7 @@ export class SchemesService {
 function toScheme(row: SchemeWithCreator, locations: LocationJoined[]): Scheme {
   const reasons: SchemeUnavailableReason[] = [];
   if (!row.enabled) reasons.push('SCHEME_DISABLED');
-  if (row.status !== 'DEFINED') reasons.push('SCHEME_NOT_DEFINED');
+  if (row.status === 'DRAFT') reasons.push('SCHEME_NOT_DEFINED');
   if (locations.some((location) => !location.template_enabled))
     reasons.push('TEMPLATE_DISABLED');
   if (

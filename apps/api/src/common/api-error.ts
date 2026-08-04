@@ -28,6 +28,14 @@ export class ApiError extends HttpException {
     return new ApiError('INVALID_CREDENTIALS', 'Credenciales inválidas.', 401);
   }
 
+  static invalidSearchInput(): ApiError {
+    return new ApiError(
+      'VALIDATION_FAILED',
+      'El código no tiene un formato de clasificación utilizable.',
+      422,
+    );
+  }
+
   static noFile(): ApiError {
     return new ApiError('NO_FILE', 'No se recibió ningún archivo.', 400);
   }
@@ -97,7 +105,9 @@ export class ApiError extends HttpException {
       | 'TEMPLATE_NOT_FOUND'
       | 'TEMPLATE_NODE_NOT_FOUND'
       | 'SCHEME_NOT_FOUND'
-      | 'LOCATION_NOT_FOUND',
+      | 'LOCATION_NOT_FOUND'
+      | 'DISTRIBUTION_RUN_NOT_FOUND'
+      | 'DISTRIBUTION_RANGE_NOT_FOUND',
     message: string,
   ): ApiError {
     return new ApiError(code, message, 404);
@@ -112,7 +122,12 @@ export class ApiError extends HttpException {
       | 'SCHEME_NAME_CONFLICT'
       | 'SIBLING_NAME_CONFLICT'
       | 'MAP_ELEMENT_CONFLICT'
-      | 'SUBTREE_CONFIRMATION_REQUIRED',
+      | 'SUBTREE_CONFIRMATION_REQUIRED'
+      | 'RUN_BUSY'
+      | 'RUN_VERSION_CONFLICT'
+      | 'RUN_IMMUTABLE'
+      | 'INVALID_RUN_STATE'
+      | 'UNASSIGNED_CONFIRMATION_REQUIRED',
     message: string,
     details?: Record<string, unknown>,
   ): ApiError {
@@ -127,7 +142,13 @@ export class ApiError extends HttpException {
       | 'TREE_CYCLE'
       | 'ORDER_MISMATCH'
       | 'INVALID_DISTRIBUTION_SETTINGS'
-      | 'SCHEME_LINEAGE_CYCLE',
+      | 'SCHEME_LINEAGE_CYCLE'
+      | 'INVALID_RUN_LINEAGE'
+      | 'INVALID_STRATEGY_INPUTS'
+      | 'INVALID_EFFECTIVE_CONFIGURATION'
+      | 'INVALID_ANCHORS'
+      | 'INVALID_MANUAL_RANGES'
+      | 'COMPARISON_BASE_REQUIRED',
     message: string,
     details?: Record<string, unknown>,
   ): ApiError {

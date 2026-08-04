@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { SessionGuard } from './auth/session.guard.js';
 import { CollectionLoadsModule } from './collection-loads/collection-loads.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { DistributionModule } from './distribution/distribution.module.js';
 import { SchemesModule } from './schemes/schemes.module.js';
 import { StructureTemplatesModule } from './structure-templates/structure-templates.module.js';
 
@@ -15,6 +16,7 @@ import { StructureTemplatesModule } from './structure-templates/structure-templa
     CollectionLoadsModule,
     StructureTemplatesModule,
     SchemesModule,
+    DistributionModule,
   ],
   providers: [
     // Guarda global: una ruta nueva queda protegida por omisión y hay que abrirla

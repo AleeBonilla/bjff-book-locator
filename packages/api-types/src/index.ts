@@ -41,6 +41,19 @@ export type ApiErrorCode =
   | 'ORDER_MISMATCH'
   | 'INVALID_DISTRIBUTION_SETTINGS'
   | 'SCHEME_LINEAGE_CYCLE'
+  | 'DISTRIBUTION_RUN_NOT_FOUND'
+  | 'DISTRIBUTION_RANGE_NOT_FOUND'
+  | 'RUN_BUSY'
+  | 'RUN_VERSION_CONFLICT'
+  | 'RUN_IMMUTABLE'
+  | 'INVALID_RUN_STATE'
+  | 'INVALID_RUN_LINEAGE'
+  | 'INVALID_STRATEGY_INPUTS'
+  | 'INVALID_EFFECTIVE_CONFIGURATION'
+  | 'INVALID_ANCHORS'
+  | 'INVALID_MANUAL_RANGES'
+  | 'COMPARISON_BASE_REQUIRED'
+  | 'UNASSIGNED_CONFIRMATION_REQUIRED'
   | 'VALIDATION_FAILED'
   | 'INTERNAL_ERROR';
 
@@ -323,4 +336,186 @@ export interface SubtreePreview {
   root: Omit<SubtreePreviewItem, 'parentId'>;
   descendantCount: number;
   items: SubtreePreviewItem[];
+}
+
+// --- Distribución y búsqueda pública ---
+
+export type DistributionStrategy =
+  'CAPACITY' | 'WEIGHTED' | 'ANCHORED' | 'HYBRID' | 'MANUAL';
+export type DistributionStatus = 'PENDING' | 'DONE' | 'ERROR';
+export type RangeSource = 'AUTO' | 'ANCHORED' | 'MANUAL';
+export type ResolutionSource = 'LOCATION' | 'ANCESTOR' | 'TEMPLATE' | 'RUN';
+
+export interface RunDefaults {
+  capacity: Capacity | null;
+  targetFillRatio: number;
+  allowOverflow: boolean;
+}
+
+export interface AnchorInput {
+  locationId: number;
+  boundaryCode: string;
+}
+
+export interface ManualRangeInput {
+  locationId: number;
+  startCode: string | null;
+  endCode: string | null;
+}
+
+export interface CreateDistributionRunRequest {
+  schemeId: number;
+  collectionLoadId: number;
+  basedOnDistributionRunId?: number | null;
+  strategy?: DistributionStrategy;
+  defaults: RunDefaults;
+  anchors?: AnchorInput[];
+  manualRanges?: ManualRangeInput[];
+}
+
+export interface RecalculateDistributionRunRequest {
+  expectedRevision: number;
+  rebuildSnapshot: boolean;
+  defaults: RunDefaults;
+  anchors?: AnchorInput[];
+  manualRanges?: ManualRangeInput[];
+}
+
+export interface PublishDistributionRunRequest {
+  expectedRevision: number;
+  previewAccepted: boolean;
+  unassignedAccepted?: boolean;
+}
+
+export interface ReviewDistributionRangeRequest {
+  expectedRevision: number;
+  notes: string | null;
+}
+
+export interface DistributionRunCounters {
+  bookCount: number;
+  positionCount: number;
+  unassignedCount: number;
+}
+
+export interface DistributionWarnings {
+  unassignedCount: number;
+  emptyPositionCount: number;
+  overloadedPositionCount: number;
+  splitKeyCount: number;
+}
+
+export interface DistributionRunSummary {
+  distributionRunId: number;
+  schemeId: number;
+  collectionLoadId: number;
+  basedOnDistributionRunId: number | null;
+  strategy: DistributionStrategy;
+  status: DistributionStatus;
+  revision: number;
+  defaults: RunDefaults;
+  counters: DistributionRunCounters;
+  isPublished: boolean;
+  publishedAt: string | null;
+  errorMessage: string | null;
+  createdBy: AuditUser | null;
+  createdAt: string;
+  finishedAt: string | null;
+}
+
+export interface FieldResolution {
+  source: ResolutionSource;
+  sourceId: number | null;
+}
+
+export interface DistributionPositionInput {
+  locationId: number;
+  positionSequence: number;
+  path: string;
+  capacity: Capacity | null;
+  targetFillRatio: number;
+  allowOverflow: boolean;
+  resolution: {
+    capacity: FieldResolution;
+    targetFillRatio: FieldResolution;
+    allowOverflow: FieldResolution;
+  };
+}
+
+export interface DistributionAnchor {
+  locationId: number;
+  boundaryCode: string;
+  path: string;
+}
+
+export interface DistributionRange {
+  distributionRangeId: number;
+  locationId: number;
+  rangeSequence: number;
+  startCode: string | null;
+  endCode: string | null;
+  source: RangeSource;
+  bookCount: number;
+  path: string;
+  reviewedBy: AuditUser | null;
+  reviewedAt: string | null;
+  reviewNotes: string | null;
+}
+
+export interface DistributionRunDetail extends DistributionRunSummary {
+  positions: DistributionPositionInput[];
+  anchors: DistributionAnchor[];
+  ranges: DistributionRange[];
+  warnings: DistributionWarnings;
+}
+
+export interface DistributionDerivationTemplate {
+  basedOnDistributionRunId: number;
+  schemeId: number;
+  suggestedCollectionLoadId: number;
+  strategy: DistributionStrategy;
+  defaults: RunDefaults;
+  anchors: AnchorInput[];
+  manualRanges: ManualRangeInput[];
+}
+
+export interface DistributionCounterChanges {
+  assigned: number;
+  unassigned: number;
+  emptyPositions: number;
+  overloadedPositions: number;
+  splitKeys: number;
+}
+
+export interface DistributionRangeChange {
+  locationId: number;
+  path: string;
+  before: { startCode: string | null; endCode: string | null } | null;
+  after: { startCode: string | null; endCode: string | null } | null;
+}
+
+export interface DistributionComparison {
+  runId: number;
+  againstRunId: number;
+  counterChanges: DistributionCounterChanges;
+  rangeChanges: DistributionRangeChange[];
+}
+
+export type PublicSearchMatchType = 'EXACT' | 'RANGE';
+
+export interface PublicLocation {
+  path: string;
+  mapElementId: string | null;
+}
+
+export interface PublicSearchResult {
+  status: 'FOUND' | 'NOT_FOUND';
+  matchType: PublicSearchMatchType | null;
+  approximate: true;
+  message: string;
+  locations: PublicLocation[];
+}
+
+export interface PublicSearchRequest {
+  classificationCode: string;
 }
