@@ -357,6 +357,8 @@ objetivo = 34 registros
 
 Con `WEIGHT` o `CENTIMETERS`, multiplica el peso efectivo.
 
+Cuando la unidad es `BOOKS`, un objetivo fraccionario se redondea siempre hacia abajo.
+
 ### `allow_overflow`
 
 Indica si una posición puede superar su objetivo para mantener unido un grupo de
@@ -388,6 +390,9 @@ códigos.
 
 `distribution_position_inputs` congela la entrada de la corrida. Cambios
 posteriores en plantillas o locations no alteran el historial.
+
+El `scheme`, la carga y la estrategia quedan fijos al crear la corrida. Cambiar
+cualquiera de los tres exige crear otra.
 
 ### Estrategias
 
@@ -641,6 +646,19 @@ Puede editarse como borrador:
 No se modifica un rango aislado. Un ajuste de frontera crea o modifica un
 anchor y recalcula resultados coherentes.
 
+Mientras la corrida está `PENDING`, se rechazan otros cambios y recálculos sobre ella.
+Una vista desactualizada debe refrescarse antes de guardar. Si el recálculo falla, se
+revierte todo el intento, incluidas las nuevas entradas, y se conserva sin cambios la
+última vista previa válida.
+
+### Corrida inicial en `ERROR`
+
+Puede reintentarse mientras no esté publicada. El comando conserva `scheme`, carga y
+estrategia, exige la revisión observada y puede corregir defaults, anchors o rangos
+manuales. Si tiene éxito, crea la primera vista previa `DONE`. Si vuelve a fallar, queda
+en `ERROR`, actualiza el diagnóstico y no conserva resultados parciales. En ambos casos
+incrementa la revisión porque el intento terminó y cambió el estado observable.
+
 ### Corrida publicada
 
 Es inmutable.
@@ -662,12 +680,18 @@ Para corregirla:
 no comparte resultados y no reutiliza el snapshot anterior. La corrida derivada
 pertenece al mismo `scheme`, pero puede usar otra `collection_load`.
 
+El backend prepara una plantilla de derivación con las entradas editables. La interfaz
+puede modificarla y enviarla como un comando completo, pero no decide por su cuenta qué
+datos se copian.
+
 No se copian `book_placements` ni rangos calculados. En una corrida `MANUAL`, se
 pueden copiar los rangos introducidos como entradas editables antes de volver a
 validarlos.
 
 `reviewed_by`, `reviewed_at` y `review_notes` registran una revisión eventual.
-No convierten el resultado público en exacto.
+No convierten el resultado público en exacto ni son obligatorios para publicar. Solo
+pueden cambiar en una corrida `DONE` no publicada; después de publicar quedan
+inmutables con la versión.
 
 ## 15. Publicar y activar
 
@@ -675,8 +699,15 @@ No convierten el resultado público en exacto.
 
 - corrida en `DONE`;
 - `scheme` en `DISTRIBUTED`;
-- vista previa aceptada;
-- sin errores bloqueantes.
+- vista previa aceptada.
+
+Los registros sin asignar no bloquean por sí solos la publicación. Si existen, el
+panel muestra su cantidad como advertencia y exige una confirmación explícita
+adicional.
+
+Las posiciones vacías, las sobrecargas y las claves divididas también se muestran como
+advertencias, pero no bloquean una corrida `DONE` ni exigen otra confirmación. Una
+combinación inválida impide que la corrida alcance `DONE`.
 
 ### Publicación
 
@@ -694,18 +725,34 @@ Las consultas concurrentes continúan viendo el estado anterior hasta el commit.
 
 ## 16. Búsqueda pública
 
+Una integración externa puede enviar `classificationCode` mediante
+`POST /api/public/search/open`. El servicio responde `303` únicamente hacia el origen
+web configurado y codifica el valor en `/buscar?codigo=...`. Al abrirse, la interfaz
+conserva el texto recibido, completa el campo y ejecuta una sola búsqueda.
+
+La búsqueda de prueba de una corrida `DONE` utiliza exactamente la misma validación.
+Como se ejecuta en un contexto administrativo, un código no utilizable responde `422`
+y el formulario explica el problema junto al campo sin conservar un resultado previo.
+La búsqueda pública responde sin ubicación para el mismo caso.
+
 1. Recibir el código.
-2. Generar `comparable_key`.
-3. Obtener el `scheme` activo.
-4. Obtener su corrida publicada.
-5. Buscar coincidencias exactas en la carga de esa corrida.
-6. Si existen, consultar sus `book_placements` y agrupar las `POSITION`
+2. Rechazar como no ubicable una entrada vacía, ambigua o con caracteres ajenos al
+   formato catalográfico.
+3. Generar `comparable_key`.
+4. Obtener el `scheme` activo.
+5. Obtener su corrida publicada.
+6. Buscar coincidencias exactas en la carga de esa corrida.
+7. Si existen, consultar sus `book_placements` y agrupar las `POSITION`
    distintas.
-7. Si no existen, consultar `distribution_ranges`.
-8. Mostrar una o varias ubicaciones aproximadas.
+8. Si no existen, consultar `distribution_ranges`.
+9. Mostrar una o varias ubicaciones aproximadas.
 
 Una coincidencia exacta en catálogo es más específica, pero no confirma que el
 ejemplar esté físicamente presente.
+
+Si existen coincidencias exactas pero ninguna tiene `book_placement`, la búsqueda
+responde sin ubicación. No usa el rango como alternativa porque ocultaría que esos
+registros exactos quedaron sin asignar.
 
 Una clave puede devolver varias posiciones porque distintos registros con ese
 código pueden haberse distribuido entre ubicaciones consecutivas. Esto no

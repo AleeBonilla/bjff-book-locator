@@ -101,18 +101,18 @@ personal y la interfaz.
 
 ### `scheme_status`
 
-| Valor | Uso |
-|---|---|
-| `DRAFT` | La estructura todavía se está modelando. |
-| `DEFINED` | La estructura pasó las validaciones y puede distribuirse. |
+| Valor         | Uso                                                              |
+| ------------- | ---------------------------------------------------------------- |
+| `DRAFT`       | La estructura todavía se está modelando.                         |
+| `DEFINED`     | La estructura pasó las validaciones y puede distribuirse.        |
 | `DISTRIBUTED` | El `scheme` tiene una distribución terminada y puede publicarse. |
 
 ### `structure_template_status`
 
-| Valor | Uso |
-|---|---|
-| `DRAFT` | La plantilla y sus nodos pueden modificarse. |
-| `ACTIVE` | La plantilla está validada y puede instanciarse. |
+| Valor      | Uso                                                        |
+| ---------- | ---------------------------------------------------------- |
+| `DRAFT`    | La plantilla y sus nodos pueden modificarse.               |
+| `ACTIVE`   | La plantilla está validada y puede instanciarse.           |
 | `ARCHIVED` | No admite nuevas instancias, pero conserva las existentes. |
 
 Una plantilla `ACTIVE` no puede regresar a `DRAFT`. Esto evita cambiar la forma
@@ -120,21 +120,21 @@ que ya utilizan estructuras concretas.
 
 ### `process_status`
 
-| Valor | Uso |
-|---|---|
+| Valor     | Uso                                         |
+| --------- | ------------------------------------------- |
 | `PENDING` | El proceso fue creado y todavía no terminó. |
-| `DONE` | El proceso terminó correctamente. |
-| `ERROR` | El proceso no pudo completarse. |
+| `DONE`    | El proceso terminó correctamente.           |
+| `ERROR`   | El proceso no pudo completarse.             |
 
 Se comparte entre importaciones y corridas porque ambas son operaciones
 asíncronas con el mismo ciclo básico.
 
 ### `location_role`
 
-| Valor | Uso |
-|---|---|
-| `CONTAINER` | Agrupa otras ubicaciones y construye la jerarquía. |
-| `POSITION` | Es una ubicación hoja que puede recibir parte de la colección. |
+| Valor       | Uso                                                            |
+| ----------- | -------------------------------------------------------------- |
+| `CONTAINER` | Agrupa otras ubicaciones y construye la jerarquía.             |
+| `POSITION`  | Es una ubicación hoja que puede recibir parte de la colección. |
 
 Los nombres físicos, como sección, estantería, cara o anaquel, los define la
 plantilla. Los roles son fijos porque el algoritmo solamente necesita saber si
@@ -142,37 +142,37 @@ un nodo agrupa o recibe libros.
 
 ### `range_source`
 
-| Valor | Uso |
-|---|---|
-| `AUTO` | Resultado calculado sin una frontera manual determinante. |
-| `ANCHORED` | Resultado condicionado por un límite conocido. |
-| `MANUAL` | Resultado establecido directamente por el personal. |
+| Valor      | Uso                                                       |
+| ---------- | --------------------------------------------------------- |
+| `AUTO`     | Resultado calculado sin una frontera manual determinante. |
+| `ANCHORED` | Resultado condicionado por un límite conocido.            |
+| `MANUAL`   | Resultado establecido directamente por el personal.       |
 
 Este origen se guarda tanto en rangos como en asignaciones para distinguir
 decisiones del algoritmo de intervenciones humanas.
 
 ### `distribution_strategy`
 
-| Valor | Uso |
-|---|---|
-| `CAPACITY` | Reparto según capacidad aproximada en libros. |
+| Valor      | Uso                                                     |
+| ---------- | ------------------------------------------------------- |
+| `CAPACITY` | Reparto según capacidad aproximada en libros.           |
 | `WEIGHTED` | Reparto proporcional según pesos o medidas compatibles. |
-| `ANCHORED` | Los límites conocidos son el criterio principal. |
-| `HYBRID` | Combina límites conocidos con capacidades o pesos. |
-| `MANUAL` | El personal establece la distribución. |
+| `ANCHORED` | Los límites conocidos son el criterio principal.        |
+| `HYBRID`   | Combina límites conocidos con capacidades o pesos.      |
+| `MANUAL`   | El personal establece la distribución.                  |
 
 La estrategia predeterminada es `HYBRID`, porque permite partir de una
 estimación algorítmica y mejorarla con conocimiento físico.
 
 El tipo solo almacena la elección. El servicio aplica este contrato:
 
-| Estrategia | Entrada obligatoria | Entrada no admitida |
-|---|---|---|
-| `CAPACITY` | Capacidades `BOOKS` | Anchors |
-| `WEIGHTED` | `WEIGHT` o `CENTIMETERS` compatibles | Anchors |
-| `ANCHORED` | Anchor para cada posición posterior a la primera | Anchors parciales |
-| `HYBRID` | Capacidades o pesos compatibles | Rangos manuales |
-| `MANUAL` | Cobertura completa de rangos | Anchors |
+| Estrategia | Entrada obligatoria                              | Entrada no admitida |
+| ---------- | ------------------------------------------------ | ------------------- |
+| `CAPACITY` | Capacidades `BOOKS`                              | Anchors             |
+| `WEIGHTED` | `WEIGHT` o `CENTIMETERS` compatibles             | Anchors             |
+| `ANCHORED` | Anchor para cada posición posterior a la primera | Anchors parciales   |
+| `HYBRID`   | Capacidades o pesos compatibles                  | Rangos manuales     |
+| `MANUAL`   | Cobertura completa de rangos                     | Anchors             |
 
 `ANCHORED` usa fronteras suficientes para determinar la distribución.
 `HYBRID` se usa cuando solo se conocen algunas. Una entrada incompatible debe
@@ -180,26 +180,26 @@ rechazarse; no se ignora silenciosamente.
 
 ### `capacity_unit`
 
-| Valor | Uso |
-|---|---|
-| `BOOKS` | Cantidad aproximada de registros que recibe una posición. |
+| Valor         | Uso                                                                                |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `BOOKS`       | Cantidad aproximada de registros que recibe una posición.                          |
 | `CENTIMETERS` | Longitud útil; funciona proporcionalmente si no se conoce el grosor de cada libro. |
-| `WEIGHT` | Peso relativo sin una unidad física. |
+| `WEIGHT`      | Peso relativo sin una unidad física.                                               |
 
 Una corrida debe utilizar unidades compatibles. No se puede comparar
 directamente `BOOKS` con `CENTIMETERS`.
 
 ### `load_error_severity`
 
-| Valor | Uso |
-|---|---|
-| `REVIEW` | La fila puede importarse, pero requiere revisión. |
-| `REJECTED` | La fila no puede incorporarse como libro válido. |
+| Valor      | Uso                                               |
+| ---------- | ------------------------------------------------- |
+| `REVIEW`   | La fila puede importarse, pero requiere revisión. |
+| `REJECTED` | La fila no puede incorporarse como libro válido.  |
 
 ### `user_role`
 
-| Valor | Uso |
-|---|---|
+| Valor   | Uso                                              |
+| ------- | ------------------------------------------------ |
 | `ADMIN` | Personal autorizado para administrar el sistema. |
 
 La primera versión solo necesita un rol. Mantenerlo como tipo explícito permite
@@ -214,18 +214,18 @@ agregar permisos diferenciados sin cambiar la estructura de `users`.
 La búsqueda pública no depende de esta tabla. Las cuentas se utilizan para
 autenticar y atribuir cambios administrativos.
 
-| Campo | Por qué existe |
-|---|---|
-| `user_id` | Identificador interno y clave primaria. |
-| `username` | Nombre único utilizado para identificar la cuenta durante el inicio de sesión. |
-| `email` | Dirección única para identificar y contactar a la persona administradora. |
-| `password_hash` | Hash de la contraseña. Nunca se guarda la contraseña original. |
-| `full_name` | Nombre legible para auditoría y presentación en el panel. Es opcional. |
-| `role` | Define los permisos de la cuenta. En esta versión solo existe `ADMIN`. |
-| `enabled` | Permite desactivar el acceso sin eliminar la cuenta ni perder su historial. |
-| `last_login_at` | Registra el último acceso exitoso. No implementa reintentos ni bloqueos. |
-| `created_at` | Fecha de creación de la cuenta. |
-| `updated_at` | Fecha de la última modificación. |
+| Campo           | Por qué existe                                                                 |
+| --------------- | ------------------------------------------------------------------------------ |
+| `user_id`       | Identificador interno y clave primaria.                                        |
+| `username`      | Nombre único utilizado para identificar la cuenta durante el inicio de sesión. |
+| `email`         | Dirección única para identificar y contactar a la persona administradora.      |
+| `password_hash` | Hash de la contraseña. Nunca se guarda la contraseña original.                 |
+| `full_name`     | Nombre legible para auditoría y presentación en el panel. Es opcional.         |
+| `role`          | Define los permisos de la cuenta. En esta versión solo existe `ADMIN`.         |
+| `enabled`       | Permite desactivar el acceso sin eliminar la cuenta ni perder su historial.    |
+| `last_login_at` | Registra el último acceso exitoso. No implementa reintentos ni bloqueos.       |
+| `created_at`    | Fecha de creación de la cuenta.                                                |
+| `updated_at`    | Fecha de la última modificación.                                               |
 
 Reglas principales:
 
@@ -241,18 +241,18 @@ Un `scheme` contiene el árbol concreto de ubicaciones y su orden. Las plantilla
 describen formas reutilizables; el `scheme` registra cuántas estructuras físicas
 existen realmente.
 
-| Campo | Por qué existe |
-|---|---|
-| `scheme_id` | Identificador interno del esquema. |
-| `name` | Nombre único para distinguir versiones o propuestas. |
-| `description` | Contexto opcional sobre el alcance o motivo del esquema. |
-| `status` | Controla el avance `DRAFT -> DEFINED -> DISTRIBUTED`. |
-| `is_active` | Indica cuál esquema consulta la búsqueda pública. |
-| `enabled` | Retira un esquema del uso normal sin eliminar su historial. |
+| Campo                | Por qué existe                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `scheme_id`          | Identificador interno del esquema.                                                                            |
+| `name`               | Nombre único para distinguir versiones o propuestas.                                                          |
+| `description`        | Contexto opcional sobre el alcance o motivo del esquema.                                                      |
+| `status`             | Controla el avance `DRAFT -> DEFINED -> DISTRIBUTED`.                                                         |
+| `is_active`          | Indica cuál esquema consulta la búsqueda pública.                                                             |
+| `enabled`            | Retira un esquema del uso normal sin eliminar su historial.                                                   |
 | `based_on_scheme_id` | Registra que el esquema se creó a partir de otro. Sirve para trazabilidad; la copia la realiza la aplicación. |
-| `created_by` | Usuario que creó el esquema. |
-| `created_at` | Fecha de creación. |
-| `updated_at` | Fecha de la última modificación. |
+| `created_by`         | Usuario que creó el esquema.                                                                                  |
+| `created_at`         | Fecha de creación.                                                                                            |
+| `updated_at`         | Fecha de la última modificación.                                                                              |
 
 Reglas principales:
 
@@ -277,16 +277,16 @@ Sección (CONTAINER)
 La plantilla define la forma, no la cantidad. Dos estructuras pueden usar la
 misma plantilla y tener números distintos de estanterías o anaqueles.
 
-| Campo | Por qué existe |
-|---|---|
-| `structure_template_id` | Identificador interno de la plantilla. |
-| `name` | Nombre único para seleccionarla y administrarla. |
-| `description` | Explica para qué estructura física fue diseñada. |
-| `status` | Controla si puede editarse, instanciarse o solo conservarse. |
-| `enabled` | Permite ocultarla del uso normal sin romper instancias existentes. |
-| `created_by` | Usuario que creó la plantilla. |
-| `created_at` | Fecha de creación. |
-| `updated_at` | Fecha de la última modificación. |
+| Campo                   | Por qué existe                                                     |
+| ----------------------- | ------------------------------------------------------------------ |
+| `structure_template_id` | Identificador interno de la plantilla.                             |
+| `name`                  | Nombre único para seleccionarla y administrarla.                   |
+| `description`           | Explica para qué estructura física fue diseñada.                   |
+| `status`                | Controla si puede editarse, instanciarse o solo conservarse.       |
+| `enabled`               | Permite ocultarla del uso normal sin romper instancias existentes. |
+| `created_by`            | Usuario que creó la plantilla.                                     |
+| `created_at`            | Fecha de creación.                                                 |
+| `updated_at`            | Fecha de la última modificación.                                   |
 
 Reglas principales:
 
@@ -301,22 +301,22 @@ Reglas principales:
 Cada fila define un tipo de nodo dentro de esa forma. No representa todavía un
 mueble o anaquel real.
 
-| Campo | Por qué existe |
-|---|---|
-| `structure_template_node_id` | Identificador del nodo de plantilla. |
-| `structure_template_id` | Plantilla a la que pertenece. Impide mezclar nodos de formas diferentes. |
-| `parent_template_node_id` | Nodo padre. `NULL` identifica la raíz de la plantilla. |
-| `name` | Nombre funcional del nivel, por ejemplo `Sección`, `Cara` o `Anaquel`. |
-| `role` | Indica si el nodo agrupa (`CONTAINER`) o recibe distribución (`POSITION`). |
-| `sort_order` | Orden predeterminado entre nodos hermanos de la plantilla. |
-| `visual_kind` | Categoría visual opcional para que la interfaz elija una representación apropiada. No determina la jerarquía. |
-| `default_capacity_value` | Capacidad predeterminada para las ubicaciones que instancien este nodo `POSITION`. |
-| `default_capacity_unit` | Explica si la capacidad está expresada en libros, centímetros o peso relativo. |
-| `default_target_fill_ratio` | Porción predeterminada de la capacidad que se intenta ocupar. |
-| `default_allow_overflow` | Política predeterminada para superar el objetivo de llenado. |
-| `enabled` | Permite deshabilitar el nodo durante el diseño sin borrarlo inmediatamente. |
-| `created_at` | Fecha de creación. |
-| `updated_at` | Fecha de la última modificación. |
+| Campo                        | Por qué existe                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `structure_template_node_id` | Identificador del nodo de plantilla.                                                                          |
+| `structure_template_id`      | Plantilla a la que pertenece. Impide mezclar nodos de formas diferentes.                                      |
+| `parent_template_node_id`    | Nodo padre. `NULL` identifica la raíz de la plantilla.                                                        |
+| `name`                       | Nombre funcional del nivel, por ejemplo `Sección`, `Cara` o `Anaquel`.                                        |
+| `role`                       | Indica si el nodo agrupa (`CONTAINER`) o recibe distribución (`POSITION`).                                    |
+| `sort_order`                 | Orden predeterminado entre nodos hermanos de la plantilla.                                                    |
+| `visual_kind`                | Categoría visual opcional para que la interfaz elija una representación apropiada. No determina la jerarquía. |
+| `default_capacity_value`     | Capacidad predeterminada para las ubicaciones que instancien este nodo `POSITION`.                            |
+| `default_capacity_unit`      | Explica si la capacidad está expresada en libros, centímetros o peso relativo.                                |
+| `default_target_fill_ratio`  | Porción predeterminada de la capacidad que se intenta ocupar.                                                 |
+| `default_allow_overflow`     | Política predeterminada para superar el objetivo de llenado.                                                  |
+| `enabled`                    | Permite deshabilitar el nodo durante el diseño sin borrarlo inmediatamente.                                   |
+| `created_at`                 | Fecha de creación.                                                                                            |
+| `updated_at`                 | Fecha de la última modificación.                                                                              |
 
 Reglas principales:
 
@@ -336,20 +336,20 @@ Reglas principales:
 Una fila puede ser una sección, una estantería, una cara o un anaquel real. Su
 rol se obtiene del nodo de plantilla que instancia.
 
-| Campo | Por qué existe |
-|---|---|
-| `location_id` | Identificador de la ubicación concreta. |
-| `scheme_id` | Esquema al que pertenece la ubicación. |
-| `structure_template_id` | Plantilla utilizada por la instancia. También asegura que padres e hijos pertenezcan a la misma forma. |
-| `structure_template_node_id` | Nodo de plantilla que determina el tipo y rol de la ubicación. |
-| `parent_location_id` | Ubicación física padre. `NULL` identifica una raíz del esquema. |
-| `name` | Etiqueta concreta, por ejemplo `Estantería 4` o `Anaquel B`. |
-| `sort_order` | Orden entre ubicaciones hermanas. Permite recorrer físicamente la estructura. |
-| `leaf_sequence` | Orden global derivado para las `POSITION`. Es la secuencia utilizada por la distribución. |
-| `map_element_id` | Identificador del elemento correspondiente en el mapa esquemático. Vincula datos y representación visual sin guardar SVG en la base de datos. |
-| `enabled` | Excluye temporalmente una ubicación del uso normal sin eliminarla. |
-| `created_at` | Fecha de creación. |
-| `updated_at` | Fecha de la última modificación. |
+| Campo                        | Por qué existe                                                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `location_id`                | Identificador de la ubicación concreta.                                                                                                       |
+| `scheme_id`                  | Esquema al que pertenece la ubicación.                                                                                                        |
+| `structure_template_id`      | Plantilla utilizada por la instancia. También asegura que padres e hijos pertenezcan a la misma forma.                                        |
+| `structure_template_node_id` | Nodo de plantilla que determina el tipo y rol de la ubicación.                                                                                |
+| `parent_location_id`         | Ubicación física padre. `NULL` identifica una raíz del esquema.                                                                               |
+| `name`                       | Etiqueta concreta, por ejemplo `Estantería 4` o `Anaquel B`.                                                                                  |
+| `sort_order`                 | Orden entre ubicaciones hermanas. Permite recorrer físicamente la estructura.                                                                 |
+| `leaf_sequence`              | Orden global derivado para las `POSITION`. Es la secuencia utilizada por la distribución.                                                     |
+| `map_element_id`             | Identificador del elemento correspondiente en el mapa esquemático. Vincula datos y representación visual sin guardar SVG en la base de datos. |
+| `enabled`                    | Excluye temporalmente una ubicación del uso normal sin eliminarla.                                                                            |
+| `created_at`                 | Fecha de creación.                                                                                                                            |
+| `updated_at`                 | Fecha de la última modificación.                                                                                                              |
 
 Reglas principales:
 
@@ -385,19 +385,19 @@ POSITION concreta
 -> valor predeterminado de la corrida
 ```
 
-| Campo | Por qué existe |
-|---|---|
-| `location_distribution_setting_id` | Identificador interno de la configuración. |
-| `location_id` | Ubicación a la que se aplica la configuración. Solo existe una fila de configuración por ubicación. |
-| `scheme_id` | Refuerza que la ubicación pertenece al esquema esperado y facilita relaciones compuestas. |
-| `capacity_value` | Capacidad o peso utilizable. Su interpretación depende de `capacity_unit`. |
-| `capacity_unit` | Unidad de la capacidad: `BOOKS`, `CENTIMETERS` o `WEIGHT`. |
-| `target_fill_ratio` | Fracción de capacidad que el algoritmo intenta ocupar, por ejemplo `0.85`. |
-| `allow_overflow` | Indica si puede superarse el objetivo para mantener unido un grupo de códigos. |
-| `inherit_to_descendants` | Convierte los valores no nulos en defaults para las `POSITION` descendientes. |
-| `updated_by` | Usuario responsable de la configuración vigente. |
-| `created_at` | Fecha de creación. |
-| `updated_at` | Fecha de la última modificación. |
+| Campo                              | Por qué existe                                                                                      |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `location_distribution_setting_id` | Identificador interno de la configuración.                                                          |
+| `location_id`                      | Ubicación a la que se aplica la configuración. Solo existe una fila de configuración por ubicación. |
+| `scheme_id`                        | Refuerza que la ubicación pertenece al esquema esperado y facilita relaciones compuestas.           |
+| `capacity_value`                   | Capacidad o peso utilizable. Su interpretación depende de `capacity_unit`.                          |
+| `capacity_unit`                    | Unidad de la capacidad: `BOOKS`, `CENTIMETERS` o `WEIGHT`.                                          |
+| `target_fill_ratio`                | Fracción de capacidad que el algoritmo intenta ocupar, por ejemplo `0.85`.                          |
+| `allow_overflow`                   | Indica si puede superarse el objetivo para mantener unido un grupo de códigos.                      |
+| `inherit_to_descendants`           | Convierte los valores no nulos en defaults para las `POSITION` descendientes.                       |
+| `updated_by`                       | Usuario responsable de la configuración vigente.                                                    |
+| `created_at`                       | Fecha de creación.                                                                                  |
+| `updated_at`                       | Fecha de la última modificación.                                                                    |
 
 Reglas principales:
 
@@ -423,19 +423,19 @@ Cada importación es una versión independiente. Esto permite recalcular una
 distribución con una colección nueva sin modificar los libros de una carga
 anterior.
 
-| Campo | Por qué existe |
-|---|---|
-| `collection_load_id` | Identificador de la importación. |
-| `title` | Nombre legible de la carga para distinguirla en el panel. |
-| `filename` | Nombre del archivo de origen utilizado para auditoría. |
-| `status` | Estado del proceso: `PENDING`, `DONE` o `ERROR`. |
-| `rows_read` | Total de filas examinadas. Permite comprobar que el archivo fue procesado completo. |
-| `rows_imported` | Total de filas convertidas en registros de `books`. |
-| `rows_without_key` | Filas importadas que no produjeron un código comparable y no pueden distribuirse automáticamente. |
-| `rows_flagged` | Filas que requieren revisión, aunque no necesariamente fueron rechazadas. |
-| `rows_rejected` | Filas que no se importaron como libros válidos. |
-| `created_by` | Usuario que inició la importación. |
-| `created_at` | Fecha de inicio o registro de la carga. |
+| Campo                | Por qué existe                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| `collection_load_id` | Identificador de la importación.                                                                  |
+| `title`              | Nombre legible de la carga para distinguirla en el panel.                                         |
+| `filename`           | Nombre del archivo de origen utilizado para auditoría.                                            |
+| `status`             | Estado del proceso: `PENDING`, `DONE` o `ERROR`.                                                  |
+| `rows_read`          | Total de filas examinadas. Permite comprobar que el archivo fue procesado completo.               |
+| `rows_imported`      | Total de filas convertidas en registros de `books`.                                               |
+| `rows_without_key`   | Filas importadas que no produjeron un código comparable y no pueden distribuirse automáticamente. |
+| `rows_flagged`       | Filas que requieren revisión, aunque no necesariamente fueron rechazadas.                         |
+| `rows_rejected`      | Filas que no se importaron como libros válidos.                                                   |
+| `created_by`         | Usuario que inició la importación.                                                                |
+| `created_at`         | Fecha de inicio o registro de la carga.                                                           |
 
 Reglas principales:
 
@@ -450,14 +450,14 @@ importación.
 Se separa de `collection_loads` porque una carga puede producir cero, uno o
 muchos problemas.
 
-| Campo | Por qué existe |
-|---|---|
-| `collection_load_error_id` | Identificador del problema. |
-| `collection_load_id` | Carga en la que se detectó. |
-| `row_number` | Número de fila del archivo para localizar el dato original. |
-| `severity` | Distingue una fila revisable de una fila rechazada. |
-| `reason` | Explicación breve y procesable del problema. |
-| `raw_content` | Contenido original opcional para diagnosticar el error sin volver a abrir el archivo. |
+| Campo                      | Por qué existe                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| `collection_load_error_id` | Identificador del problema.                                                           |
+| `collection_load_id`       | Carga en la que se detectó.                                                           |
+| `row_number`               | Número de fila del archivo para localizar el dato original.                           |
+| `severity`                 | Distingue una fila revisable de una fila rechazada.                                   |
+| `reason`                   | Explicación breve y procesable del problema.                                          |
+| `raw_content`              | Contenido original opcional para diagnosticar el error sin volver a abrir el archivo. |
 
 Reglas principales:
 
@@ -472,20 +472,20 @@ normalizada para distribución.
 Cada fila representa un registro del archivo, no una confirmación física de un
 ejemplar en una ubicación.
 
-| Campo | Por qué existe |
-|---|---|
-| `book_id` | Identificador interno del registro. |
-| `collection_load_id` | Versión de la colección a la que pertenece. |
-| `source_row_number` | Fila de origen. Garantiza trazabilidad aun cuando los códigos de barras se repitan. |
-| `source_barcode` | Código de barras recibido del archivo. Se conserva sin asumir que sea único. |
-| `classification_raw` | Código de clasificación tal como fue importado. |
-| `comparable_key` | Representación normalizada utilizada para ordenar, comparar y buscar rangos. |
-| `isbn` | Identificador bibliográfico opcional recibido de la fuente. |
-| `title` | Título para mostrar y revisar resultados. |
-| `author` | Autor para mostrar y distinguir registros. |
-| `copy_label` | Etiqueta de copia o ejemplar provista por la colección. |
-| `year` | Año bibliográfico cuando está disponible. |
-| `created_at` | Fecha en que se incorporó el registro. |
+| Campo                | Por qué existe                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| `book_id`            | Identificador interno del registro.                                                 |
+| `collection_load_id` | Versión de la colección a la que pertenece.                                         |
+| `source_row_number`  | Fila de origen. Garantiza trazabilidad aun cuando los códigos de barras se repitan. |
+| `source_barcode`     | Código de barras recibido del archivo. Se conserva sin asumir que sea único.        |
+| `classification_raw` | Código de clasificación tal como fue importado.                                     |
+| `comparable_key`     | Representación normalizada utilizada para ordenar, comparar y buscar rangos.        |
+| `isbn`               | Identificador bibliográfico opcional recibido de la fuente.                         |
+| `title`              | Título para mostrar y revisar resultados.                                           |
+| `author`             | Autor para mostrar y distinguir registros.                                          |
+| `copy_label`         | Etiqueta de copia o ejemplar provista por la colección.                             |
+| `year`               | Año bibliográfico cuando está disponible.                                           |
+| `created_at`         | Fecha en que se incorporó el registro.                                              |
 
 Reglas principales:
 
@@ -507,28 +507,29 @@ Reglas principales:
 Una corrida contiene entradas congeladas, límites conocidos, rangos y
 asignaciones. Se pueden crear varias corridas de prueba y publicar solo una.
 
-| Campo | Por qué existe |
-|---|---|
-| `distribution_run_id` | Identificador de la corrida. |
-| `scheme_id` | Estructura física sobre la que se distribuye. |
-| `collection_load_id` | Versión exacta de la colección utilizada. |
-| `based_on_distribution_run_id` | Corrida anterior utilizada como punto de partida. Conserva linaje, no comparte resultados. |
-| `strategy` | Método de cálculo seleccionado. |
-| `parameters` | Parámetros adicionales versionados que dependen del algoritmo y no justifican columnas estables todavía. |
-| `status` | Estado de ejecución: `PENDING`, `DONE` o `ERROR`. |
-| `default_capacity_value` | Capacidad de último recurso para posiciones sin un valor más específico. |
-| `default_capacity_unit` | Unidad de la capacidad predeterminada. |
-| `default_target_fill_ratio` | Porcentaje de llenado de último recurso. |
-| `default_allow_overflow` | Política de overflow de último recurso. |
-| `book_count` | Cantidad de registros considerados por la corrida. |
-| `position_count` | Cantidad de posiciones incluidas en la entrada congelada. |
-| `unassigned_count` | Registros que el cálculo no pudo asignar. |
-| `is_published` | Indica que esta es la corrida visible para el `scheme`. |
-| `published_at` | Fecha de publicación. Permite auditar cuándo cambió el resultado público. |
-| `error_message` | Diagnóstico general cuando el proceso termina en `ERROR`. |
-| `created_by` | Usuario que creó o inició la corrida. |
-| `created_at` | Fecha de creación. |
-| `finished_at` | Fecha de finalización correcta o fallida. |
+| Campo                          | Por qué existe                                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `distribution_run_id`          | Identificador de la corrida.                                                                               |
+| `scheme_id`                    | Estructura física sobre la que se distribuye.                                                              |
+| `collection_load_id`           | Versión exacta de la colección utilizada.                                                                  |
+| `based_on_distribution_run_id` | Corrida anterior utilizada como punto de partida. Conserva linaje, no comparte resultados.                 |
+| `strategy`                     | Método de cálculo seleccionado.                                                                            |
+| `parameters`                   | Parámetros adicionales versionados que dependen del algoritmo y no justifican columnas estables todavía.   |
+| `status`                       | Estado de ejecución: `PENDING`, `DONE` o `ERROR`.                                                          |
+| `default_capacity_value`       | Capacidad de último recurso para posiciones sin un valor más específico.                                   |
+| `default_capacity_unit`        | Unidad de la capacidad predeterminada.                                                                     |
+| `default_target_fill_ratio`    | Porcentaje de llenado de último recurso.                                                                   |
+| `default_allow_overflow`       | Política de overflow de último recurso.                                                                    |
+| `book_count`                   | Cantidad de registros considerados por la corrida.                                                         |
+| `position_count`               | Cantidad de posiciones incluidas en la entrada congelada.                                                  |
+| `unassigned_count`             | Registros que el cálculo no pudo asignar.                                                                  |
+| `is_published`                 | Indica que esta es la corrida visible para el `scheme`.                                                    |
+| `published_at`                 | Fecha de publicación. Permite auditar cuándo cambió el resultado público.                                  |
+| `error_message`                | Diagnóstico general cuando el proceso termina en `ERROR`.                                                  |
+| `created_by`                   | Usuario que creó o inició la corrida.                                                                      |
+| `created_at`                   | Fecha de creación.                                                                                         |
+| `finished_at`                  | Fecha de finalización correcta o fallida.                                                                  |
+| `revision`                     | Versión entera positiva usada para rechazar mutaciones basadas en una vista desactualizada. Inicia en `1`. |
 
 Reglas principales:
 
@@ -539,6 +540,8 @@ Reglas principales:
 - Una corrida publicada debe estar en `DONE` y tener `published_at`.
 - Solo se publica cuando el `scheme` está en `DISTRIBUTED`.
 - `based_on_distribution_run_id` debe pertenecer al mismo `scheme`.
+- Toda mutación confirmada incrementa `revision`; los comandos posteriores indican la
+  revisión observada.
 - Eliminar la corrida base conserva la derivada y elimina solamente la
   referencia de linaje.
 
@@ -555,6 +558,11 @@ entradas y colección.
 opciones del algoritmo que todavía sean experimentales o específicas de una
 estrategia.
 
+`revision` se agrega mediante
+`database/migrations/20260804000000_add-distribution-run-revision.sql`. Las migraciones
+usan `MIGRATION_DATABASE_URL`, correspondiente al rol propietario; la aplicación sigue
+usando `DATABASE_URL` con privilegios mínimos.
+
 ### `distribution_position_inputs`
 
 **Propósito:** congelar las posiciones y configuraciones efectivas que utilizó
@@ -563,19 +571,19 @@ una corrida.
 Esta tabla evita que una modificación posterior en ubicaciones, plantillas o
 configuración cambie la explicación de un resultado histórico.
 
-| Campo | Por qué existe |
-|---|---|
-| `distribution_position_input_id` | Identificador de la entrada congelada. |
-| `distribution_run_id` | Corrida a la que pertenece. |
-| `scheme_id` | Refuerza que la posición y la corrida pertenecen al mismo esquema. |
-| `location_id` | `POSITION` concreta utilizada por el algoritmo. |
-| `position_sequence` | Orden global que tuvo la posición en esta corrida. |
-| `capacity_value` | Capacidad efectiva después de resolver la precedencia. |
-| `capacity_unit` | Unidad efectiva de la capacidad. |
-| `target_fill_ratio` | Objetivo efectivo de llenado. |
-| `allow_overflow` | Política efectiva de overflow. |
-| `resolution` | Explica de qué nivel salió cada valor: ubicación, ancestro, plantilla o corrida. |
-| `created_at` | Fecha en que se congeló la entrada. |
+| Campo                            | Por qué existe                                                                   |
+| -------------------------------- | -------------------------------------------------------------------------------- |
+| `distribution_position_input_id` | Identificador de la entrada congelada.                                           |
+| `distribution_run_id`            | Corrida a la que pertenece.                                                      |
+| `scheme_id`                      | Refuerza que la posición y la corrida pertenecen al mismo esquema.               |
+| `location_id`                    | `POSITION` concreta utilizada por el algoritmo.                                  |
+| `position_sequence`              | Orden global que tuvo la posición en esta corrida.                               |
+| `capacity_value`                 | Capacidad efectiva después de resolver la precedencia.                           |
+| `capacity_unit`                  | Unidad efectiva de la capacidad.                                                 |
+| `target_fill_ratio`              | Objetivo efectivo de llenado.                                                    |
+| `allow_overflow`                 | Política efectiva de overflow.                                                   |
+| `resolution`                     | Explica de qué nivel salió cada valor: ubicación, ancestro, plantilla o corrida. |
+| `created_at`                     | Fecha en que se congeló la entrada.                                              |
 
 Reglas principales:
 
@@ -602,17 +610,17 @@ Esta POSITION comienza en este código de clasificación.
 No representa un resultado ni el final de una posición. Es una restricción de
 entrada para el algoritmo.
 
-| Campo | Por qué existe |
-|---|---|
-| `distribution_anchor_id` | Identificador del límite conocido. |
-| `distribution_run_id` | Corrida en la que se aplica. Los anchors no modifican otras versiones. |
-| `scheme_id` | Garantiza que la posición pertenece al mismo esquema de la corrida. |
-| `location_id` | Posición cuyo contenido comienza en el límite indicado. |
-| `boundary_key` | Código normalizado utilizado por el algoritmo para comparar. |
-| `boundary_code` | Código legible introducido o confirmado por el personal. |
-| `created_by` | Usuario que registró el límite. |
-| `created_at` | Fecha de creación. |
-| `updated_at` | Fecha de la última corrección. |
+| Campo                    | Por qué existe                                                         |
+| ------------------------ | ---------------------------------------------------------------------- |
+| `distribution_anchor_id` | Identificador del límite conocido.                                     |
+| `distribution_run_id`    | Corrida en la que se aplica. Los anchors no modifican otras versiones. |
+| `scheme_id`              | Garantiza que la posición pertenece al mismo esquema de la corrida.    |
+| `location_id`            | Posición cuyo contenido comienza en el límite indicado.                |
+| `boundary_key`           | Código normalizado utilizado por el algoritmo para comparar.           |
+| `boundary_code`          | Código legible introducido o confirmado por el personal.               |
+| `created_by`             | Usuario que registró el límite.                                        |
+| `created_at`             | Fecha de creación.                                                     |
+| `updated_at`             | Fecha de la última corrección.                                         |
 
 Reglas principales:
 
@@ -640,23 +648,23 @@ Cada intervalo es semiabierto:
 Incluye el inicio y excluye el final. El final de un rango puede funcionar como
 inicio del siguiente sin provocar ambigüedad.
 
-| Campo | Por qué existe |
-|---|---|
-| `distribution_range_id` | Identificador del rango. |
-| `distribution_run_id` | Corrida que produjo el rango. |
-| `scheme_id` | Garantiza que rango, corrida y ubicación pertenezcan al mismo esquema. |
-| `location_id` | Posición aproximada asociada al intervalo. |
-| `range_sequence` | Orden global de los rangos dentro de la corrida. |
-| `range_start_key` | Límite inferior normalizado e inclusivo. |
-| `range_end_key` | Límite superior normalizado y exclusivo. Puede usar `~` como final abierto del dominio. |
-| `range_start_code` | Representación legible del inicio cuando existe un código real. |
-| `range_end_code` | Representación legible del final cuando existe un código real. |
-| `source` | Indica si el rango fue automático, condicionado por anchor o manual. |
-| `book_count` | Cantidad de registros asignados al rango para revisión y métricas. |
-| `reviewed_by` | Usuario que revisó físicamente o administrativamente el rango. |
-| `reviewed_at` | Fecha de la revisión. |
-| `review_notes` | Observaciones de la revisión sin imponer todavía un flujo definitivo de verificación. |
-| `created_at` | Fecha de creación del resultado. |
+| Campo                   | Por qué existe                                                                          |
+| ----------------------- | --------------------------------------------------------------------------------------- |
+| `distribution_range_id` | Identificador del rango.                                                                |
+| `distribution_run_id`   | Corrida que produjo el rango.                                                           |
+| `scheme_id`             | Garantiza que rango, corrida y ubicación pertenezcan al mismo esquema.                  |
+| `location_id`           | Posición aproximada asociada al intervalo.                                              |
+| `range_sequence`        | Orden global de los rangos dentro de la corrida.                                        |
+| `range_start_key`       | Límite inferior normalizado e inclusivo.                                                |
+| `range_end_key`         | Límite superior normalizado y exclusivo. Puede usar `~` como final abierto del dominio. |
+| `range_start_code`      | Representación legible del inicio cuando existe un código real.                         |
+| `range_end_code`        | Representación legible del final cuando existe un código real.                          |
+| `source`                | Indica si el rango fue automático, condicionado por anchor o manual.                    |
+| `book_count`            | Cantidad de registros asignados al rango para revisión y métricas.                      |
+| `reviewed_by`           | Usuario que revisó físicamente o administrativamente el rango.                          |
+| `reviewed_at`           | Fecha de la revisión.                                                                   |
+| `review_notes`          | Observaciones de la revisión sin imponer todavía un flujo definitivo de verificación.   |
+| `created_at`            | Fecha de creación del resultado.                                                        |
 
 Reglas principales:
 
@@ -672,8 +680,10 @@ En estrategia `MANUAL`, el personal introduce los intervalos. Estos se
 consideran resultados de la corrida después de validar cobertura y orden y de
 derivar los `book_placements`.
 
-Los campos de revisión son opcionales porque la primera versión no define un
-proceso obligatorio ni una figura definitiva de verificación.
+Los campos de revisión son opcionales porque la primera versión no define un proceso
+obligatorio ni una figura definitiva de verificación. El servicio solo permite
+cambiarlos en una corrida `DONE` no publicada; la publicación los vuelve inmutables
+junto con los demás resultados.
 
 ### `book_placements`
 
@@ -684,16 +694,16 @@ Esta tabla permite responder con mayor precisión cuando la búsqueda coincide
 con un libro de la carga. La respuesta continúa siendo aproximada porque no
 confirma físicamente el ejemplar.
 
-| Campo | Por qué existe |
-|---|---|
-| `book_placement_id` | Identificador de la asignación. |
-| `distribution_run_id` | Corrida que produjo la asignación. |
-| `scheme_id` | Garantiza que la ubicación pertenece al esquema de la corrida. |
-| `collection_load_id` | Garantiza que el libro pertenece a la carga utilizada por la corrida. |
-| `book_id` | Registro de la colección asignado. |
-| `location_id` | `POSITION` aproximada calculada para el registro. |
-| `source` | Indica si la asignación fue automática, condicionada por anchor o manual. |
-| `created_at` | Fecha de creación del resultado. |
+| Campo                 | Por qué existe                                                            |
+| --------------------- | ------------------------------------------------------------------------- |
+| `book_placement_id`   | Identificador de la asignación.                                           |
+| `distribution_run_id` | Corrida que produjo la asignación.                                        |
+| `scheme_id`           | Garantiza que la ubicación pertenece al esquema de la corrida.            |
+| `collection_load_id`  | Garantiza que el libro pertenece a la carga utilizada por la corrida.     |
+| `book_id`             | Registro de la colección asignado.                                        |
+| `location_id`         | `POSITION` aproximada calculada para el registro.                         |
+| `source`              | Indica si la asignación fue automática, condicionada por anchor o manual. |
+| `created_at`          | Fecha de creación del resultado.                                          |
 
 Reglas principales:
 
@@ -730,19 +740,19 @@ crea dos placements para un mismo `book_id`.
 La vista recorre `locations` desde las raíces mediante una consulta recursiva.
 No guarda datos adicionales.
 
-| Campo | Uso |
-|---|---|
-| `location_id` | Ubicación consultada. |
-| `scheme_id` | Esquema al que pertenece. |
-| `structure_template_id` | Plantilla de la instancia. |
-| `structure_template_node_id` | Nodo de plantilla instanciado. |
-| `role` | Rol `CONTAINER` o `POSITION`. |
-| `parent_location_id` | Padre inmediato. |
-| `name` | Nombre de la ubicación. |
-| `sort_order` | Orden entre hermanas. |
-| `leaf_sequence` | Orden global si es una `POSITION`. |
-| `path` | Ruta legible, por ejemplo `Sección A / Estantería 2 / Anaquel 4`. |
-| `depth` | Profundidad dentro del árbol; la raíz tiene profundidad `1`. |
+| Campo                        | Uso                                                               |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `location_id`                | Ubicación consultada.                                             |
+| `scheme_id`                  | Esquema al que pertenece.                                         |
+| `structure_template_id`      | Plantilla de la instancia.                                        |
+| `structure_template_node_id` | Nodo de plantilla instanciado.                                    |
+| `role`                       | Rol `CONTAINER` o `POSITION`.                                     |
+| `parent_location_id`         | Padre inmediato.                                                  |
+| `name`                       | Nombre de la ubicación.                                           |
+| `sort_order`                 | Orden entre hermanas.                                             |
+| `leaf_sequence`              | Orden global si es una `POSITION`.                                |
+| `path`                       | Ruta legible, por ejemplo `Sección A / Estantería 2 / Anaquel 4`. |
+| `depth`                      | Profundidad dentro del árbol; la raíz tiene profundidad `1`.      |
 
 La vista simplifica:
 
@@ -781,8 +791,8 @@ No consulta borradores ni combina resultados de corridas diferentes.
   ejemplar.
 - `capacity_value` sirve como capacidad estimada o peso de distribución. No hay
   todavía un campo separado para capacidad física máxima.
-- `allow_overflow` autoriza superar el objetivo de llenado. Los requisitos del
-  algoritmo deben precisar si también puede superar la capacidad nominal.
+- `allow_overflow` autoriza superar ese objetivo estimado y exige advertir el exceso;
+  no existe una capacidad física máxima certificada en el modelo actual.
 - `CENTIMETERS` solo ofrece precisión física completa si se conoce el grosor de
   cada libro.
 - Los códigos ubicados en posiciones no consecutivas no forman parte del flujo
@@ -802,6 +812,10 @@ funciones adicionales de base de datos:
   ubicaciones;
 - impedir linajes cíclicos o autorreferencias en `based_on_scheme_id` y
   `based_on_distribution_run_id`;
+- mantener fijos el `scheme`, la carga y la estrategia de una corrida después de
+  crearla;
+- rechazar mutaciones concurrentes o basadas en una versión desactualizada de una
+  corrida;
 - calcular y mantener `leaf_sequence` a partir del recorrido físico;
 - aplicar las entradas, unidades y prohibiciones correspondientes a cada
   `distribution_strategy`;
@@ -812,11 +826,13 @@ funciones adicionales de base de datos:
 - comprobar que los anchors respeten el orden de las posiciones y de los
   códigos;
 - impedir huecos o solapamientos no intencionales entre rangos;
-- definir el redondeo cuando `capacity_value * target_fill_ratio` no sea entero;
+- redondear hacia abajo cuando `capacity_value * target_fill_ratio` en `BOOKS` no sea
+  entero;
 - mantener consistentes los contadores agregados de cargas, corridas y rangos;
 - actualizar `updated_at` en cada modificación;
 - evitar que cambien las entradas, anchors y resultados de una corrida
   publicada;
+- revertir por completo un recálculo fallido y conservar la última vista previa válida;
 - ejecutar publicación y activación dentro de una transacción para que nunca
   queden dos versiones públicas o una versión pública incompleta;
 - hacer cumplir las transiciones permitidas de `scheme_status` y

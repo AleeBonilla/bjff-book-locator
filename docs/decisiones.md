@@ -255,14 +255,37 @@ versión se recalcula la corrida completa.
 
 ## 18. Borradores y publicaciones
 
-**Decisión:** una corrida no publicada puede recalcularse en el mismo registro.
-Una corrida publicada es inmutable.
+**Decisión:** una corrida no publicada puede ajustar defaults, settings, anchors o
+rangos manuales y recalcularse en el mismo registro, pero su `scheme`, carga y
+estrategia quedan fijos desde la creación. Una corrida publicada es inmutable.
+
+Los cambios y cálculos sobre una misma corrida se serializan: mientras está `PENDING`
+se rechazan otras mutaciones, y una vista desactualizada debe refrescarse antes de
+guardar. Si un recálculo falla, se revierte todo el intento y se conserva sin cambios la
+última vista previa válida.
+
+Una corrida inicial en `ERROR` puede reintentarse con un comando completo mientras no
+esté publicada. El reintento conserva `scheme`, carga y estrategia, permite corregir
+defaults, anchors o rangos manuales y usa la revisión observada. Como todavía no existe
+una vista previa válida, un nuevo fallo conserva `ERROR`, elimina cualquier resultado
+parcial, actualiza el diagnóstico e incrementa la revisión; un éxito pasa a `DONE` e
+incrementa la revisión.
 
 **Motivo:** guardar una versión por cada ajuste de vista previa genera ruido,
-pero modificar una versión pública destruye historial.
+pero cambiar la carga o la estrategia altera la identidad y explicación del cálculo.
+Mezclar entradas de operaciones concurrentes o conservar resultados que no
+corresponden a sus anchors rompería la reproducibilidad. Modificar una versión pública
+destruiría historial.
 
-**Consecuencia:** corregir una corrida publicada crea otra con
-`based_on_distribution_run_id`.
+**Alternativas descartadas:** cambiar carga o estrategia dentro del mismo borrador,
+porque haría ambiguo qué representa la corrida; encolar cambios concurrentes o aceptar
+el último en completar, porque podría combinar intenciones de dos personas; conservar
+nuevas entradas junto con resultados anteriores después de un fallo, porque formarían
+una vista previa incoherente.
+
+**Consecuencia:** un ajuste compatible reutiliza la corrida no publicada. Un cambio de
+`scheme`, carga o estrategia crea otra corrida. Corregir una corrida publicada crea una
+derivada con `based_on_distribution_run_id`.
 
 ## 19. Linaje entre corridas
 
@@ -272,13 +295,14 @@ partir de otra del mismo `scheme`.
 **Motivo:** se necesita comparar propuestas y explicar el origen de una
 corrección sin modificar la corrida publicada.
 
-**Consecuencia:** la aplicación puede copiar estrategia, parámetros, defaults,
-anchors y entradas manuales, pero después vuelve a resolver la configuración y
-crea un nuevo `distribution_position_inputs`. No copia `book_placements` ni
-rangos calculados.
+**Consecuencia:** el backend ofrece una plantilla de derivación con estrategia,
+parámetros, defaults, anchors y entradas manuales aplicables. La plantilla vuelve a
+resolver la configuración vigente, excluye snapshot, `book_placements` y rangos
+calculados, y puede editarse antes de enviarse como un comando completo de creación.
+React consume esa plantilla y no reproduce las reglas de copia.
 
-La relación no hereda datos automáticamente. La corrida derivada es
-independiente, puede usar otra carga de colección y conserva resultados propios.
+La relación no hereda filas automáticamente en la base de datos. La corrida derivada
+es independiente, puede usar otra carga de colección y conserva resultados propios.
 
 ## 20. `distribution_ranges`
 
@@ -331,13 +355,22 @@ interfaz siempre comunica una ubicación aproximada.
 
 ## 23. Revisión física opcional
 
-**Decisión:** conservar `reviewed_by`, `reviewed_at` y `review_notes` sin
-integrarlos todavía en un flujo obligatorio.
+**Decisión:** conservar `reviewed_by`, `reviewed_at` y `review_notes` como una revisión
+opcional de rangos. Solo pueden agregarse, modificarse o retirarse mientras la corrida
+esté en `DONE` y no se haya publicado. Al publicar, esos metadatos quedan inmutables
+junto con el resto de la versión.
 
-**Motivo:** el proceso real de revisión no está definido.
+**Motivo:** el proceso real de verificación física todavía no es obligatorio ni define
+una figura definitiva, pero permitir cambios después de publicar alteraría el registro
+histórico que explica el resultado público.
 
-**Consecuencia:** el modelo puede registrar revisiones futuras sin prometer
-exactitud ni bloquear la primera funcionalidad.
+**Alternativas descartadas:** permitir revisiones posteriores a la publicación, porque
+una misma versión pública cambiaría con el tiempo; exigir que todos los rangos estén
+revisados antes de publicar, porque todavía no existe un proceso de verificación
+obligatorio acordado.
+
+**Consecuencia:** revisar es opcional y no convierte la ubicación en confirmada ni
+bloquea la publicación. Una corrección posterior requiere derivar otra corrida.
 
 ## 24. Colación binaria
 
@@ -548,3 +581,133 @@ mantener una identidad más sencilla y centrada en el nombre.
 compatibilidad, pero no aparecen en la navegación. La interfaz sigue usando las
 operaciones REST granulares existentes; la creación múltiple coordina varias altas
 desde el cliente y vuelve a consultar el árbol al finalizar.
+
+## 35. Redondeo hacia abajo de objetivos en libros
+
+**Decisión:** cuando `capacity_value * target_fill_ratio` produce un valor fraccionario
+en unidad `BOOKS`, el objetivo se redondea hacia abajo al entero inmediato inferior.
+
+**Motivo:** los registros son indivisibles y `target_fill_ratio` representa la fracción
+máxima que se intenta utilizar. Redondear hacia abajo evita superar ese objetivo por
+efecto del redondeo y mantiene el cálculo determinista.
+
+**Alternativas descartadas:** redondear al entero más cercano o hacia arriba, porque en
+ambos casos una posición podría superar el porcentaje objetivo antes de aplicar las
+reglas explícitas de overflow.
+
+**Consecuencia:** una posición puede reservar una fracción adicional menor a un libro.
+Superar el objetivo sigue dependiendo exclusivamente de `allow_overflow` y genera la
+advertencia correspondiente.
+
+## 36. Incidencias no bloqueantes al publicar
+
+**Decisión:** las posiciones vacías, sobrecargas y claves divididas de una corrida
+`DONE` son advertencias revisables y no bloquean su publicación. Los registros sin
+asignar tampoco la bloquean, pero el panel debe mostrar su cantidad y exigir una
+confirmación explícita adicional.
+
+**Motivo:** algunas cargas contienen registros sin clave comparable y ciertas
+restricciones pueden impedir asignaciones sin invalidar el resto del resultado.
+Además, una distribución aproximada puede dejar posiciones vacías, superar un objetivo
+permitido o dividir una clave de forma válida. Las combinaciones incoherentes ya
+impiden que la corrida alcance `DONE`. Bloquear las incidencias válidas haría
+inutilizable una distribución revisada; publicarla silenciosamente ocultaría una
+limitación relevante.
+
+**Alternativas descartadas:** bloquear siempre que `unassigned_count` sea mayor que
+cero, porque impediría utilizar la parte ubicable; permitir la publicación sin una
+confirmación adicional, porque el personal podría omitir involuntariamente el alcance
+incompleto del resultado; bloquear sobrecargas, posiciones vacías o claves divididas,
+porque son resultados admitidos por el algoritmo y no errores de coherencia.
+
+**Consecuencia:** toda incidencia queda visible durante la revisión. Solo los registros
+sin asignar requieren una confirmación adicional. La ubicación pública cubre únicamente
+los registros y rangos calculables, conserva su carácter aproximado y no inventa una
+posición para lo que quedó fuera.
+
+## 37. Comandos completos y revisión explícita de corridas
+
+**Decisión:** crear y recalcular una corrida son comandos completos. La interfaz prepara
+defaults, anchors o rangos manuales y los envía juntos; el servicio valida, congela las
+entradas y calcula sin guardar una configuración intermedia incoherente.
+
+Cada corrida tendrá una `revision` entera. Toda mutación posterior debe indicar la
+revisión observada. El repositorio bloquea la corrida con `FOR UPDATE NOWAIT`: una fila
+ocupada produce un conflicto de operación en curso y una revisión distinta exige
+refrescar la vista. Un recálculo correcto incrementa la revisión; uno fallido revierte
+la transacción y conserva la revisión y la vista previa anteriores. Un reintento de una
+corrida inicial en `ERROR` también exige `expectedRevision`; cada intento terminado
+incrementa la revisión porque actualiza el diagnóstico o produce la primera vista
+previa válida.
+
+**Motivo:** el estado `PENDING` representa una ejecución, no un formulario parcialmente
+guardado. Defaults, anchors, snapshot, rangos y placements se explican entre sí y no
+deben quedar mezclados entre solicitudes. Un identificador de revisión evita depender
+de la precisión de fechas para detectar una pantalla desactualizada.
+
+**Alternativas descartadas:** guardar defaults y anchors mediante operaciones separadas
+antes de calcular, porque permitiría estados intermedios incompatibles; aceptar la
+última escritura, porque podría sobrescribir el trabajo de otra persona; usar solo
+`finished_at` como versión, porque no representa revisiones ni ofrece un token entero
+estable; introducir una cola de trabajos, porque esta primera versión es administrativa,
+local y no necesita otra infraestructura para cumplir el tiempo objetivo.
+
+**Consecuencia:** una migración hacia adelante agrega `revision` a
+`distribution_runs`. Los contratos de recálculo, revisión y publicación incluyen
+`expectedRevision` y devuelven la revisión vigente. La interfaz conserva localmente el
+formulario hasta enviar el comando y vuelve a consultar la corrida después de cualquier
+mutación o conflicto. Las migraciones usan una conexión de propietario separada de la
+conexión de privilegios mínimos de la aplicación.
+
+## 38. Entrega de búsquedas externas a la interfaz mediante redirección segura
+
+**Decisión:** `POST /api/public/search/open` recibe un código de clasificación sin
+normalizar y responde `303 See Other` hacia `/buscar?codigo=...` en el origen web
+configurado. La interfaz conserva el texto recibido, lo coloca en el buscador y ejecuta
+una sola consulta mediante el endpoint público existente.
+
+El destino se construye exclusivamente desde `WEB_ORIGIN`; el body no puede indicar
+otra URL. El código se codifica con `URLSearchParams`, la respuesta no se almacena en
+caché y utiliza una política de referente restrictiva.
+
+**Motivo:** integraciones como lectores, formularios o sistemas externos necesitan
+entregar un código mediante POST y continuar en la experiencia visual sin duplicar la
+normalización ni la resolución de ubicaciones. `303` transforma la navegación posterior
+en un GET seguro y evita reenviar el body al refrescar la página.
+
+**Alternativas descartadas:** devolver únicamente JSON, porque no lleva al usuario a la
+interfaz; aceptar un `returnTo` aportado por el cliente, porque introduciría una
+redirección abierta; hacer que el endpoint calcule y renderice otra vista, porque
+duplicaría el flujo de búsqueda pública; guardar temporalmente el código en sesión o
+base de datos, porque la consulta es pública, acotada y no necesita estado servidor.
+
+**Consecuencia:** el código público aparece codificado en la URL de la interfaz y puede
+quedar en el historial local del navegador. La búsqueda sigue siendo anónima y solo
+consulta la publicación vigente. Entradas vacías, ambiguas o ajenas al formato
+catalográfico no consultan rangos ni inventan una ubicación.
+
+## 39. Validación única para búsquedas públicas y de prueba
+
+**Decisión:** la búsqueda pública y la búsqueda administrativa de prueba comparten una
+sola función que acepta únicamente códigos con una lectura catalográfica utilizable.
+Una entrada vacía, sin clase numérica, con caracteres ajenos al formato o con segmentos
+ambiguos nunca se convierte en una clave de rango.
+
+La búsqueda pública conserva su respuesta `NOT_FOUND`. La búsqueda de prueba responde
+`422 VALIDATION_FAILED` con un mensaje explícito y la interfaz lo muestra junto al
+campo, eliminando cualquier resultado anterior.
+
+**Motivo:** la prueba debe anticipar fielmente qué aceptará la búsqueda pública, pero el
+contexto administrativo permite explicar que el problema está en el código ingresado.
+Usar directamente `comparableKey` aceptaba su mejor interpretación incluso cuando el
+texto requería revisión humana y podía mostrar una ubicación engañosa.
+
+**Alternativas descartadas:** duplicar expresiones de validación en ambos servicios,
+porque volverían a divergir; validar únicamente en React, porque cualquier cliente
+podría saltarse la interfaz; responder `NOT_FOUND` también en la prueba, porque no
+distinguiría un código inválido de uno válido que no tiene ubicación.
+
+**Consecuencia:** importación y búsqueda tienen criterios distintos ante la ambigüedad:
+la importación conserva la fila y la marca para revisión, mientras una consulta
+ambigua no produce ubicación. Las variaciones deterministas documentadas, como espacios,
+comas y guiones, continúan normalizándose.

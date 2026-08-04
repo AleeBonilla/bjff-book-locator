@@ -132,18 +132,24 @@ cuando el grupo no cabe completo en una sola.
 Una coincidencia exacta en el catálogo permite mostrar todas esas posiciones,
 pero no confirma que cada ejemplar esté físicamente presente.
 
-## Aspectos pendientes
+## Resoluciones y aspectos pendientes
 
-Antes de cerrar los requisitos del algoritmo debe definirse:
+La especificación 004 cerró los requisitos necesarios para la primera versión:
 
-- qué dato puede mantener el personal de forma confiable: libros,
-  centímetros o pesos;
-- si `capacity_value` es solo un objetivo estimado o también un límite físico;
-- cómo redondear objetivos no enteros;
-- cuándo dividir un grupo que comparte código;
+- admite `BOOKS`, `CENTIMETERS` y `WEIGHT` según el dato disponible;
+- trata `capacity_value` como objetivo aproximado o peso, no como límite físico
+  certificado;
+- redondea hacia abajo los objetivos fraccionarios en `BOOKS`;
+- divide un grupo únicamente entre posiciones consecutivas cuando no cabe completo y
+  no se permite overflow;
+- exige una carga y una corrida nuevas cuando cambia la colección;
+- permite publicar con registros sin asignar solo después de advertirlo y obtener una
+  confirmación explícita.
+
+Permanecen fuera del alcance inicial y deberán definirse antes de incorporarlos:
+
 - qué revisión física se realizará y quién podrá registrarla;
-- qué cambios en la colección obligan a recalcular;
-- cómo se tratarán en el futuro códigos ubicados en posiciones no consecutivas.
+- cómo se tratarán códigos ubicados intencionalmente en posiciones no consecutivas.
 
-Estas decisiones afectan el cálculo y la interfaz administrativa, pero no
-invalidan la separación actual entre estructura, configuración y resultados.
+Estos límites no invalidan la separación actual entre estructura, configuración y
+resultados.
