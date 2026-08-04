@@ -9,7 +9,8 @@
     "start": "node dist/main.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "migrate": "node-pg-migrate -m ../../database/migrations",
+    "migrate": "node --env-file=../../.env ../../node_modules/node-pg-migrate/bin/node-pg-migrate.js --database-url-var MIGRATION_DATABASE_URL --ignore-pattern README.md -m ../../database/migrations up",
+    "migrate:test": "node --env-file=../../.env ../../node_modules/node-pg-migrate/bin/node-pg-migrate.js --database-url-var TEST_DATABASE_URL --ignore-pattern README.md -m ../../database/migrations up",
     "seed:admin": "tsx scripts/seed-admin.ts"
   },
   "dependencies": {

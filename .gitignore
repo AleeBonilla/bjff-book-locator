@@ -1,5 +1,6 @@
 # Material privado de la BJFF. No debe publicarse ni incluirse en commits.
 bjff-collection.csv
+bjff-collection copy.csv
 docs/dataset.md
 
 # Dependencias
@@ -27,3 +28,6 @@ coverage/
 Thumbs.db
 .vscode/
 .idea/
+
+# Caché local de Vite
+.vite/
