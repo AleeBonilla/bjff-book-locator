@@ -70,10 +70,10 @@ usar la misma plantilla.
 
 Cada nodo de plantilla tiene uno de estos roles:
 
-| Rol | Función |
-|---|---|
+| Rol         | Función                  |
+| ----------- | ------------------------ |
 | `CONTAINER` | Agrupa otras ubicaciones |
-| `POSITION` | Recibe distribución |
+| `POSITION`  | Recibe distribución      |
 
 Los nombres visibles son configurables. Una `POSITION` puede llamarse Anaquel,
 Cajón, Estantería u otro término.
@@ -221,6 +221,15 @@ DRAFT -> ACTIVE -> ARCHIVED
 Solo `DRAFT` permite modificar nodos. `ACTIVE` permite crear nuevas
 instancias. `ARCHIVED` conserva estructuras existentes, pero no admite nuevas.
 
+En `DRAFT`, eliminar un nodo con descendientes exige mostrar el subárbol completo y
+confirmar su eliminación atómica. Un nodo deshabilitado permanece visible; si la
+plantilla se activa, ni ese nodo ni sus descendientes pueden instanciarse.
+
+Deshabilitar una plantilla `ACTIVE` impide nuevas instancias y excluye del uso
+estructural sus locations existentes sin modificarlas. Un `scheme DEFINED` que ya la
+utiliza conserva su estado y secuencia, pero no puede iniciar otra corrida hasta
+volver a habilitar la plantilla o preparar otro `scheme`.
+
 ## 7. Modelar un `scheme`
 
 ### Crear la estructura
@@ -231,6 +240,9 @@ instancias. `ARCHIVED` conserva estructuras existentes, pero no admite nuevas.
 4. Crear las locations hijas necesarias.
 5. Repetir nodos de plantilla según la cantidad física existente.
 6. Agregar otras instancias, incluso de plantillas diferentes.
+
+En `DRAFT`, eliminar una location con descendientes exige mostrar el subárbol completo,
+confirmar la operación y eliminarlo de forma atómica.
 
 Ejemplo:
 
@@ -280,6 +292,10 @@ todas las `POSITION`.
 
 Si pasa las validaciones, el `scheme` cambia a `DEFINED`.
 
+Deshabilitar un `scheme` no cambia su estado. Permanece visible y administrable según
+las reglas de ese estado, pero no puede seleccionarse para una nueva corrida mientras
+esté deshabilitado.
+
 ## 8. Configurar la distribución
 
 ### Niveles de configuración
@@ -304,11 +320,11 @@ Los valores posibles son:
 
 ### Unidades
 
-| Unidad | Interpretación |
-|---|---|
-| `BOOKS` | Capacidad aproximada en registros |
+| Unidad        | Interpretación                        |
+| ------------- | ------------------------------------- |
+| `BOOKS`       | Capacidad aproximada en registros     |
 | `CENTIMETERS` | Longitud útil usada proporcionalmente |
-| `WEIGHT` | Peso relativo |
+| `WEIGHT`      | Peso relativo                         |
 
 Sin grosor por libro, `CENTIMETERS` no representa ocupación exacta.
 
@@ -361,13 +377,13 @@ posteriores en plantillas o locations no alteran el historial.
 
 ### Estrategias
 
-| Estrategia | Entrada requerida | Anchors | Cálculo |
-|---|---|---|---|
-| `CAPACITY` | Capacidad `BOOKS` para cada posición | No permitidos | Llena posiciones en orden según su objetivo |
-| `WEIGHTED` | `WEIGHT` o `CENTIMETERS` compatibles | No permitidos | Reparte proporcionalmente según el peso efectivo |
-| `ANCHORED` | Un anchor para cada posición después de la primera | Requeridos | Las fronteras conocidas determinan los rangos |
-| `HYBRID` | Capacidades o pesos compatibles | Opcionales | Respeta anchors parciales y calcula los tramos desconocidos |
-| `MANUAL` | Cobertura completa de rangos | No permitidos | Valida rangos introducidos y deriva placements |
+| Estrategia | Entrada requerida                                  | Anchors       | Cálculo                                                     |
+| ---------- | -------------------------------------------------- | ------------- | ----------------------------------------------------------- |
+| `CAPACITY` | Capacidad `BOOKS` para cada posición               | No permitidos | Llena posiciones en orden según su objetivo                 |
+| `WEIGHTED` | `WEIGHT` o `CENTIMETERS` compatibles               | No permitidos | Reparte proporcionalmente según el peso efectivo            |
+| `ANCHORED` | Un anchor para cada posición después de la primera | Requeridos    | Las fronteras conocidas determinan los rangos               |
+| `HYBRID`   | Capacidades o pesos compatibles                    | Opcionales    | Respeta anchors parciales y calcula los tramos desconocidos |
+| `MANUAL`   | Cobertura completa de rangos                       | No permitidos | Valida rangos introducidos y deriva placements              |
 
 La estrategia predeterminada es `HYBRID`.
 
@@ -683,14 +699,14 @@ significa que un mismo ejemplar ocupe varias posiciones.
 
 ## 17. Mantenimiento
 
-| Situación | Acción |
-|---|---|
-| Cambia la colección | Crear carga y corrida nuevas |
-| Cambian pesos o anchors | Crear o recalcular corrida |
-| Cambia la estructura | Copiar o crear otro `scheme` |
-| Cambia una plantilla | Crear otra plantilla y aplicarla en un nuevo `scheme` |
-| Volver a una distribución | Publicar una corrida anterior |
-| Volver a una estructura | Reactivar un `scheme` anterior |
+| Situación                 | Acción                                                |
+| ------------------------- | ----------------------------------------------------- |
+| Cambia la colección       | Crear carga y corrida nuevas                          |
+| Cambian pesos o anchors   | Crear o recalcular corrida                            |
+| Cambia la estructura      | Copiar o crear otro `scheme`                          |
+| Cambia una plantilla      | Crear otra plantilla y aplicarla en un nuevo `scheme` |
+| Volver a una distribución | Publicar una corrida anterior                         |
+| Volver a una estructura   | Reactivar un `scheme` anterior                        |
 
 ## 18. Invariantes
 

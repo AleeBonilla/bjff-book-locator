@@ -10,7 +10,7 @@ import { hashPassword } from '../src/auth/password.js';
 import { ErrorEnvelopeFilter } from '../src/common/error-envelope.filter.js';
 import { testDb } from './setup.js';
 
-/** Archivo publicable de referencia. `bjff-collection.csv` nunca se usa en pruebas. */
+/** Archivo publicable de referencia; las pruebas nunca usan la colección privada. */
 export const EXAMPLE_CSV_PATH = (() => {
   // El directorio de trabajo depende de dónde se invoque Vitest.
   const candidates = [
@@ -70,6 +70,94 @@ export async function seedAdmin(enabled = true): Promise<number> {
     .executeTakeFirstOrThrow();
 
   return row.user_id;
+}
+
+export async function seedTemplate(
+  createdBy: number,
+  options: { name?: string; status?: 'DRAFT' | 'ACTIVE'; enabled?: boolean } = {},
+): Promise<{ templateId: number; rootId: number; positionId: number }> {
+  const template = await testDb
+    .insertInto('structure_templates')
+    .values({
+      name: options.name ?? 'Plantilla sintética',
+      description: null,
+      status: 'DRAFT',
+      enabled: options.enabled ?? true,
+      created_by: createdBy,
+    })
+    .returning('structure_template_id')
+    .executeTakeFirstOrThrow();
+
+  const root = await testDb
+    .insertInto('structure_template_nodes')
+    .values({
+      structure_template_id: template.structure_template_id,
+      parent_template_node_id: null,
+      name: 'Contenedor sintético',
+      role: 'CONTAINER',
+      sort_order: 0,
+      visual_kind: null,
+      default_capacity_value: null,
+      default_capacity_unit: null,
+      default_target_fill_ratio: null,
+      default_allow_overflow: null,
+      enabled: true,
+    })
+    .returning('structure_template_node_id')
+    .executeTakeFirstOrThrow();
+
+  const position = await testDb
+    .insertInto('structure_template_nodes')
+    .values({
+      structure_template_id: template.structure_template_id,
+      parent_template_node_id: root.structure_template_node_id,
+      name: 'Posición sintética',
+      role: 'POSITION',
+      sort_order: 0,
+      visual_kind: null,
+      default_capacity_value: null,
+      default_capacity_unit: null,
+      default_target_fill_ratio: null,
+      default_allow_overflow: null,
+      enabled: true,
+    })
+    .returning('structure_template_node_id')
+    .executeTakeFirstOrThrow();
+
+  if (options.status === 'ACTIVE') {
+    await testDb
+      .updateTable('structure_templates')
+      .set({ status: 'ACTIVE' })
+      .where('structure_template_id', '=', template.structure_template_id)
+      .execute();
+  }
+
+  return {
+    templateId: template.structure_template_id,
+    rootId: root.structure_template_node_id,
+    positionId: position.structure_template_node_id,
+  };
+}
+
+export async function seedScheme(
+  createdBy: number,
+  options: { name?: string; status?: 'DRAFT' | 'DEFINED'; enabled?: boolean } = {},
+): Promise<number> {
+  const scheme = await testDb
+    .insertInto('schemes')
+    .values({
+      name: options.name ?? 'Scheme sintético',
+      description: null,
+      status: options.status ?? 'DRAFT',
+      enabled: options.enabled ?? true,
+      is_active: false,
+      based_on_scheme_id: null,
+      created_by: createdBy,
+    })
+    .returning('scheme_id')
+    .executeTakeFirstOrThrow();
+
+  return scheme.scheme_id;
 }
 
 /** Inicia sesión y devuelve la cookie para las peticiones siguientes. */

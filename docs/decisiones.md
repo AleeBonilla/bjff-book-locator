@@ -41,10 +41,10 @@ de plantilla puede instanciarse varias veces bajo el mismo padre.
 
 **Decisión:** el sistema fija dos comportamientos estructurales.
 
-| Rol | Comportamiento |
-|---|---|
-| `CONTAINER` | Contiene otras locations |
-| `POSITION` | Recibe distribución y no tiene hijas |
+| Rol         | Comportamiento                       |
+| ----------- | ------------------------------------ |
+| `CONTAINER` | Contiene otras locations             |
+| `POSITION`  | Recibe distribución y no tiene hijas |
 
 **Motivo:** una lista fija de nombres como Sección, Cara o Anaquel nunca cubrirá
 todas las estructuras futuras.
@@ -198,13 +198,13 @@ una posición.
 **Decisión:** cada valor de `distribution_strategy` define entradas,
 validaciones y comportamiento distintos:
 
-| Estrategia | Contrato |
-|---|---|
-| `CAPACITY` | Requiere capacidades en `BOOKS` y no admite anchors. |
+| Estrategia | Contrato                                                           |
+| ---------- | ------------------------------------------------------------------ |
+| `CAPACITY` | Requiere capacidades en `BOOKS` y no admite anchors.               |
 | `WEIGHTED` | Requiere `WEIGHT` o `CENTIMETERS` compatibles y no admite anchors. |
-| `ANCHORED` | Requiere un anchor para cada posición después de la primera. |
-| `HYBRID` | Requiere capacidades compatibles y admite anchors parciales. |
-| `MANUAL` | Requiere rangos completos introducidos por el personal. |
+| `ANCHORED` | Requiere un anchor para cada posición después de la primera.       |
+| `HYBRID`   | Requiere capacidades compatibles y admite anchors parciales.       |
+| `MANUAL`   | Requiere rangos completos introducidos por el personal.            |
 
 **Motivo:** si la estrategia solo fuera una etiqueta, el sistema podría aceptar
 anchors que después ignora, mezclar unidades o ejecutar un cálculo sin las
@@ -396,3 +396,119 @@ locations que ya la instancian.
 
 **Consecuencia:** una forma nueva se modela en otra plantilla. `ARCHIVED`
 impide nuevas instancias sin eliminar las estructuras existentes.
+
+## 29. Registro explícito de decisiones y preguntas abiertas
+
+**Decisión:** mantener las decisiones importantes en `docs/decisiones.md` y las
+incertidumbres materiales en `docs/preguntas-abiertas.md`, asistidas por las skills
+locales `record-decisions` y `track-open-questions`.
+
+**Motivo:** una decisión que queda únicamente en una conversación no puede revisarse,
+y una duda convertida silenciosamente en supuesto suele reaparecer como defecto o
+bloqueo. Los dos tipos de información tienen ciclos distintos: la decisión es vigente;
+la pregunta permanece abierta hasta que exista evidencia o autoridad para resolverla.
+
+**Alternativas descartadas:** mezclar preguntas y decisiones en un solo documento,
+porque dificultaría distinguir lo acordado de lo pendiente; usar únicamente
+`tasks.md`, porque una tarea describe trabajo ejecutable y no necesariamente la
+incertidumbre que lo origina.
+
+**Consecuencia:** las preguntas resueltas no se borran, sino que conservan su
+resolución. Cuando una respuesta establezca un criterio duradero, se registra además
+como decisión y ambas entradas se enlazan.
+
+## 30. Disponibilidad separada del ciclo de vida estructural
+
+**Decisión:** `enabled` controla la disponibilidad sin cambiar el estado ni borrar
+historial.
+
+- Una plantilla deshabilitada no admite nuevas instancias. Sus locations existentes
+  siguen visibles, pero quedan fuera del conjunto estructural utilizable.
+- Un nodo de plantilla deshabilitado y todos sus descendientes permanecen visibles,
+  pero no pueden instanciarse.
+- Si una plantilla deshabilitada ya participa en un `scheme DEFINED`, el `scheme`
+  conserva su estado y `leaf_sequence`, pero no puede utilizarse para una nueva corrida
+  hasta volver a habilitar la plantilla o preparar otro `scheme`.
+- Un `scheme` deshabilitado sigue visible y administrable según su estado, pero no
+  puede seleccionarse para nuevas corridas.
+
+**Motivo:** disponibilidad y ciclo de vida resuelven problemas distintos. Los estados
+protegen la evolución estructural; `enabled` permite retirar temporalmente elementos
+del uso normal sin reescribir versiones ni perder trazabilidad.
+
+**Alternativas descartadas:** permitir que las instancias de una plantilla
+deshabilitada siguieran utilizándose, porque haría que `enabled` fuera solo visual;
+deshabilitar en cascada las locations existentes, porque alteraría datos históricos;
+revertir un `scheme DEFINED` a `DRAFT` o cambiar su secuencia, porque rompería su
+inmutabilidad; impedir la deshabilitación mientras existan referencias, porque
+eliminaría el retiro temporal.
+
+**Consecuencia:** la selección de estructuras para una corrida debe comprobar la
+disponibilidad del `scheme`, de sus plantillas y de sus locations. Volver a habilitar
+un elemento restaura su disponibilidad sin reconstruir el historial.
+
+## 31. Eliminación explícita y atómica de subárboles en borrador
+
+**Decisión:** al eliminar en `DRAFT` un nodo de plantilla o una location con
+descendientes, el sistema muestra el subárbol completo, exige confirmación explícita y
+elimina todo el subárbol como una sola operación.
+
+**Motivo:** eliminar solo el padre dejaría una jerarquía inválida y exigir borrar cada
+hoja por separado vuelve innecesariamente costoso corregir un borrador.
+
+**Alternativas descartadas:** rechazar la operación hasta borrar primero todos los
+descendientes, por el trabajo manual que introduce; deshabilitar en lugar de eliminar,
+porque un borrador todavía puede corregirse sin conservar elementos descartados;
+reubicar automáticamente las hijas, porque podría crear relaciones incompatibles con
+la plantilla.
+
+**Consecuencia:** cancelar la confirmación no cambia ningún elemento y un fallo durante
+la eliminación no puede dejar un subárbol parcial. Fuera de `DRAFT` se preservan las
+reglas de inmutabilidad y retiro mediante disponibilidad o archivo.
+
+## 32. Modelado estructural sobre la línea base existente
+
+**Decisión:** implementar la administración de plantillas, `scheme`, locations y
+settings sobre las tablas ya presentes en `database/01_schema.sql`, sin agregar tablas,
+columnas ni una migración para la funcionalidad 003.
+
+Las reglas de varios registros —ciclos, disponibilidad de una ruta, transiciones
+completas, copia, borrado de subárboles y cálculo de `leaf_sequence`— se validan en
+servicios transaccionales. PostgreSQL conserva las llaves, unicidades, checks y
+triggers básicos existentes.
+
+**Motivo:** la línea base ya representa todas las entidades y relaciones requeridas.
+El propio modelo documenta que las validaciones que necesitan recorrer el árbol o
+coordinar varias escrituras pertenecen al servicio.
+
+**Alternativas descartadas:** crear una tabla adicional de instancias, porque cada
+location raíz ya cumple esa función; guardar los árboles como JSON, porque perdería las
+garantías relacionales existentes; modificar la línea base o agregar triggers para
+toda regla funcional, porque mezclaría coordinación de aplicación con invariantes de
+persistencia sin necesidad.
+
+**Consecuencia:** `apps/api/src/database/schema.types.ts` describe ante Kysely cinco
+tablas adicionales, pero no se convierte en fuente del esquema. Las operaciones
+compuestas deben probar su atomicidad contra PostgreSQL real.
+
+## 33. Consultas de árbol completas y mutaciones REST granulares
+
+**Decisión:** las consultas administrativas de detalle devuelven el árbol completo y
+ordenado, mientras que cada escritura identifica el nodo o la location afectada.
+Activar, archivar, mover, ordenar, copiar, definir y confirmar un borrado son acciones
+explícitas del contrato REST.
+
+**Motivo:** la interfaz necesita el árbol completo para modelar, pero reemplazarlo
+entero en cada guardado podría sobrescribir ramas no editadas y haría difícil atribuir
+un error al elemento que lo produjo. Las acciones expresan mejor las transiciones y
+operaciones atómicas que un cambio parcial genérico.
+
+**Alternativas descartadas:** enviar el árbol completo para cada cambio, por el riesgo
+de pérdida y la validación ambigua; exponer cada nivel como un recurso distinto, porque
+los nombres son configurables y solo existen los roles `CONTAINER` y `POSITION`;
+incorporar GraphQL, porque REST cubre los dos patrones sin otra tecnología.
+
+**Consecuencia:** React envía intenciones pequeñas y vuelve a consultar el detalle
+después de mutar. El backend mantiene la autoridad sobre jerarquía, disponibilidad,
+orden y `leaf_sequence`; `packages/api-types` comparte únicamente las formas del
+contrato.

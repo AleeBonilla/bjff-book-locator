@@ -255,7 +255,7 @@ listado indica su fila de origen, su severidad y un motivo comprensible.
 - [X] T071 [P] Medir el objetivo de SC-006 con un archivo de 10 000 filas y registrar el resultado en `specs/001-collection-import/quickstart.md`
 - [X] T072 [P] Revisar que ninguna respuesta sin sesión ni ningún registro de operación contenga contenido de la colección, recorriendo `apps/api/src/` (FR-043, SC-009)
 - [X] T073 [P] Comprobar que `bjff-collection.csv` y `docs/dataset.md` siguen ignorados y que ninguna prueba ni artefacto los referencia
-- [ ] T074 Ejecutar la matriz de validación completa de `specs/001-collection-import/quickstart.md`
+- [X] T074 Ejecutar la matriz de validación completa de `specs/001-collection-import/quickstart.md`
 
 ---
 
@@ -359,7 +359,7 @@ Ninguna cambia el comportamiento especificado; son ajustes de herramienta o de n
 
 | Tarea | Lo previsto | Lo implementado | Motivo |
 |---|---|---|---|
-| T004 | `vitest.workspace.ts` | `vitest.config.ts` con `test.projects` | El archivo de workspace quedó obsoleto en Vitest 3, y `fileParallelism` solo surte efecto en la raíz |
+| T004 | `vitest.workspace.ts` | `vitest.config.ts` con `test.projects`; serialización explícita en el script raíz | El archivo de workspace quedó obsoleto en Vitest 3; las opciones de concurrencia de la configuración raíz no se propagan de forma fiable a los proyectos |
 | T007 | `tailwind.config.ts` | `@tailwindcss/vite` sin archivo de configuración | Tailwind 4 se configura desde CSS; no genera ese archivo |
 | T016 | Transacción revertida por caso | `TRUNCATE` antes de cada caso, archivos en serie | Las pruebas atraviesan HTTP y la aplicación abre su propia conexión: no puede compartir la transacción del test |
 | T020 | `auth/password.service.ts` | `auth/password.ts` | Son funciones puras, sin estado ni inyección |

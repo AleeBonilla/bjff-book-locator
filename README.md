@@ -96,6 +96,7 @@ docs/
   clasificacion.md           reglas de los códigos de clasificación
   problema-distribucion.md   limitación del reparto físico
   decisiones.md              decisiones y justificación
+  preguntas-abiertas.md      incertidumbres y decisiones pendientes
   flujo.md                   comportamiento de la primera funcionalidad
   db.md                      referencia del modelo de datos
 bjff-collection-example.csv  muestra publicable del formato de importación

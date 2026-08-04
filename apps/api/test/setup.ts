@@ -57,7 +57,21 @@ export const testDb = createDatabase(TEST_DATABASE_URL);
 
 export async function truncateAll(): Promise<void> {
   await sql`
-    TRUNCATE books, collection_load_errors, collection_loads, users
+    TRUNCATE
+      book_placements,
+      distribution_ranges,
+      distribution_anchors,
+      distribution_position_inputs,
+      distribution_runs,
+      location_distribution_settings,
+      locations,
+      structure_template_nodes,
+      structure_templates,
+      schemes,
+      books,
+      collection_load_errors,
+      collection_loads,
+      users
     RESTART IDENTITY CASCADE
   `.execute(testDb);
 }

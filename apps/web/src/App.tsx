@@ -6,6 +6,10 @@ import { LoadBooksPage } from './pages/LoadBooksPage.js';
 import { LoadDetailPage } from './pages/LoadDetailPage.js';
 import { LoadsPage } from './pages/LoadsPage.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { SchemeEditorPage } from './pages/SchemeEditorPage.js';
+import { SchemesPage } from './pages/SchemesPage.js';
+import { TemplateEditorPage } from './pages/TemplateEditorPage.js';
+import { TemplatesPage } from './pages/TemplatesPage.js';
 
 export function App() {
   const { user, loading } = useSession();
@@ -38,6 +42,12 @@ export function App() {
           <Route path="/cargas/importar" element={<ImportPage />} />
           <Route path="/cargas/:id" element={<LoadDetailPage />} />
           <Route path="/cargas/:id/registros" element={<LoadBooksPage />} />
+          <Route path="/plantillas" element={<TemplatesPage />} />
+          <Route path="/plantillas/nueva" element={<TemplatesPage />} />
+          <Route path="/plantillas/:id" element={<TemplateEditorPage />} />
+          <Route path="/schemes" element={<SchemesPage />} />
+          <Route path="/schemes/nuevo" element={<SchemesPage />} />
+          <Route path="/schemes/:id" element={<SchemeEditorPage />} />
           <Route path="*" element={<p>La página no existe.</p>} />
         </Routes>
       </main>
@@ -64,6 +74,12 @@ function Header() {
           </Link>
           <Link className="underline underline-offset-4" to="/cargas/importar">
             Importar
+          </Link>
+          <Link className="underline underline-offset-4" to="/plantillas">
+            Plantillas
+          </Link>
+          <Link className="underline underline-offset-4" to="/schemes">
+            Schemes
           </Link>
         </nav>
         <div className="ml-auto flex items-center gap-3 text-sm">

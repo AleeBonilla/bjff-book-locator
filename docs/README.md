@@ -17,6 +17,7 @@ contradictorias.
 | `dataset.md` *(privado)* | Describe la colección oficial analizada y la calidad de sus datos. Solo está disponible en entornos autorizados. |
 | [`problema-distribucion.md`](problema-distribucion.md) | Explica por qué la colección no puede repartirse en bloques fijos y qué limitaciones debe considerar la solución. |
 | [`decisiones.md`](decisiones.md) | Registra las decisiones de diseño, su motivo y sus consecuencias. |
+| [`preguntas-abiertas.md`](preguntas-abiertas.md) | Conserva incertidumbres, riesgos diferidos y decisiones pendientes hasta resolverlos. |
 | [`flujo.md`](flujo.md) | Define el comportamiento esperado y el flujo completo de la primera funcionalidad. |
 | [`db.md`](db.md) | Explica el modelo de persistencia, sus tablas, campos, relaciones y validaciones. |
 
@@ -38,6 +39,7 @@ Para preparar especificaciones, el orden recomendado es:
 | Limitación física del reparto | `problema-distribucion.md` |
 | Comportamiento funcional acordado | `flujo.md` |
 | Motivos de las decisiones | `decisiones.md` |
+| Incertidumbres y decisiones pendientes | `preguntas-abiertas.md` |
 | Estructura efectiva de PostgreSQL | `database/*.sql` |
 | Explicación del modelo de datos | `db.md` |
 
@@ -80,6 +82,11 @@ flujo ni prescribe todos los detalles del algoritmo.
 Explica por qué se eligió el diseño actual. No debe convertirse en una secuencia
 operativa ni repetir el diccionario de la base de datos.
 
+### `preguntas-abiertas.md`
+
+Registra únicamente asuntos materiales todavía no resueltos. Una entrada cerrada se
+conserva con su resolución para que el supuesto no reaparezca más adelante.
+
 ### `flujo.md`
 
 Es la referencia funcional para obtener requisitos y escenarios. Debe indicar
@@ -101,6 +108,8 @@ en caso de conflicto.
 - Mantener una sola responsabilidad principal por archivo.
 - Actualizar `flujo.md` cuando cambie el comportamiento esperado.
 - Actualizar `decisiones.md` cuando cambie el motivo o el criterio de diseño.
+- Registrar en `preguntas-abiertas.md` toda incertidumbre material que no pueda
+  resolverse con el contexto disponible, y cerrarla sin borrarla cuando se responda.
 - Actualizar `db.md` y los scripts SQL en el mismo cambio cuando se modifique la
   persistencia.
 - Actualizar `dataset.md` solo después de volver a analizar el archivo indicado.

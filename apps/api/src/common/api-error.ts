@@ -91,4 +91,93 @@ export class ApiError extends HttpException {
       409,
     );
   }
+
+  static notFound(
+    code:
+      | 'TEMPLATE_NOT_FOUND'
+      | 'TEMPLATE_NODE_NOT_FOUND'
+      | 'SCHEME_NOT_FOUND'
+      | 'LOCATION_NOT_FOUND',
+    message: string,
+  ): ApiError {
+    return new ApiError(code, message, 404);
+  }
+
+  static conflict(
+    code:
+      | 'TEMPLATE_NOT_EDITABLE'
+      | 'SCHEME_NOT_EDITABLE'
+      | 'INVALID_STATE_TRANSITION'
+      | 'TEMPLATE_NAME_CONFLICT'
+      | 'SCHEME_NAME_CONFLICT'
+      | 'SIBLING_NAME_CONFLICT'
+      | 'MAP_ELEMENT_CONFLICT'
+      | 'SUBTREE_CONFIRMATION_REQUIRED',
+    message: string,
+    details?: Record<string, unknown>,
+  ): ApiError {
+    return new ApiError(code, message, 409, details);
+  }
+
+  static invalid(
+    code:
+      | 'INVALID_TEMPLATE_TREE'
+      | 'INVALID_SCHEME_TREE'
+      | 'INVALID_PARENT'
+      | 'TREE_CYCLE'
+      | 'ORDER_MISMATCH'
+      | 'INVALID_DISTRIBUTION_SETTINGS'
+      | 'SCHEME_LINEAGE_CYCLE',
+    message: string,
+    details?: Record<string, unknown>,
+  ): ApiError {
+    return new ApiError(code, message, 422, details);
+  }
+}
+
+interface PostgresError {
+  code?: string;
+  constraint?: string;
+}
+
+/** Convierte restricciones conocidas en errores estables del contrato. */
+export function translateDatabaseError(error: unknown): ApiError | null {
+  const pg = error as PostgresError;
+  if (pg.code === '23503') {
+    return ApiError.invalid('INVALID_PARENT', 'La relación padre-hija no es válida.');
+  }
+
+  if (pg.code !== '23505') return null;
+
+  switch (pg.constraint) {
+    case 'structure_templates_name_key':
+      return ApiError.conflict(
+        'TEMPLATE_NAME_CONFLICT',
+        'Ya existe una plantilla con ese nombre.',
+      );
+    case 'schemes_name_key':
+      return ApiError.conflict(
+        'SCHEME_NAME_CONFLICT',
+        'Ya existe un scheme con ese nombre.',
+      );
+    case 'uq_template_nodes_sibling_name':
+    case 'uq_locations_sibling_name':
+    case 'uq_locations_root_name':
+      return ApiError.conflict(
+        'SIBLING_NAME_CONFLICT',
+        'Ya existe un elemento con ese nombre en el mismo nivel.',
+      );
+    case 'uq_locations_map_element':
+      return ApiError.conflict(
+        'MAP_ELEMENT_CONFLICT',
+        'El elemento de mapa ya está vinculado dentro del scheme.',
+      );
+    case 'uq_template_nodes_sibling_order':
+    case 'uq_template_nodes_one_root':
+    case 'uq_locations_sibling_order':
+    case 'uq_locations_root_order':
+      return ApiError.invalid('ORDER_MISMATCH', 'El orden indicado no es válido.');
+    default:
+      return null;
+  }
 }
