@@ -13,14 +13,18 @@ export function TreeEditor({
   items,
   editable,
   selectedId,
+  selectionLabel = 'Editar',
   onSelect,
+  onAddChild,
   onReorder,
   onDelete,
 }: {
   items: TreeEditorItem[];
   editable: boolean;
   selectedId?: number | null;
+  selectionLabel?: string;
   onSelect?: (id: number) => void;
+  onAddChild?: (id: number) => void;
   onReorder?: (parentId: number | null, orderedIds: number[]) => Promise<void>;
   onDelete?: (id: number) => void;
 }) {
@@ -67,7 +71,13 @@ export function TreeEditor({
   }
 
   const renderGroup = (group: TreeEditorItem[], parentId: number | null) => (
-    <ul className={parentId === null ? 'space-y-2' : 'mt-2 ml-6 space-y-2'}>
+    <ul
+      className={
+        parentId === null
+          ? 'space-y-3'
+          : 'mt-3 ml-5 space-y-3 border-l-2 border-[#d5dde2] pl-4'
+      }
+    >
       {group.map((item, index) => (
         <li
           key={item.id}
@@ -83,58 +93,75 @@ export function TreeEditor({
           }}
         >
           <div
-            className={`flex flex-wrap items-center gap-2 rounded border p-2 ${
+            className={`rounded border-l-4 bg-white p-3 shadow-sm ${
               selectedId === item.id
-                ? 'border-sky-600 bg-sky-50 dark:bg-sky-950'
-                : 'border-slate-200 dark:border-slate-800'
+                ? 'border border-[#008285] border-l-[#008285] bg-[#f1f9f9]'
+                : 'border border-slate-200 border-l-[#002855]'
             }`}
           >
-            <button
-              type="button"
-              onClick={() => onSelect?.(item.id)}
-              className="text-left font-medium underline-offset-4 hover:underline"
-            >
-              {item.name}
-            </button>
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-800">
-              {item.role === 'POSITION' ? 'Posición' : 'Contenedor'}
-            </span>
-            {!item.enabled && (
-              <span className="text-xs text-amber-700">Deshabilitado</span>
-            )}
-            {item.secondary && (
-              <span className="text-xs text-slate-500">{item.secondary}</span>
-            )}
-            {editable && onReorder && (
-              <span className="ml-auto flex gap-1">
-                <button
-                  type="button"
-                  disabled={index === 0 || busy !== null}
-                  onClick={() => void move(group, parentId, index, -1)}
-                  aria-label={`Subir ${item.name}`}
-                  className="rounded border px-2 disabled:opacity-40"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  disabled={index === group.length - 1 || busy !== null}
-                  onClick={() => void move(group, parentId, index, 1)}
-                  aria-label={`Bajar ${item.name}`}
-                  className="rounded border px-2 disabled:opacity-40"
-                >
-                  ↓
-                </button>
-                {onDelete && (
+            <div className="flex flex-wrap items-center gap-2">
+              <strong className="text-sm text-[#002855]">{item.name}</strong>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                {item.role === 'POSITION' ? 'Posición' : 'Contenedor'}
+              </span>
+              {!item.enabled && (
+                <span className="text-xs font-medium text-amber-700">Deshabilitado</span>
+              )}
+              {item.secondary && (
+                <span className="text-xs text-slate-500">{item.secondary}</span>
+              )}
+            </div>
+
+            {(onSelect || (editable && onReorder) || (editable && onAddChild)) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {onSelect && (
                   <button
                     type="button"
-                    onClick={() => onDelete(item.id)}
-                    className="rounded border border-red-300 px-2 text-red-700"
+                    onClick={() => onSelect(item.id)}
+                    className="button-quiet min-h-0 px-3 py-1 text-xs"
                   >
-                    Eliminar
+                    {selectionLabel}
                   </button>
                 )}
-              </span>
+                {editable && onAddChild && item.role === 'CONTAINER' && (
+                  <button
+                    type="button"
+                    onClick={() => onAddChild(item.id)}
+                    className="button-secondary min-h-0 px-3 py-1 text-xs"
+                  >
+                    Añadir dentro
+                  </button>
+                )}
+                {editable && onReorder && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={index === 0 || busy !== null}
+                      onClick={() => void move(group, parentId, index, -1)}
+                      className="button-quiet min-h-0 px-3 py-1 text-xs"
+                    >
+                      Subir
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === group.length - 1 || busy !== null}
+                      onClick={() => void move(group, parentId, index, 1)}
+                      className="button-quiet min-h-0 px-3 py-1 text-xs"
+                    >
+                      Bajar
+                    </button>
+                    {onDelete && (
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item.id)}
+                        className="button-danger min-h-0 px-3 py-1 text-xs"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             )}
           </div>
           {item.children.length > 0 && renderGroup(item.children, item.id)}
@@ -144,7 +171,9 @@ export function TreeEditor({
   );
 
   return items.length === 0 ? (
-    <p className="text-sm text-slate-500">El árbol todavía está vacío.</p>
+    <div className="rounded border border-dashed border-slate-300 bg-white p-6 text-center">
+      <p className="text-sm text-slate-500">La estructura todavía está vacía.</p>
+    </div>
   ) : (
     renderGroup(items, null)
   );

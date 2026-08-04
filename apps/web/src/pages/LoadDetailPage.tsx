@@ -36,6 +36,9 @@ export function LoadDetailPage() {
 
   return (
     <section>
+      <Link to="/importaciones/historial" className="back-link">
+        Volver al historial
+      </Link>
       <div className="mb-2 flex flex-wrap items-center gap-3">
         <h2 className="text-xl font-semibold">{load.title}</h2>
         <StatusBadge status={load.status} />
@@ -55,14 +58,15 @@ export function LoadDetailPage() {
       <Counters counters={load.counters} />
 
       <p className="mt-4 text-sm">
-        <Link className="underline underline-offset-4" to={`/cargas/${loadId}/registros`}>
+        <Link
+          className="underline underline-offset-4"
+          to={`/importaciones/historial/${loadId}/registros`}
+        >
           Ver los registros de la carga
         </Link>
       </p>
 
-      <h3 className="mt-8 mb-3 text-lg font-semibold">
-        Problemas ({problems.length})
-      </h3>
+      <h3 className="mt-8 mb-3 text-lg font-semibold">Problemas ({problems.length})</h3>
 
       {problems.length === 0 ? (
         <p className="text-slate-600 dark:text-slate-400">
@@ -76,10 +80,18 @@ export function LoadDetailPage() {
             </caption>
             <thead>
               <tr className="border-b border-slate-300 text-left dark:border-slate-700">
-                <th scope="col" className="py-2 pr-4">Fila</th>
-                <th scope="col" className="py-2 pr-4">Severidad</th>
-                <th scope="col" className="py-2 pr-4">Código</th>
-                <th scope="col" className="py-2">Motivo</th>
+                <th scope="col" className="py-2 pr-4">
+                  Fila
+                </th>
+                <th scope="col" className="py-2 pr-4">
+                  Severidad
+                </th>
+                <th scope="col" className="py-2 pr-4">
+                  Código
+                </th>
+                <th scope="col" className="py-2">
+                  Motivo
+                </th>
               </tr>
             </thead>
             <tbody>

@@ -28,7 +28,7 @@ export function TemplatesPage() {
         name,
         description: description || null,
       });
-      navigate(`/plantillas/${template.structureTemplateId}`);
+      navigate(`/esquemas/plantillas/${template.structureTemplateId}`);
     } catch (cause) {
       setError(
         cause instanceof ApiRequestError
@@ -41,10 +41,13 @@ export function TemplatesPage() {
   }
 
   return (
-    <section>
-      <h2 className="text-xl font-semibold">Plantillas de estructura</h2>
-      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-        Definen formas reutilizables; no representan cantidades físicas.
+    <section aria-labelledby="templates-title">
+      <h2 id="templates-title" className="text-2xl font-semibold text-[#002855]">
+        Plantillas de estructura
+      </h2>
+      <p className="mt-1 text-sm text-slate-600">
+        Definen las relaciones posibles entre niveles. Las cantidades se agregan al
+        construir un esquema físico.
       </p>
       <p role="alert" className="mt-3 min-h-5 text-sm text-red-700 dark:text-red-400">
         {error}
@@ -52,7 +55,7 @@ export function TemplatesPage() {
 
       <form
         onSubmit={(event) => void create(event)}
-        className="my-5 grid gap-3 rounded border border-slate-200 p-4 dark:border-slate-800"
+        className="surface my-5 grid max-w-2xl gap-4 p-5"
       >
         <h3 className="font-semibold">Nueva plantilla</h3>
         <label className="grid gap-1 text-sm">
@@ -62,7 +65,6 @@ export function TemplatesPage() {
             maxLength={60}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="rounded border px-3 py-2"
           />
         </label>
         <label className="grid gap-1 text-sm">
@@ -71,13 +73,9 @@ export function TemplatesPage() {
             maxLength={255}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            className="rounded border px-3 py-2"
           />
         </label>
-        <button
-          disabled={busy}
-          className="w-fit rounded bg-sky-700 px-4 py-2 font-medium text-white disabled:opacity-60"
-        >
+        <button disabled={busy} className="button-primary w-fit">
           {busy ? 'Creando…' : 'Crear plantilla'}
         </button>
       </form>
@@ -106,12 +104,18 @@ export function TemplatesPage() {
                   <td className="py-2">
                     <Link
                       className="underline"
-                      to={`/plantillas/${template.structureTemplateId}`}
+                      to={`/esquemas/plantillas/${template.structureTemplateId}`}
                     >
                       {template.name}
                     </Link>
                   </td>
-                  <td>{template.status}</td>
+                  <td>
+                    {template.status === 'DRAFT'
+                      ? 'Borrador'
+                      : template.status === 'ACTIVE'
+                        ? 'Activa'
+                        : 'Archivada'}
+                  </td>
                   <td>{template.enabled ? 'Habilitada' : 'Deshabilitada'}</td>
                   <td>{new Date(template.updatedAt).toLocaleString('es-CR')}</td>
                 </tr>

@@ -129,6 +129,20 @@ Cada corrida es una versión independiente.
 
 La importación y el modelado son independientes.
 
+### Navegación administrativa
+
+La interfaz administrativa agrupa el trabajo en dos áreas principales:
+
+- **Importaciones**, con una subsección para importar archivos y otra para consultar el
+  historial y sus resultados.
+- **Esquemas**, con una subsección para esquemas físicos y otra para las plantillas que
+  estos utilizan.
+
+Al modelar una jerarquía, la relación con el padre se selecciona de forma explícita.
+Desde un contenedor también se puede iniciar directamente la creación de sus hijas. En
+un esquema físico se pueden crear varias instancias consecutivas en una sola acción,
+usando un nombre base y numeración automática.
+
 ## 5. Importar la colección
 
 ### Precondiciones
