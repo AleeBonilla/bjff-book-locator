@@ -120,7 +120,7 @@ export function SchemesPage() {
                       {scheme.name}
                     </Link>
                   </td>
-                  <td>{scheme.status === 'DRAFT' ? 'Borrador' : 'Definido'}</td>
+                  <td>{schemeStatus(scheme.status)}</td>
                   <td>{scheme.enabled ? 'Habilitado' : 'Deshabilitado'}</td>
                   <td>
                     {scheme.availableForNewRun
@@ -145,6 +145,12 @@ export function SchemesPage() {
       )}
     </section>
   );
+}
+
+function schemeStatus(status: Scheme['status']): string {
+  if (status === 'DRAFT') return 'Borrador';
+  if (status === 'DISTRIBUTED') return 'Distribuido';
+  return 'Definido';
 }
 
 function availabilityReason(reason: SchemeUnavailableReason): string {

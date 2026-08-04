@@ -11,10 +11,14 @@ import {
 import { useSession } from './api/session.js';
 import { BrandLogo } from './components/BrandLogo.js';
 import { ImportPage } from './pages/ImportPage.js';
+import { DistributionRunDetailPage } from './pages/DistributionRunDetailPage.js';
+import { DistributionRunEditorPage } from './pages/DistributionRunEditorPage.js';
+import { DistributionRunsPage } from './pages/DistributionRunsPage.js';
 import { LoadBooksPage } from './pages/LoadBooksPage.js';
 import { LoadDetailPage } from './pages/LoadDetailPage.js';
 import { LoadsPage } from './pages/LoadsPage.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { PublicSearchPage } from './pages/PublicSearchPage.js';
 import { SchemeEditorPage } from './pages/SchemeEditorPage.js';
 import { SchemesPage } from './pages/SchemesPage.js';
 import { TemplateEditorPage } from './pages/TemplateEditorPage.js';
@@ -23,6 +27,10 @@ import { TemplatesPage } from './pages/TemplatesPage.js';
 export function App() {
   const { user, loading } = useSession();
   const location = useLocation();
+
+  if (location.pathname === '/' || location.pathname === '/buscar') {
+    return <PublicSearchPage />;
+  }
 
   if (loading) {
     return (
@@ -45,11 +53,11 @@ export function App() {
       <Header />
       <main id="contenido" className="app-content mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <Routes>
-          <Route path="/" element={<Navigate to="/importaciones/importar" replace />} />
           <Route
             path="/acceso"
             element={<Navigate to="/importaciones/importar" replace />}
           />
+          <Route path="/buscar" element={<PublicSearchPage />} />
 
           <Route
             path="/importaciones"
@@ -82,6 +90,7 @@ export function App() {
                 tabs={[
                   { to: '/esquemas/schemes', label: 'Esquemas físicos' },
                   { to: '/esquemas/plantillas', label: 'Plantillas' },
+                  { to: '/esquemas/distribuciones', label: 'Distribuciones' },
                 ]}
               />
             }
@@ -91,6 +100,13 @@ export function App() {
             <Route path="schemes/:id" element={<SchemeEditorPage />} />
             <Route path="plantillas" element={<TemplatesPage />} />
             <Route path="plantillas/:id" element={<TemplateEditorPage />} />
+            <Route path="distribuciones" element={<DistributionRunsPage />} />
+            <Route path="distribuciones/nueva" element={<DistributionRunEditorPage />} />
+            <Route path="distribuciones/:id" element={<DistributionRunDetailPage />} />
+            <Route
+              path="distribuciones/:id/editar"
+              element={<DistributionRunEditorPage />}
+            />
           </Route>
 
           <Route

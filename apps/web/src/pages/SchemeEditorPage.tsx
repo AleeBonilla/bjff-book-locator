@@ -23,8 +23,8 @@ export function SchemeEditorPage() {
   const [templateId, setTemplateId] = useState<number | ''>('');
   const [nodeId, setNodeId] = useState<number | ''>('');
   const [baseName, setBaseName] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [startAt, setStartAt] = useState(1);
+  const [quantityText, setQuantityText] = useState('1');
+  const [startAtText, setStartAtText] = useState('1');
   const [editName, setEditName] = useState('');
   const [preview, setPreview] = useState<SubtreePreview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +61,8 @@ export function SchemeEditorPage() {
   const selectedTemplate =
     templates.find((item) => item.structureTemplateId === templateId) ?? null;
   const candidateNodes = compatibleNodes(selectedTemplate, parent);
+  const quantity = clampInteger(Number(quantityText), 1, 50);
+  const startAt = clampInteger(Number(startAtText), 1, 9999);
   const namesPreview = buildNames(baseName.trim(), quantity, startAt);
 
   useEffect(() => {
@@ -318,12 +320,12 @@ export function SchemeEditorPage() {
                 Cantidad
                 <input
                   type="number"
+                  required
                   min="1"
                   max="50"
-                  value={quantity}
-                  onChange={(event) =>
-                    setQuantity(clampInteger(Number(event.target.value), 1, 50))
-                  }
+                  value={quantityText}
+                  onChange={(event) => setQuantityText(event.target.value)}
+                  onBlur={() => setQuantityText(String(quantity))}
                 />
               </label>
               <label className="grid gap-1 text-sm">
@@ -333,10 +335,9 @@ export function SchemeEditorPage() {
                   min="1"
                   max="9999"
                   disabled={quantity === 1}
-                  value={startAt}
-                  onChange={(event) =>
-                    setStartAt(clampInteger(Number(event.target.value), 1, 9999))
-                  }
+                  value={startAtText}
+                  onChange={(event) => setStartAtText(event.target.value)}
+                  onBlur={() => setStartAtText(String(startAt))}
                 />
               </label>
             </div>
@@ -350,7 +351,12 @@ export function SchemeEditorPage() {
           )}
           <button
             disabled={
-              busy || templateId === '' || nodeId === '' || baseName.trim() === ''
+              busy ||
+              templateId === '' ||
+              nodeId === '' ||
+              baseName.trim() === '' ||
+              quantityText === '' ||
+              (quantity > 1 && startAtText === '')
             }
             className="button-primary mt-4"
           >

@@ -46,6 +46,7 @@ export function DistributionSettingsForm({
       <label className="grid gap-1 text-sm">
         Capacidad
         <input
+          data-testid="capacity-value"
           type="number"
           min="0.01"
           step="0.01"
@@ -56,8 +57,8 @@ export function DistributionSettingsForm({
       <label className="grid gap-1 text-sm">
         Unidad
         <select
+          data-testid="capacity-unit"
           value={unit}
-          disabled={capacity === ''}
           onChange={(event) => setUnit(event.target.value as CapacityUnit)}
         >
           <option value="BOOKS">Libros</option>
@@ -68,6 +69,7 @@ export function DistributionSettingsForm({
       <label className="grid gap-1 text-sm">
         Objetivo de llenado
         <input
+          data-testid="target-fill-ratio"
           type="number"
           min="0.0001"
           max="1"
@@ -75,6 +77,7 @@ export function DistributionSettingsForm({
           value={ratio}
           onChange={(event) => setRatio(event.target.value)}
         />
+        <span className="helper-text">1 equivale al 100 % de la capacidad.</span>
       </label>
       <label className="grid gap-1 text-sm">
         Permitir exceso

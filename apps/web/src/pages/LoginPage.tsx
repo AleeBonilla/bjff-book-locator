@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 import { ApiRequestError } from '../api/client.js';
 import { useSession } from '../api/session.js';
@@ -81,6 +82,13 @@ export function LoginPage() {
               {busy ? 'Ingresando…' : 'Ingresar'}
             </button>
           </form>
+
+          <div className="login-public-access">
+            <span>¿Solo necesitás consultar una ubicación?</span>
+            <Link to="/buscar" className="button-secondary">
+              Ir a búsqueda pública
+            </Link>
+          </div>
 
           <p className="login-help">
             Las cuentas se administran fuera de esta aplicación. Si necesitás acceso,

@@ -3,13 +3,23 @@ import type {
   Carga,
   CreateNamedResourceRequest,
   CreateLocationRequest,
+  CreateDistributionRunRequest,
   CreateTemplateNodeRequest,
   MoveTemplateNodeRequest,
   MoveLocationRequest,
   OrderLocationsRequest,
   OrderTemplateNodesRequest,
   Paginado,
+  DistributionRunDetail,
+  DistributionRunSummary,
+  DistributionComparison,
+  DistributionDerivationTemplate,
+  PublishDistributionRunRequest,
+  PublicSearchResult,
+  RecalculateDistributionRunRequest,
+  ReviewDistributionRangeRequest,
   ProblemaDeCarga,
+  PublicSearchRequest,
   Registro,
   ReplaceLocationSettingsRequest,
   Scheme,
@@ -38,6 +48,7 @@ export class ApiRequestError extends Error {
     readonly code: string,
     message: string,
     readonly status: number,
+    readonly details?: Record<string, unknown>,
   ) {
     super(message);
   }
@@ -56,6 +67,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
       error?.code ?? 'INTERNAL_ERROR',
       error?.message ?? 'Ocurrió un error inesperado.',
       response.status,
+      error?.details,
     );
   }
 
@@ -218,6 +230,60 @@ export const api = {
     call<void>(`/api/schemes/${schemeId}/locations/${locationId}/settings`, {
       method: 'DELETE',
     }),
+
+  distributionRuns: (schemeId?: number) => {
+    const query = schemeId === undefined ? '' : `?schemeId=${schemeId}`;
+    return call<Paginado<DistributionRunSummary>>(`/api/distribution-runs${query}`);
+  },
+
+  distributionRun: (id: number) =>
+    call<DistributionRunDetail>(`/api/distribution-runs/${id}`),
+
+  createDistributionRun: (body: CreateDistributionRunRequest) =>
+    call<DistributionRunDetail>('/api/distribution-runs', json('POST', body)),
+
+  publishDistributionRun: (id: number, body: PublishDistributionRunRequest) =>
+    call<DistributionRunDetail>(
+      `/api/distribution-runs/${id}/publish`,
+      json('POST', body),
+    ),
+
+  recalculateDistributionRun: (id: number, body: RecalculateDistributionRunRequest) =>
+    call<DistributionRunDetail>(
+      `/api/distribution-runs/${id}/recalculate`,
+      json('POST', body),
+    ),
+
+  reviewDistributionRange: (
+    runId: number,
+    rangeId: number,
+    body: ReviewDistributionRangeRequest,
+  ) =>
+    call<DistributionRunDetail>(
+      `/api/distribution-runs/${runId}/ranges/${rangeId}/review`,
+      json('PUT', body),
+    ),
+
+  testDistributionSearch: (id: number, classificationCode: string) =>
+    call<PublicSearchResult>(
+      `/api/distribution-runs/${id}/test-search`,
+      json('POST', { classificationCode }),
+    ),
+
+  distributionDerivationTemplate: (id: number) =>
+    call<DistributionDerivationTemplate>(
+      `/api/distribution-runs/${id}/derivation-template`,
+    ),
+
+  distributionComparison: (id: number, againstRunId?: number) => {
+    const query = againstRunId === undefined ? '' : `?againstRunId=${againstRunId}`;
+    return call<DistributionComparison>(
+      `/api/distribution-runs/${id}/comparison${query}`,
+    );
+  },
+
+  publicSearch: (body: PublicSearchRequest) =>
+    call<PublicSearchResult>('/api/public/search', json('POST', body)),
 };
 
 function json(method: string, body: unknown): RequestInit {
