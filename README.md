@@ -4,7 +4,7 @@ BJFF Book Locator relaciona signaturas bibliográficas basadas en DDC con ubicac
 
 ## Estado del proyecto
 
-El repositorio contiene la estructura ejecutable inicial del monorepo, las especificaciones funcionales y el esquema PostgreSQL V1. La aplicación expone por ahora una pantalla base y un endpoint de salud; el flujo funcional todavía debe implementarse.
+El repositorio contiene la estructura ejecutable inicial del monorepo, las especificaciones funcionales, el esquema PostgreSQL V1 y el package de dominio para interpretar y ordenar signaturas. La API expone por ahora un endpoint de salud y todavía no integra ese package en endpoints funcionales.
 
 ## Tecnologías
 
@@ -23,6 +23,7 @@ El repositorio contiene la estructura ejecutable inicial del monorepo, las espec
 |---|---|
 | [`apps/web`](apps/web) | Aplicación React, configuración Vite y pruebas de componentes. |
 | [`apps/api`](apps/api) | API Express, acceso a PostgreSQL y pruebas HTTP. |
+| [`packages/call-number`](packages/call-number) | Normalización `base-1`, comparación bibliográfica y codificación binaria `ck1`, con pruebas de conformidad. |
 | [`package.json`](package.json) | Workspaces y comandos compartidos de npm. |
 | [`docker-compose.yml`](docker-compose.yml) | PostgreSQL local, volumen persistente y migraciones de inicialización. |
 | [`docs/README.md`](docs/README.md) | Índice canónico y orden de lectura de la documentación. |

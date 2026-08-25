@@ -27,7 +27,7 @@ Lea los contratos en este orden cuando una decisión atraviese todo el sistema:
 
 ## Estado y límites
 
-- `CO`, `NORM` y `CK` son contratos de diseño; no hay todavía una implementación de aplicación contra la cual ejecutar sus pruebas de conformidad.
+- [`packages/call-number`](../packages/call-number) implementa `CO` 1.0.0, `NORM base-1` y `CK ck1` como un package independiente, con pruebas de conformidad. La API todavía no consume el package.
 - Las migraciones `001_initial_schema.sql` y `002_seed_basic_ordering_profile.sql` implementan la estructura V1 y su perfil interno inicial, pero el repositorio no incluye pruebas automatizadas de integridad o rendimiento.
 - Las decisiones institucionales pendientes se conservan en [Decisiones abiertas](classification-ordering.md#13-decisiones-abiertas).
 

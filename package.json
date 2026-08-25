@@ -5,7 +5,8 @@
   "description": "Localizador bibliográfico de la Biblioteca José Figueres Ferrer.",
   "workspaces": [
     "apps/web",
-    "apps/api"
+    "apps/api",
+    "packages/*"
   ],
   "engines": {
     "node": ">=22.12.0",
@@ -19,7 +20,7 @@
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:watch": "concurrently --names web,api --prefix-colors cyan,magenta \"npm:test:watch:web\" \"npm:test:watch:api\"",
+    "test:watch": "npm run test:watch --workspaces --if-present",
     "test:watch:web": "npm run test:watch --workspace @bjff/web",
     "test:watch:api": "npm run test:watch --workspace @bjff/api",
     "check:docs": "pwsh -NoProfile -File ./scripts/check-docs.ps1",

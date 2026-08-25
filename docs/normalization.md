@@ -2,7 +2,7 @@
 
 | Propiedad | Valor |
 |---|---|
-| Estado | Especificación técnica de diseño; sin implementación en este repositorio |
+| Estado | Especificación técnica implementada en [`packages/call-number`](../packages/call-number) |
 | Versión | 1.0.0 |
 | Identificador | `NORM` |
 | Ámbito | Parsing y representación normalizada del perfil `base-1` |

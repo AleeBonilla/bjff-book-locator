@@ -2,7 +2,7 @@
 
 | Propiedad | Valor |
 |---|---|
-| Estado | Especificación técnica de diseño; sin implementación en este repositorio |
+| Estado | Especificación técnica implementada en [`packages/call-number`](../packages/call-number) |
 | Versión | 1.0.0 |
 | Identificador | `CK` |
 | Ámbito | Codificación binaria `ck1`, persistencia, orden y consultas por rango |

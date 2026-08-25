@@ -9,6 +9,7 @@ Estas instrucciones se aplican a todo el monorepo. El proyecto está en implemen
 - `docs/README.md`: índice canónico; consúltelo antes de crear o mover documentación.
 - `apps/web`: frontend React con Vite; no accede directamente a PostgreSQL.
 - `apps/api`: backend Express y único límite de acceso a PostgreSQL.
+- `packages/call-number`: package TypeScript independiente con la implementación de `CO`, `NORM base-1` y `CK ck1`; no depende del backend.
 - `package.json`: comandos raíz y workspaces administrados con npm.
 - `docker-compose.yml`: PostgreSQL local y ejecución inicial de migraciones.
 - `docs/classification-ordering.md`: autoridad normativa para el orden bibliográfico adoptado (`CO`).
