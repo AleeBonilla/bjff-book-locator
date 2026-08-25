@@ -4,12 +4,27 @@ BJFF Book Locator relaciona signaturas bibliográficas basadas en DDC con ubicac
 
 ## Estado del proyecto
 
-El repositorio contiene las especificaciones de ordenamiento, normalización, codificación y flujo, además del esquema PostgreSQL V1. No contiene una aplicación ejecutable, dependencias de aplicación, pruebas automatizadas ni configuración de despliegue. Las migraciones SQL son la autoridad sobre la estructura y los datos iniciales implementados.
+El repositorio contiene la estructura ejecutable inicial del monorepo, las especificaciones funcionales y el esquema PostgreSQL V1. La aplicación expone por ahora una pantalla base y un endpoint de salud; el flujo funcional todavía debe implementarse.
+
+## Tecnologías
+
+| Área | Tecnología |
+|---|---|
+| Lenguaje | [TypeScript](https://www.typescriptlang.org/) |
+| Monorepo | [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces/) |
+| Frontend | [React](https://react.dev/) y [Vite](https://vite.dev/) |
+| Backend | [Node.js](https://nodejs.org/) y [Express](https://expressjs.com/) |
+| Base de datos | [PostgreSQL](https://www.postgresql.org/) mediante [Docker Compose](https://docs.docker.com/compose/) |
+| Pruebas | [Vitest](https://vitest.dev/), Testing Library y Supertest |
 
 ## Mapa del repositorio
 
 | Ruta | Contenido |
 |---|---|
+| [`apps/web`](apps/web) | Aplicación React, configuración Vite y pruebas de componentes. |
+| [`apps/api`](apps/api) | API Express, acceso a PostgreSQL y pruebas HTTP. |
+| [`package.json`](package.json) | Workspaces y comandos compartidos de npm. |
+| [`docker-compose.yml`](docker-compose.yml) | PostgreSQL local, volumen persistente y migraciones de inicialización. |
 | [`docs/README.md`](docs/README.md) | Índice canónico y orden de lectura de la documentación. |
 | [`docs/classification-ordering.md`](docs/classification-ordering.md) | Reglas normativas de comparación de signaturas. |
 | [`docs/normalization.md`](docs/normalization.md) | Parsing, modelo normalizado y estados de validación. |
@@ -20,31 +35,59 @@ El repositorio contiene las especificaciones de ordenamiento, normalización, co
 | [`database/002_seed_basic_ordering_profile.sql`](database/002_seed_basic_ordering_profile.sql) | Perfil interno de ordenamiento utilizado por los esquemas V1. |
 | [`AGENTS.md`](AGENTS.md) | Reglas operativas para agentes y colaboradores. |
 
-## Aplicar las migraciones iniciales
+## Preparar el entorno local
 
 Requisitos:
 
-- PostgreSQL 14 o posterior;
-- `psql` disponible en la terminal;
-- una base de datos vacía;
-- `DATABASE_URL` apuntando a esa base.
+- Node.js 22.12 o posterior;
+- npm 10 o posterior;
+- Docker con Docker Compose.
 
 Desde la raíz del repositorio, en PowerShell:
 
 ```powershell
-psql $env:DATABASE_URL -v ON_ERROR_STOP=1 -f .\database\001_initial_schema.sql
-psql $env:DATABASE_URL -v ON_ERROR_STOP=1 -f .\database\002_seed_basic_ordering_profile.sql
+Copy-Item .env.example .env
+npm install
+npm run db:up
+npm run dev
 ```
 
-La primera migración crea tipos, tablas, índices, funciones y triggers. La segunda inserta `ddc-base-v1`, el perfil interno que la aplicación asigna a los esquemas sin solicitar una selección al usuario. Cada archivo se ejecuta en su propia transacción. En esta etapa, la recuperación esperada es descartar la base de datos de prueba y crear otra vacía.
+Cambie `POSTGRES_PASSWORD` y la contraseña incluida en `DATABASE_URL` por el mismo valor local antes de levantar PostgreSQL. `.env` no se versiona.
 
-## Verificar la documentación
+Servicios de desarrollo:
+
+- frontend: `http://localhost:5173`;
+- API: `http://localhost:3000`;
+- salud de la API: `http://localhost:3000/api/health`;
+- PostgreSQL: `localhost:5432`, salvo que `.env` indique otro puerto.
+
+`npm run dev` mantiene frontend y backend activos en la misma terminal. Vite reenvía las solicitudes `/api` hacia Express durante el desarrollo.
+
+## Base de datos local
+
+`npm run db:up` crea el contenedor definido en `.env`. En un volumen vacío, la imagen oficial de PostgreSQL ejecuta en orden los archivos de [`database`](database):
+
+1. `001_initial_schema.sql` crea tipos, tablas, índices, funciones y triggers;
+2. `002_seed_basic_ordering_profile.sql` inserta `ddc-base-v1`.
+
+Comandos disponibles:
+
+| Comando | Acción |
+|---|---|
+| `npm run db:status` | Muestra el estado del servicio. |
+| `npm run db:logs` | Sigue los logs de PostgreSQL. |
+| `npm run db:down` | Detiene y elimina el contenedor; conserva el volumen. |
+| `npm run db:reset` | Elimina también el volumen y vuelve a requerir la inicialización. |
+
+`npm run db:reset` destruye todos los datos locales de PostgreSQL.
+
+## Verificación
 
 ```powershell
-pwsh -NoProfile -File .\scripts\check-docs.ps1
+npm run check
 ```
 
-La comprobación falla si un documento Markdown requerido está vacío, si un enlace relativo apunta a una ruta inexistente o si la documentación contiene el carácter de flecha derecha prohibido.
+El comando comprueba documentación, tipos, pruebas y builds de producción. También puede ejecutar cada parte por separado con `npm run check:docs`, `npm run typecheck`, `npm test` y `npm run build`.
 
 ## Decisiones pendientes
 

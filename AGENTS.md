@@ -2,11 +2,15 @@
 
 ## Alcance
 
-Estas instrucciones se aplican a todo el repositorio. El proyecto está en una etapa de diseño: hay especificaciones Markdown y migraciones PostgreSQL, pero todavía no existe una aplicación ejecutable ni una suite de pruebas.
+Estas instrucciones se aplican a todo el monorepo. El proyecto está en implementación inicial y conserva especificaciones Markdown como contratos funcionales.
 
 ## Mapa operativo
 
 - `docs/README.md`: índice canónico; consúltelo antes de crear o mover documentación.
+- `apps/web`: frontend React con Vite; no accede directamente a PostgreSQL.
+- `apps/api`: backend Express y único límite de acceso a PostgreSQL.
+- `package.json`: comandos raíz y workspaces administrados con npm.
+- `docker-compose.yml`: PostgreSQL local y ejecución inicial de migraciones.
 - `docs/classification-ordering.md`: autoridad normativa para el orden bibliográfico adoptado (`CO`).
 - `docs/normalization.md`: contrato de parsing y representación normalizada (`NORM`).
 - `docs/comparable_key.md`: contrato de codificación binaria y compatibilidad (`CK`).
@@ -15,6 +19,16 @@ Estas instrucciones se aplican a todo el repositorio. El proyecto está en una e
 - `database/001_initial_schema.sql`: autoridad sobre tablas, restricciones, índices, funciones y triggers implementados.
 - `database/002_seed_basic_ordering_profile.sql`: dato inicial del perfil interno de ordenamiento V1.
 - `scripts/check-docs.ps1`: verificación de archivos y enlaces Markdown locales.
+
+## Desarrollo
+
+- Use Node.js 22.12 o posterior y npm 10 o posterior.
+- Use npm como único gestor de paquetes y mantenga un solo `package-lock.json` en la raíz.
+- Mantenga TypeScript en modo estricto. No agregue JavaScript cuando el archivo pueda expresarse en TypeScript.
+- Ejecute comandos compartidos desde la raíz. Use `--workspace @bjff/web` o `--workspace @bjff/api` para un solo proyecto.
+- El frontend consume rutas `/api`; no contiene credenciales ni consultas SQL.
+- La API lee configuración local desde `.env`. No versione ese archivo ni valores secretos.
+- Añada o actualice pruebas Vitest junto con el comportamiento que cambia.
 
 ## Fuentes de verdad
 
@@ -36,13 +50,13 @@ Estas instrucciones se aplican a todo el repositorio. El proyecto está en una e
 
 ## Verificación
 
-Ejecute desde la raíz:
+Ejecute desde la raíz antes de entregar cambios:
 
 ```powershell
-pwsh -NoProfile -File .\scripts\check-docs.ps1
+npm run check
 ```
 
-No hay todavía comandos de compilación, lint o pruebas de aplicación. Para probar las migraciones, use una base PostgreSQL vacía y el procedimiento de [`README.md`](README.md#aplicar-las-migraciones-iniciales).
+Para verificar solamente la documentación use `npm run check:docs`. Para comprobar PostgreSQL local, siga el procedimiento de [`README.md`](README.md#base-de-datos-local).
 
 ## Mantenimiento documental
 

@@ -26,9 +26,10 @@ foreach ($relativePath in $requiredDocuments) {
     }
 }
 
-# Revisa todos los documentos, excepto cualquier copia dentro de .git.
+# Revisa documentos del proyecto, no dependencias ni artefactos generados.
+$ignoredDirectoryPattern = '[\\/](?:\.git|node_modules|dist|coverage)[\\/]'
 $markdownFiles = Get-ChildItem -LiteralPath $repoRoot -Filter '*.md' -File -Recurse |
-    Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' }
+    Where-Object { $_.FullName -notmatch $ignoredDirectoryPattern }
 
 # Captura enlaces Markdown de texto; las imágenes no forman parte de esta comprobación.
 $linkPattern = '(?<!\!)\[[^\]]+\]\((?<target>[^)]+)\)'

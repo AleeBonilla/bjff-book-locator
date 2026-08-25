@@ -1,0 +1,36 @@
+{
+  "name": "bjff-book-locator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Localizador bibliográfico de la Biblioteca José Figueres Ferrer.",
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10.0.0"
+  },
+  "packageManager": "npm@10.9.3",
+  "scripts": {
+    "dev": "concurrently --names web,api --prefix-colors cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "npm run dev --workspace @bjff/web",
+    "dev:api": "npm run dev --workspace @bjff/api",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:watch": "concurrently --names web,api --prefix-colors cyan,magenta \"npm:test:watch:web\" \"npm:test:watch:api\"",
+    "test:watch:web": "npm run test:watch --workspace @bjff/web",
+    "test:watch:api": "npm run test:watch --workspace @bjff/api",
+    "check:docs": "pwsh -NoProfile -File ./scripts/check-docs.ps1",
+    "check": "npm run check:docs && npm run typecheck && npm test && npm run build",
+    "db:up": "docker compose up -d postgres",
+    "db:status": "docker compose ps",
+    "db:logs": "docker compose logs -f postgres",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
