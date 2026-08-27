@@ -82,19 +82,23 @@ Los mapas pueden configurarse desde `LOCATIONS_DEFINED` y no determinan por sí 
 
 ### 4.2 Definir la gramática física
 
-Durante `DRAFT`, el usuario construye el árbol de `scheme_levels`:
+Durante `DRAFT`, el usuario construye la gramática de niveles físicos:
 
-- existe un único nivel raíz;
+- existe un único primer nivel físico visible;
 - cada nivel descendiente referencia su nivel padre;
 - los nombres y `sort_order` no se repiten entre hermanos;
 - el árbol no contiene ciclos;
 - cada rama desde la raíz hasta una hoja contiene exactamente un nivel con `is_search_terminal = true`.
 
-Un terminal de búsqueda es el nivel donde se almacenará el rango bibliográfico. Puede ser una hoja física o un nivel anterior si la búsqueda no necesita más precisión.
+El sistema antepone un `scheme_level` raíz interno a la gramática visible. El primer nivel físico referencia ese registro; los niveles posteriores conservan las relaciones definidas por el usuario. La interfaz, los mapas, los rangos y el CSV excluyen el nivel interno.
+
+Un terminal de búsqueda es el nivel de captura directa: sus ubicaciones almacenan los extremos bibliográficos. Puede ser una hoja física o un nivel anterior si la búsqueda no necesita más precisión. La selección no significa que los niveles superiores carezcan de rango; estos obtienen una cobertura derivada de sus terminales descendientes según la sección 7.1.
+
+La interfaz debe presentar esta selección como **nivel de captura de rangos** o **precisión de búsqueda**, no como una decisión independiente de si cada nivel recibe rangos. En una misma rama solo se selecciona un nivel de captura directa.
 
 ### 4.3 Confirmar niveles
 
-La interfaz presenta un resumen y solicita confirmación. La transición a `LEVELS_DEFINED` falla si el árbol no cumple las reglas anteriores. Una vez confirmada, la gramática queda sellada y se habilita la creación de ubicaciones.
+La interfaz presenta un resumen y solicita confirmación. La transición a `LEVELS_DEFINED` falla si el árbol no cumple las reglas anteriores. Al confirmar, el sistema persiste el nivel raíz interno y crea una única ubicación raíz asociada con él. Ninguno aparece en la interfaz ni recibe rangos o representación en mapas. La gramática queda sellada y se habilita la creación de ubicaciones físicas.
 
 ## 5. Materializar y sellar ubicaciones
 
@@ -102,18 +106,25 @@ La interfaz presenta un resumen y solicita confirmación. La transición a `LEVE
 
 La aplicación instancia `locations` siguiendo la gramática:
 
-1. crea una única ubicación raíz;
-2. crea sus descendientes con el `scheme_level_id` correspondiente;
-3. mantiene la relación entre la ubicación padre y el nivel padre;
-4. asigna un `sort_order` único entre ubicaciones hermanas;
-5. verifica que cada ubicación tenga al menos un hijo por cada nivel hijo definido en la gramática.
+1. utiliza la raíz interna creada al confirmar los niveles;
+2. crea bajo ella una o más ubicaciones del primer nivel físico, por ejemplo `Piso 1` y `Piso 2`;
+3. crea los demás descendientes con el `scheme_level_id` correspondiente;
+4. mantiene la relación entre la ubicación padre y el nivel padre;
+5. asigna un `sort_order` único entre ubicaciones hermanas;
+6. verifica que cada ubicación física tenga al menos un hijo cuando su nivel posea un nivel descendiente en la gramática.
+
+La raíz interna solo agrupa las ubicaciones del primer nivel físico. Su identificador y orden no forman parte de las rutas, los CSV ni los códigos expuestos al usuario.
+
+La cantidad de hijos se define por ubicación padre, no de forma uniforme para todo el nivel. Por ejemplo, dos ubicaciones `Mueble` de la misma cara pueden contener cuatro y seis anaqueles respectivamente. Un valor general puede utilizarse para generar una estructura inicial, pero cada rama permanece editable hasta sellar las ubicaciones.
+
+La interfaz presenta el árbol con la misma indentación y orden de los niveles confirmados. Desde una ubicación solo permite añadir el tipo de hijo directo definido por la gramática; el usuario puede añadir una o varias unidades y ajustar después cada rama. No puede omitir niveles, insertar un descendiente bajo un padre incompatible ni dejar sin hijos una ubicación cuyo nivel tenga un nivel hijo definido.
 
 ### 5.2 Nombres y códigos
 
 La aplicación genera nombres y códigos estables:
 
 - el nombre combina el nombre del nivel y un ordinal;
-- el código serializa `scheme_id` y los `sort_order` de la ruta desde la ubicación raíz hasta la ubicación actual, separados por guiones;
+- el código serializa `scheme_id` y los `sort_order` de la ruta desde la primera ubicación física hasta la ubicación actual, separados por guiones;
 - el código no está vacío y es único dentro del esquema;
 - después de sellar la estructura, el código se considera inmutable porque los SVG lo utilizan como identificador.
 
@@ -131,7 +142,7 @@ Los separadores evitan colisiones entre rutas con órdenes de varios dígitos y 
 
 ### 5.3 Sellar ubicaciones
 
-Antes de pasar a `LOCATIONS_DEFINED`, la base de datos valida la raíz, las relaciones con los niveles, la cobertura de hijos y los códigos. La confirmación sella niveles y ubicaciones. Desde este estado se habilitan la configuración de mapas y la captura de rangos.
+Antes de pasar a `LOCATIONS_DEFINED`, la base de datos valida la raíz interna, las relaciones con los niveles, la cobertura de hijos y los códigos. La confirmación sella niveles y ubicaciones. Desde este estado se habilitan la configuración de mapas y la captura de rangos.
 
 ## 6. Configurar mapas
 
@@ -206,6 +217,25 @@ Si la escritura falla, la transacción conserva el esquema en `LOCATIONS_DEFINED
 
 Los rangos de ubicaciones distintas pueden solaparse. La consulta no elige un ganador: devuelve todas las ubicaciones cuyo rango contiene la clave buscada. La presentación de esos resultados se define en [Buscar y mostrar ubicaciones](#9-buscar-y-mostrar-ubicaciones).
 
+### 7.1 Rangos directos y cobertura derivada
+
+Los seis campos `range_*` se persisten únicamente en ubicaciones terminales. Las ubicaciones superiores obtienen una cobertura derivada a partir de todos los terminales contenidos en su subárbol:
+
+- una ubicación terminal está completa cuando posee un rango directo válido;
+- una ubicación no terminal está completa cuando existen todas las ubicaciones terminales esperadas bajo ella y cada una posee un rango directo válido;
+- el inicio derivado es la menor `range_start_key` de esos terminales y el fin derivado es la mayor `range_end_key`, comparados con el perfil del esquema;
+- la cobertura derivada se calcula al consultar o validar; la V1 no copia esos valores en los campos `range_*` de los ancestros;
+- la búsqueda de libros consulta los rangos directos, no el intervalo derivado del ancestro.
+
+La última regla evita falsos positivos. El intervalo mínimo-máximo de un ancestro puede contener huecos o rangos solapados y, por sí solo, no demuestra cobertura bibliográfica continua.
+
+| Nivel de captura directa | Rangos persistidos | Cobertura derivada |
+|---|---|---|
+| `Mueble` | Cada mueble | Cara, fila, piso y raíz |
+| `Anaquel` | Cada anaquel | Mueble, cara, fila, piso y raíz |
+
+La completitud se propaga hacia arriba. Si falta el rango de un anaquel terminal, su mueble, su cara y los demás ancestros permanecen incompletos. El esquema no puede pasar a `ASSIGNED` y, por tanto, no puede publicarse.
+
 ## 8. Publicar y activar
 
 Publicar y activar son operaciones relacionadas, pero distintas:
@@ -218,11 +248,13 @@ La interfaz puede ejecutarlas juntas, pero debe conservar esa diferencia. Al act
 La publicación exige:
 
 1. esquema habilitado en estado `ASSIGNED`;
-2. todos los terminales de búsqueda con rango;
+2. todas las ubicaciones terminales con rango directo, lo que completa la cobertura derivada de todos sus ancestros;
 3. al menos una capa habilitada `TOP / STATIC`;
 4. cobertura superior para todos los terminales con rango, según la regla de la sección 6.1.
 
 La base de datos garantiza los dos primeros puntos al activar y que exista como máximo un esquema activo. La aplicación comprueba los mapas y su cobertura antes de publicar.
+
+La V1 publica el esquema como una unidad. No existe publicación individual de niveles o ubicaciones: una sola ubicación terminal incompleta bloquea la publicación del esquema completo.
 
 La intención funcional es que un esquema publicado no se edite regresando estados. Para cambiar su estructura se crea un esquema nuevo en `DRAFT`, se configura y se activa cuando esté listo. La base de datos solo impide degradar el estado mientras el esquema siga activo; la política de clonación necesita control de aplicación.
 
@@ -301,6 +333,7 @@ Además de presentar la interfaz, la aplicación debe:
 - generar nombres, códigos y archivos CSV;
 - interpretar signaturas y producir claves compatibles;
 - ejecutar en una transacción los cambios que combinan estado y datos;
+- calcular la cobertura derivada y la completitud de cada ubicación a partir de sus terminales descendientes;
 - sanitizar los SVG y persistir solamente el resultado seguro;
 - validar la cobertura superior requerida para publicar;
 - restringir el drilldown a `TOP` con destino `FRONT`;
@@ -323,8 +356,10 @@ El flujo se considera implementado cuando se puede demostrar que:
 - la migración `0.0.2` deja disponible exactamente el contrato `ddc-base-v1` esperado;
 - crear un esquema asigna ese perfil sin solicitarlo al usuario;
 - los códigos se generan desde `scheme_id` y la ruta de `sort_order`;
+- distintas ubicaciones del mismo nivel pueden tener cantidades diferentes de hijos sin romper la gramática;
 - las transiciones rechazan árboles o coberturas incompletos;
 - el primer rango cambia el estado y guarda sus datos atómicamente;
+- los rangos de los ancestros se derivan de terminales completos sin persistir copias ni usarse para producir coincidencias falsas en huecos;
 - la importación de SVG rechaza identificadores inválidos e impide habilitar contenido activo;
 - la publicación exige cobertura superior para todos los terminales con rango;
 - una búsqueda pública falla de forma comprensible cuando no existe esquema activo;
