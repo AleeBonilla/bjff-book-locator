@@ -2,12 +2,12 @@
 
 | Propiedad | Valor |
 |---|---|
-| Estado | Diseño V1 implementado por las migraciones iniciales; sin aplicación ni pruebas automatizadas en este repositorio |
+| Estado | Modelo V1 implementado y cubierto por pruebas de integración de la API administrativa |
 | Versión del documento | 1.0 |
 | Motor | PostgreSQL |
 | Ámbito | Persistencia de perfiles, esquemas, ubicaciones, rangos y mapas SVG |
 | Autoridad estructural | [`001_initial_schema.sql`](../../database/001_initial_schema.sql) |
-| Autoridad de datos iniciales | [`002_seed_basic_ordering_profile.sql`](../../database/002_seed_basic_ordering_profile.sql) |
+| Autoridad de datos iniciales | [`002_seed_basic_ordering_profile.sql`](../../database/002_seed_basic_ordering_profile.sql) y [`003_seed_system_actor.sql`](../../database/003_seed_system_actor.sql) |
 | Autoridad semántica | Este documento, dentro de las restricciones comprobables de la migración |
 | Revisar cuando | Cambie una migración, una transición de `scheme_status`, una relación o una responsabilidad de la aplicación |
 
@@ -37,6 +37,7 @@ La base de datos no interpreta por sí sola una signatura. El parsing, la normal
 | [Flujo de búsqueda](#9-flujo-de-búsqueda) | Describe la localización por rango y la recuperación de mapas. |
 | [`001_initial_schema.sql`](../../database/001_initial_schema.sql) | Implementa las tablas, relaciones, restricciones, índices y triggers de esta versión. |
 | [`002_seed_basic_ordering_profile.sql`](../../database/002_seed_basic_ordering_profile.sql) | Inserta el perfil interno utilizado por los esquemas V1. |
+| [`003_seed_system_actor.sql`](../../database/003_seed_system_actor.sql) | Inserta el actor técnico de auditoría usado antes de implementar login. |
 
 Las decisiones todavía abiertas sobre guiones e indicador de edición DDC permanecen en la especificación de ordenamiento. Cuando esas decisiones modifiquen el resultado normalizado o la clave comparable, deberá crearse un nuevo `ordering_profile`.
 

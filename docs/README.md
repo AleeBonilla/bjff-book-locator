@@ -1,6 +1,6 @@
 # Índice de documentación
 
-Índice canónico de los contratos bibliográficos, el flujo de aplicación y el esquema PostgreSQL V1. El repositorio aún no contiene una aplicación desplegable.
+Índice canónico de los contratos bibliográficos, el flujo de aplicación, la API y el esquema PostgreSQL V1.
 
 ## Orden de lectura
 
@@ -11,6 +11,7 @@ Lea los contratos en este orden cuando una decisión atraviese todo el sistema:
 3. [`comparable_key.md`](comparable_key.md): codifica esos componentes en bytes que preservan el orden.
 4. [`database/database-v1.md`](database/database-v1.md): persiste perfiles, ubicaciones, rangos y mapas.
 5. [`workflows/application-workflow-v1.md`](workflows/application-workflow-v1.md): integra esos contratos en el flujo completo de la aplicación.
+6. [`api/admin-api-v1.md`](api/admin-api-v1.md): define el contrato HTTP que implementa el módulo administrativo.
 
 ## Registro documental
 
@@ -21,14 +22,16 @@ Lea los contratos en este orden cuando una decisión atraviese todo el sistema:
 | [Clave comparable](comparable_key.md) | Implementar `ck1`, ordenar, paginar, consultar rangos o migrar versiones de clave. | Especificación `CK`, limitada por `CO` y `NORM`. |
 | [Base de datos V1](database/database-v1.md) | Entender entidades, invariantes, estados, mapas SVG y consultas representativas. | [`database/001_initial_schema.sql`](../database/001_initial_schema.sql) para estructura ejecutable; el documento para semántica de diseño. |
 | [Flujo de la aplicación V1](workflows/application-workflow-v1.md) | Implementar o revisar la configuración, publicación y búsqueda. | Decisiones funcionales confirmadas, limitadas por los contratos y las migraciones enlazadas. |
+| [API administrativa V1](api/admin-api-v1.md) | Integrar el frontend administrativo o cambiar rutas, DTO, errores y cargas SVG. | Implementación en [`apps/api/src`](../apps/api/src), limitada por el workflow. |
 | [Migración de estructura](../database/001_initial_schema.sql) | Crear o auditar el esquema PostgreSQL implementado. | El propio SQL. |
 | [Perfil inicial](../database/002_seed_basic_ordering_profile.sql) | Insertar o auditar el contrato interno utilizado por los esquemas V1. | El propio SQL. |
+| [Actor técnico inicial](../database/003_seed_system_actor.sql) | Preparar la auditoría local mientras no exista login. | El propio SQL. |
 | [Guía principal](../README.md) | Orientarse, conocer el estado actual y aplicar las migraciones. | Artefactos enlazados desde cada sección. |
 
 ## Estado y límites
 
-- [`packages/call-number`](../packages/call-number) implementa `CO` 1.0.0, `NORM base-1` y `CK ck1` como un package independiente, con pruebas de conformidad. La API todavía no consume el package.
-- Las migraciones `001_initial_schema.sql` y `002_seed_basic_ordering_profile.sql` implementan la estructura V1 y su perfil interno inicial, pero el repositorio no incluye pruebas automatizadas de integridad o rendimiento.
+- [`packages/call-number`](../packages/call-number) implementa `CO` 1.0.0, `NORM base-1` y `CK ck1`; la API lo utiliza para rangos y pruebas de búsqueda.
+- Las pruebas de integración de [`apps/api`](../apps/api) aplican las tres migraciones sobre PostgreSQL 17 desechable y recorren configuración, búsqueda, mapas, publicación y clonación.
 - Las decisiones institucionales pendientes se conservan en [Decisiones abiertas](classification-ordering.md#13-decisiones-abiertas).
 
 ## Regla de mantenimiento

@@ -322,7 +322,13 @@ La sanitización elimina, como mínimo:
 
 El XML mal formado se rechaza. Después de eliminar contenido peligroso, el sistema vuelve a validar códigos, slots y estructura. Si el resultado ya no cumple el contrato del mapa, también se rechaza. La entrada original nunca se publica como recurso.
 
-El almacenamiento de archivos debe coordinarse con la transacción de base de datos. La eliminación de un archivo huérfano tras un fallo y el versionado de recursos todavía no están definidos.
+### 11.1 Ciclo de vida local de SVG
+
+La API guarda únicamente el SVG sanitizado bajo el directorio configurable `SVG_STORAGE_DIR`, separado por `scheme_id` y con un UUID como nombre. `asset_url` contiene la ruta servida desde `/api/assets/maps/`; el nombre original no se utiliza como ruta.
+
+Un reemplazo escribe primero un archivo nuevo, actualiza `map_layer_svgs` en una transacción y elimina el anterior después de confirmar. Una eliminación retira primero las referencias de PostgreSQL y luego intenta retirar el archivo. Si el proceso termina entre ambas operaciones, `npm run assets:reconcile` elimina temporales y archivos sin referencia. La V1 no conserva historial de archivos.
+
+La clonación completa copia cada archivo a un directorio del esquema nuevo. Los SVG TOP se reescriben con la correspondencia entre códigos anteriores y nuevos; las plantillas FRONT conservan sus `data-slot`.
 
 ## 12. Responsabilidades de la aplicación
 
@@ -345,7 +351,6 @@ Además de presentar la interfaz, la aplicación debe:
 
 | ID | Pendiente | Estado actual |
 |---|---|---|
-| `WF-OPEN-09` | Ciclo de vida de archivos SVG. | Los archivos quedan locales. No están definidos rutas, reemplazo, historial, limpieza de huérfanos ni reescritura al clonar. |
 | `WF-OPEN-11` | Edición administrativa concurrente. | La V1 asume que no habrá administradores editando al mismo tiempo. El control de concurrencia queda pendiente. |
 | `WF-OPEN-12` | Selección entre futuros perfiles internos. | Pendiente hasta que exista más de un perfil; la decisión seguirá siendo interna al sistema. |
 

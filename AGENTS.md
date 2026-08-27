@@ -17,8 +17,10 @@ Estas instrucciones se aplican a todo el monorepo. El proyecto está en implemen
 - `docs/comparable_key.md`: contrato de codificación binaria y compatibilidad (`CK`).
 - `docs/database/database-v1.md`: semántica y procedimientos del modelo de datos V1.
 - `docs/workflows/application-workflow-v1.md`: flujo funcional canónico de la aplicación V1.
+- `docs/api/admin-api-v1.md`: contrato HTTP implementado por el módulo administrativo.
 - `database/001_initial_schema.sql`: autoridad sobre tablas, restricciones, índices, funciones y triggers implementados.
 - `database/002_seed_basic_ordering_profile.sql`: dato inicial del perfil interno de ordenamiento V1.
+- `database/003_seed_system_actor.sql`: actor técnico local utilizado hasta implementar autenticación.
 - `scripts/check-docs.ps1`: verificación de archivos y enlaces Markdown locales.
 
 ## Desarrollo

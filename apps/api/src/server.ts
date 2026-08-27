@@ -3,8 +3,11 @@ import { createServer } from 'node:http';
 import { createApp } from './app.js';
 import { pool } from './db/pool.js';
 import { env } from './env.js';
+import { SvgStorage } from './maps/storage.js';
 
-const server = createServer(createApp());
+const storage = new SvgStorage(env.SVG_STORAGE_DIR);
+await storage.ensureReady();
+const server = createServer(createApp({ storage }));
 
 server.listen(env.API_PORT, () => {
   console.log(`API disponible en http://localhost:${env.API_PORT}`);

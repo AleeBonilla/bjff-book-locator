@@ -29,7 +29,8 @@
     "db:status": "docker compose ps",
     "db:logs": "docker compose logs -f postgres",
     "db:down": "docker compose down",
-    "db:reset": "docker compose down -v"
+    "db:reset": "docker compose down -v",
+    "assets:reconcile": "npm run assets:reconcile --workspace @bjff/api"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

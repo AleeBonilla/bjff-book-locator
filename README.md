@@ -4,7 +4,7 @@ BJFF Book Locator relaciona signaturas bibliográficas basadas en DDC con ubicac
 
 ## Estado del proyecto
 
-El repositorio contiene la estructura ejecutable inicial del monorepo, las especificaciones funcionales, el esquema PostgreSQL V1 y el package de dominio para interpretar y ordenar signaturas. La API expone por ahora un endpoint de salud y todavía no integra ese package en endpoints funcionales.
+El repositorio contiene el frontend inicial, la API administrativa V1, las especificaciones funcionales, el esquema PostgreSQL y el package de dominio para interpretar y ordenar signaturas. El login y la búsqueda pública mediante API permanecen fuera de esta etapa.
 
 ## Tecnologías
 
@@ -32,8 +32,10 @@ El repositorio contiene la estructura ejecutable inicial del monorepo, las espec
 | [`docs/comparable_key.md`](docs/comparable_key.md) | Codificación `ck1`, persistencia y consultas por clave. |
 | [`docs/database/database-v1.md`](docs/database/database-v1.md) | Semántica, relaciones y operaciones del modelo de datos V1. |
 | [`docs/workflows/application-workflow-v1.md`](docs/workflows/application-workflow-v1.md) | Flujo canónico de configuración, publicación y búsqueda. |
+| [`docs/api/admin-api-v1.md`](docs/api/admin-api-v1.md) | Contrato HTTP del módulo administrativo. |
 | [`database/001_initial_schema.sql`](database/001_initial_schema.sql) | DDL, restricciones, índices, funciones y triggers de PostgreSQL. |
 | [`database/002_seed_basic_ordering_profile.sql`](database/002_seed_basic_ordering_profile.sql) | Perfil interno de ordenamiento utilizado por los esquemas V1. |
+| [`database/003_seed_system_actor.sql`](database/003_seed_system_actor.sql) | Actor técnico local usado hasta implementar autenticación. |
 | [`AGENTS.md`](AGENTS.md) | Reglas operativas para agentes y colaboradores. |
 
 ## Preparar el entorno local
@@ -70,6 +72,13 @@ Servicios de desarrollo:
 
 1. `001_initial_schema.sql` crea tipos, tablas, índices, funciones y triggers;
 2. `002_seed_basic_ordering_profile.sql` inserta `ddc-base-v1`.
+3. `003_seed_system_actor.sql` inserta el actor técnico `system-v1`.
+
+Los scripts de inicialización solo se ejecutan al crear un volumen. Para aplicar la migración `003` a un volumen local existente:
+
+```powershell
+docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/003_seed_system_actor.sql'
+```
 
 Comandos disponibles:
 
@@ -79,6 +88,7 @@ Comandos disponibles:
 | `npm run db:logs` | Sigue los logs de PostgreSQL. |
 | `npm run db:down` | Detiene y elimina el contenedor; conserva el volumen. |
 | `npm run db:reset` | Elimina también el volumen y vuelve a requerir la inicialización. |
+| `npm run assets:reconcile` | Elimina SVG locales que no tienen referencia en PostgreSQL. |
 
 `npm run db:reset` destruye todos los datos locales de PostgreSQL.
 
@@ -88,7 +98,7 @@ Comandos disponibles:
 npm run check
 ```
 
-El comando comprueba documentación, tipos, pruebas y builds de producción. También puede ejecutar cada parte por separado con `npm run check:docs`, `npm run typecheck`, `npm test` y `npm run build`.
+El comando comprueba documentación, tipos, pruebas y builds de producción. Las pruebas de la API levantan PostgreSQL 17 mediante Testcontainers, por lo que Docker debe estar disponible. También puede ejecutar cada parte por separado con `npm run check:docs`, `npm run typecheck`, `npm test` y `npm run build`.
 
 ## Decisiones pendientes
 
