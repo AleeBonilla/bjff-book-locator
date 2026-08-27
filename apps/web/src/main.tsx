@@ -1,6 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import '@fontsource-variable/space-grotesk';
+import '@fontsource/barlow-condensed/latin-ext-600.css';
+import '@fontsource/barlow-condensed/latin-ext-700.css';
+import '@fontsource/barlow-condensed/latin-ext-800.css';
+
 import { App } from './App';
 import './styles.css';
 
