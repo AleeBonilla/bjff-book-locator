@@ -341,7 +341,7 @@ Reglas del rango:
 - solamente una ubicación cuyo nivel sea `is_search_terminal = true` puede contener un rango;
 - al pasar a `ASSIGNED`, todas las ubicaciones terminales existentes deben tener rango.
 
-Una ubicación terminal puede conservar hijos estructurales. Esos hijos no almacenan rangos mientras su nivel no sea terminal de búsqueda.
+Una ubicación terminal puede conservar hijos estructurales. Esos hijos no almacenan rangos mientras su nivel no sea terminal de búsqueda. Los ancestros tampoco almacenan copias de los rangos: su cobertura se deriva según [`application-workflow-v1.md`](../workflows/application-workflow-v1.md#71-rangos-directos-y-cobertura-derivada).
 
 ### 6.6 `map_layers`
 
