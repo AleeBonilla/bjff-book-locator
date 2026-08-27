@@ -48,7 +48,7 @@ describe('App', () => {
     );
   });
 
-  it('permite entrar y cerrar la sesión mock', () => {
+  it('permite entrar y cerrar la sesión mock', async () => {
     window.history.replaceState({}, '', '/login');
     render(<App />);
 
@@ -56,7 +56,7 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'admin' } });
     fireEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
 
-    expect(screen.getByRole('heading', { name: 'Esquemas' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Esquemas' })).toBeInTheDocument();
     expect(window.location.pathname).toBe('/admin');
 
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
