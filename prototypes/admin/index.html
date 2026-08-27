@@ -1,0 +1,4885 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administración | Localizador de libros BJFF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --asphalt: #111111;
+        --soft-asphalt: #242424;
+        --paper: #f2f1ed;
+        --cool-paper: #dcddda;
+        --surface: #ffffff;
+        --line: #d4d5d1;
+        --muted: #686b68;
+        --wine: #88414e;
+        --blue: #50636a;
+        --yellow: #d4d8d6;
+        --header-gray: #d0d1ce;
+        --sidebar-gray: #4d5659;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        color: var(--asphalt);
+        background-color: var(--cool-paper);
+        background-image: radial-gradient(rgb(17 17 17 / 8%) 0.65px, transparent 0.75px);
+        background-size: 7px 7px;
+        font-synthesis: none;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background: var(--paper);
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      button:focus-visible,
+      a:focus-visible {
+        outline: 4px solid var(--yellow);
+        outline-offset: 3px;
+      }
+
+      .topbar {
+        position: relative;
+        min-height: 82px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 12px clamp(16px, 4vw, 48px);
+        color: var(--asphalt);
+        background: var(--header-gray);
+        border-bottom: 3px solid var(--asphalt);
+      }
+
+      .topbar::after {
+        position: absolute;
+        right: 0;
+        bottom: -3px;
+        width: 28%;
+        height: 3px;
+        content: "";
+        background: var(--wine);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        flex: none;
+        color: white;
+        background: var(--wine);
+        box-shadow: 3px 4px 0 rgb(80 99 106 / 70%);
+        font: 700 1rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.04em;
+        transform: rotate(-2deg);
+      }
+
+      .brand-copy {
+        display: grid;
+        gap: 3px;
+      }
+
+      .brand-copy strong {
+        font: 700 1rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .brand-copy span {
+        color: #5d6465;
+        font-size: 0.72rem;
+      }
+
+      .logout {
+        min-height: 42px;
+        margin-top: auto;
+        padding: 0 12px;
+        color: white;
+        background: transparent;
+        border: 2px solid rgb(255 255 255 / 72%);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-align: left;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .logout:hover {
+        color: white;
+        background: var(--wine);
+        border-color: white;
+        box-shadow: 3px 3px 0 var(--asphalt);
+      }
+
+      .shell {
+        height: calc(100vh - 82px);
+        display: grid;
+        grid-template-columns: 216px minmax(0, 1fr);
+        overflow: hidden;
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        padding: 24px 14px;
+        color: var(--paper);
+        background: var(--sidebar-gray);
+        border-right: 3px solid var(--asphalt);
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 46px;
+        padding: 0 12px;
+        color: white;
+        border: 1px solid transparent;
+        text-decoration: none;
+      }
+
+      .nav-link::before {
+        width: 8px;
+        height: 8px;
+        content: "";
+        background: var(--yellow);
+      }
+
+      .nav-link:hover {
+        color: white;
+        background: rgb(17 17 17 / 18%);
+        border-color: rgb(255 255 255 / 45%);
+      }
+
+      .nav-link[aria-current="page"] {
+        color: var(--asphalt);
+        background: var(--paper);
+        border-color: var(--asphalt);
+        box-shadow: 4px 4px 0 var(--wine);
+      }
+
+      .nav-link[aria-current="page"]::before {
+        background: var(--wine);
+      }
+
+      .nav-link + .nav-link {
+        margin-top: 14px;
+      }
+
+      main {
+        min-width: 0;
+        padding: clamp(28px, 5vw, 60px);
+        overflow-y: auto;
+      }
+
+      .content {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+      }
+
+      .page-heading {
+        display: flex;
+        align-items: flex-end;
+        gap: 24px;
+        margin-bottom: 30px;
+      }
+
+      .page-heading > div:first-child {
+        min-width: 0;
+      }
+
+      h1,
+      h2 {
+        font-family: "Barlow Condensed", sans-serif;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        line-height: 0.9;
+        letter-spacing: 0.02em;
+      }
+
+      .page-heading p {
+        max-width: 50ch;
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.55;
+      }
+
+      .primary-action {
+        min-height: 44px;
+        margin-left: auto;
+        padding: 0 18px;
+        flex: none;
+        color: white;
+        background: var(--blue);
+        border: 1px solid var(--asphalt);
+        border-width: 2px;
+        box-shadow: 4px 4px 0 var(--wine);
+        font: 700 0.82rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .primary-action:hover {
+        color: white;
+        background: var(--wine);
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0 var(--blue);
+      }
+
+      .scheme-group + .scheme-group {
+        margin-top: 34px;
+      }
+
+      .section-heading {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin: 0 0 12px;
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.12em;
+      }
+
+      .section-heading span {
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .active-scheme {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: center;
+        padding: 22px 22px 22px 28px;
+        background: var(--surface);
+        border: 1px solid var(--asphalt);
+        box-shadow: 5px 5px 0 var(--blue);
+      }
+
+      .active-scheme::before {
+        position: absolute;
+        inset: -1px auto -1px -1px;
+        width: 7px;
+        content: "";
+        background: var(--wine);
+      }
+
+      .scheme-name {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .scheme-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 8px;
+        color: white;
+        background: var(--soft-asphalt);
+        font: 700 0.67rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .status.draft {
+        color: var(--asphalt);
+        background: var(--cool-paper);
+        border: 1px solid var(--asphalt);
+      }
+
+      .status.progress {
+        color: var(--asphalt);
+        background: var(--yellow);
+        border: 1px solid var(--asphalt);
+      }
+
+      .status.active {
+        background: var(--wine);
+        box-shadow: 2px 2px 0 var(--blue);
+      }
+
+      .status.ready {
+        background: var(--blue);
+        box-shadow: 2px 2px 0 var(--wine);
+      }
+
+      .row-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .action {
+        min-height: 38px;
+        padding: 0 13px;
+        color: white;
+        background: var(--blue);
+        border: 1px solid var(--asphalt);
+        font-size: 0.76rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .action:hover {
+        background: var(--wine);
+      }
+
+      .action.quiet {
+        color: var(--blue);
+        background: transparent;
+        border-color: var(--blue);
+      }
+
+      .action.quiet:hover {
+        color: white;
+        background: var(--wine);
+        border-color: var(--wine);
+      }
+
+      .scheme-table {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--asphalt);
+        box-shadow: 5px 5px 0 var(--line);
+      }
+
+      .scheme-table th,
+      .scheme-table td {
+        padding: 15px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .scheme-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .scheme-table th {
+        color: var(--muted);
+        background: #e8e8e4;
+        font: 700 0.68rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .scheme-table th:first-child,
+      .scheme-table td:first-child {
+        width: 7%;
+        text-align: center;
+      }
+
+      .scheme-table th:nth-child(2),
+      .scheme-table td:nth-child(2) {
+        width: 31%;
+      }
+
+      .scheme-table th:nth-child(3),
+      .scheme-table td:nth-child(3) {
+        width: 20%;
+        text-align: center;
+      }
+
+      .scheme-table th:nth-child(4),
+      .scheme-table td:nth-child(4) {
+        width: 18%;
+        text-align: center;
+      }
+
+      .scheme-table th:nth-child(5),
+      .scheme-table td:nth-child(5) {
+        width: 24%;
+        text-align: center;
+      }
+
+      .scheme-table td:nth-child(5) .row-actions {
+        justify-content: center;
+      }
+
+      .scheme-table tbody tr:hover {
+        background: #faf9f6;
+      }
+
+      .scheme-id {
+        width: 54px;
+        color: var(--muted);
+        font-family: ui-monospace, monospace;
+        font-size: 0.75rem;
+      }
+
+      .updated {
+        color: var(--muted);
+        font-size: 0.76rem;
+        white-space: nowrap;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .flow-heading {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+        margin-bottom: 26px;
+      }
+
+      .flow-heading > div:first-child {
+        height: 122px;
+      }
+
+      .flow-heading h1 {
+        margin-top: 8px;
+      }
+
+      .back-button {
+        padding: 0;
+        color: var(--blue);
+        background: transparent;
+        border: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        cursor: pointer;
+      }
+
+      .flow-steps {
+        display: flex;
+        width: 100%;
+        justify-content: flex-end;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 0 4px 4px 0;
+      }
+
+      .flow-step {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: stretch;
+        padding: 0;
+        color: var(--asphalt);
+        background: var(--surface);
+        border: 1px solid var(--asphalt);
+        cursor: pointer;
+      }
+
+      .flow-step span:first-child {
+        display: grid;
+        place-items: center;
+        min-width: 34px;
+        padding: 0 8px;
+        background: var(--cool-paper);
+        font-family: "Barlow Condensed", sans-serif;
+        font-weight: 700;
+      }
+
+      .flow-step span:last-child {
+        display: grid;
+        place-items: center;
+        padding: 0 13px;
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .flow-step.is-active {
+        color: white;
+        background: var(--blue);
+        box-shadow: 3px 3px 0 var(--wine);
+      }
+
+      .flow-step.is-active span:first-child {
+        background: var(--wine);
+      }
+
+      .flow-step:disabled {
+        opacity: 0.48;
+        cursor: not-allowed;
+      }
+
+      .form-layout,
+      .levels-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.7fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .form-card,
+      .levels-card,
+      .side-card {
+        background: var(--surface);
+        border: 2px solid var(--asphalt);
+        box-shadow: 6px 6px 0 var(--blue);
+      }
+
+      .form-card,
+      .side-card {
+        padding: 24px;
+      }
+
+      .field + .field {
+        margin-top: 20px;
+      }
+
+      .field label {
+        display: block;
+        margin-bottom: 7px;
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .field label span {
+        color: var(--muted);
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      .field input,
+      .field textarea,
+      .level-name {
+        width: 100%;
+        border: 2px solid var(--asphalt);
+        border-radius: 0;
+        color: var(--asphalt);
+        background: white;
+        font: 400 0.92rem/1.4 "Space Grotesk", sans-serif;
+      }
+
+      .field input,
+      .level-name {
+        min-height: 46px;
+        padding: 0 12px;
+      }
+
+      .field textarea {
+        min-height: 100px;
+        padding: 11px 12px;
+        resize: vertical;
+      }
+
+      .field input:focus,
+      .field textarea:focus,
+      .level-name:focus {
+        box-shadow: inset 5px 0 0 var(--blue);
+      }
+
+      .field-error {
+        margin: 7px 0 0;
+        color: var(--wine);
+        font-size: 0.76rem;
+      }
+
+      .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 26px;
+      }
+
+      .secondary-action {
+        min-height: 44px;
+        padding: 0 15px;
+        color: var(--blue);
+        background: transparent;
+        border: 2px solid var(--blue);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .secondary-action:hover {
+        color: white;
+        background: var(--wine);
+        border-color: var(--wine);
+      }
+
+      .side-card {
+        box-shadow: 6px 6px 0 var(--cool-paper);
+      }
+
+      .side-card h2 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
+      }
+
+      .side-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.6;
+      }
+
+      .levels-card {
+        overflow: hidden;
+      }
+
+      .levels-card__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 18px;
+        border-bottom: 2px solid var(--asphalt);
+        background: var(--cool-paper);
+      }
+
+      .levels-card__header h2 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
+      }
+
+      .level-list {
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+      }
+
+      .level-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .level-identity {
+        display: grid;
+        min-width: 220px;
+        grid-template-columns: 38px minmax(0, 1fr);
+        border: 2px solid var(--asphalt);
+      }
+
+      .level-number {
+        display: grid;
+        place-items: center;
+        color: white;
+        background: var(--asphalt);
+        font: 700 0.82rem/1 "Barlow Condensed", sans-serif;
+      }
+
+      .level-name {
+        min-width: 0;
+        border: 0;
+      }
+
+      .capture-button {
+        display: inline-flex;
+        min-height: 38px;
+        align-items: center;
+        gap: 8px;
+        padding: 0 11px;
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid var(--line);
+        font-size: 0.72rem;
+        cursor: pointer;
+      }
+
+      .capture-button::before {
+        width: 10px;
+        height: 10px;
+        content: "";
+        border: 1px solid currentColor;
+        border-radius: 50%;
+      }
+
+      .capture-button.is-selected {
+        color: white;
+        background: var(--blue);
+        border-color: var(--blue);
+      }
+
+      .capture-button.is-selected::before {
+        background: white;
+        box-shadow: inset 0 0 0 2px var(--blue);
+      }
+
+      .remove-level {
+        min-height: 34px;
+        padding: 0 9px;
+        color: var(--wine);
+        background: transparent;
+        border: 1px solid var(--line);
+        font-size: 0.7rem;
+        cursor: pointer;
+      }
+
+      .levels-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 16px 18px 19px;
+        border-top: 1px solid var(--line);
+      }
+
+      .capture-summary strong {
+        color: var(--asphalt);
+      }
+
+      .toast {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 20;
+        max-width: min(360px, calc(100vw - 44px));
+        padding: 13px 16px;
+        color: white;
+        background: var(--asphalt);
+        border: 2px solid white;
+        box-shadow: 4px 4px 0 var(--wine);
+        font-size: 0.78rem;
+      }
+
+      .locations-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(250px, 0.34fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .locations-card {
+        overflow: hidden;
+        background: var(--surface);
+        border: 2px solid var(--asphalt);
+        box-shadow: 6px 6px 0 var(--blue);
+      }
+
+      .locations-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 18px;
+        background: var(--cool-paper);
+        border-bottom: 2px solid var(--asphalt);
+      }
+
+      .locations-toolbar h2 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
+      }
+
+      .locations-toolbar .secondary-action {
+        min-height: 38px;
+        margin-left: auto;
+      }
+
+      .empty-locations {
+        display: grid;
+        justify-items: start;
+        gap: 14px;
+        padding: 44px 24px;
+      }
+
+      .empty-locations h2 {
+        margin: 0;
+        font-size: 1.35rem;
+        letter-spacing: 0.05em;
+      }
+
+      .empty-locations p {
+        max-width: 46ch;
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.55;
+      }
+
+      .location-tree {
+        max-height: 560px;
+        overflow: auto;
+      }
+
+      .location-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 58px;
+        padding: 8px 14px 8px calc(10px + var(--location-depth, 0px));
+        border-bottom: 1px solid var(--line);
+      }
+
+      .location-row.is-incomplete {
+        background: #f8edef;
+      }
+
+      .location-identity {
+        display: inline-flex;
+        min-width: 150px;
+        align-items: stretch;
+        border: 1px solid var(--asphalt);
+      }
+
+      .location-level {
+        display: grid;
+        min-width: 32px;
+        place-items: center;
+        color: white;
+        background: var(--asphalt);
+        font: 700 0.72rem/1 "Barlow Condensed", sans-serif;
+      }
+
+      .location-name {
+        padding: 7px 9px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .location-code {
+        color: var(--muted);
+        font-family: ui-monospace, monospace;
+        font-size: 0.68rem;
+      }
+
+      .location-warning {
+        color: var(--wine);
+        font-size: 0.7rem;
+      }
+
+      .location-row__spacer {
+        flex: 1;
+      }
+
+      .location-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .location-action {
+        min-height: 34px;
+        padding: 0 9px;
+        color: var(--blue);
+        background: white;
+        border: 1px solid var(--blue);
+        font-size: 0.7rem;
+        cursor: pointer;
+      }
+
+      .location-action:hover {
+        color: white;
+        background: var(--wine);
+        border-color: var(--wine);
+      }
+
+      .location-action.remove {
+        color: var(--wine);
+        border-color: var(--line);
+      }
+
+      .locations-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 16px 18px 19px;
+        border-top: 1px solid var(--line);
+      }
+
+      .primary-action:disabled {
+        color: #777873;
+        background: var(--cool-paper);
+        border-color: #999a96;
+        box-shadow: none;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .structure-list {
+        display: grid;
+        gap: 7px;
+        margin-top: 14px;
+      }
+
+      .structure-list span {
+        display: block;
+        padding: 6px 8px;
+        color: var(--asphalt);
+        background: var(--cool-paper);
+        border-left: 3px solid var(--blue);
+        font-size: 0.75rem;
+      }
+
+      dialog {
+        width: min(420px, calc(100vw - 32px));
+        padding: 0;
+        color: var(--asphalt);
+        background: var(--paper);
+        border: 2px solid var(--asphalt);
+        box-shadow: 7px 7px 0 var(--wine);
+      }
+
+      dialog::backdrop {
+        background: rgb(17 17 17 / 58%);
+      }
+
+      .dialog-content {
+        padding: 22px;
+      }
+
+      .dialog-content h2 {
+        margin: 0 0 18px;
+        font-size: 1.3rem;
+      }
+
+      .map-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .map-tab {
+        min-height: 42px;
+        padding: 0 15px;
+        color: var(--blue);
+        background: white;
+        border: 2px solid var(--blue);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .map-tab.is-active {
+        color: white;
+        background: var(--blue);
+        box-shadow: 3px 3px 0 var(--wine);
+      }
+
+      .map-panel {
+        overflow: hidden;
+        background: white;
+        border: 2px solid var(--asphalt);
+        box-shadow: 6px 6px 0 var(--blue);
+      }
+
+      .map-controls {
+        display: grid;
+        grid-template-columns: minmax(210px, 0.75fr) minmax(300px, 1.3fr);
+        gap: 20px;
+        padding: 18px;
+        background: var(--cool-paper);
+        border-bottom: 2px solid var(--asphalt);
+      }
+
+      .control-group {
+        min-width: 0;
+      }
+
+      .control-label {
+        display: block;
+        margin-bottom: 8px;
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .file-control {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .file-input {
+        position: absolute;
+        width: 1px !important;
+        height: 1px;
+        min-height: 1px !important;
+        padding: 0 !important;
+        overflow: hidden;
+        border: 0 !important;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+      }
+
+      .file-button {
+        display: inline-flex;
+        min-height: 40px;
+        align-items: center;
+        padding: 0 13px;
+        color: white;
+        background: var(--blue);
+        border: 2px solid var(--asphalt);
+        box-shadow: 3px 3px 0 var(--wine);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .file-button:hover {
+        background: var(--wine);
+        box-shadow: 3px 3px 0 var(--blue);
+      }
+
+      .file-note {
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .level-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .level-option {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        gap: 7px;
+        padding: 0 10px;
+        color: var(--blue);
+        background: white;
+        border: 1px solid var(--blue);
+        font-size: 0.72rem;
+        cursor: pointer;
+      }
+
+      .level-option::before {
+        width: 10px;
+        height: 10px;
+        content: "";
+        border: 1px solid currentColor;
+      }
+
+      .level-option.is-selected {
+        color: white;
+        background: var(--blue);
+      }
+
+      .level-option.is-selected::before {
+        background: white;
+        box-shadow: inset 0 0 0 2px var(--blue);
+      }
+
+      .map-status {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 18px;
+        color: var(--muted);
+        background: var(--paper);
+        border-bottom: 1px solid var(--line);
+        font-size: 0.76rem;
+        line-height: 1.45;
+      }
+
+      .map-status::before {
+        width: 10px;
+        height: 10px;
+        margin-top: 2px;
+        flex: none;
+        content: "";
+        background: var(--muted);
+      }
+
+      .map-status.is-valid {
+        color: var(--blue);
+      }
+
+      .map-status.is-valid::before {
+        background: var(--blue);
+      }
+
+      .map-status.is-error {
+        color: var(--wine);
+        background: #f8edef;
+      }
+
+      .map-status.is-error::before {
+        background: var(--wine);
+      }
+
+      .map-workspace {
+        width: 100%;
+        min-height: 520px;
+        overflow: auto;
+        background-color: #e8e8e4;
+        background-image:
+          linear-gradient(rgb(17 17 17 / 7%) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(17 17 17 / 7%) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+
+      .map-canvas {
+        position: relative;
+        display: grid;
+        min-width: 1050px;
+        min-height: 520px;
+        place-items: center;
+        padding: 30px;
+      }
+
+      .map-placeholder {
+        display: grid;
+        max-width: 430px;
+        justify-items: center;
+        gap: 10px;
+        padding: 26px;
+        text-align: center;
+        background: var(--paper);
+        border: 2px dashed var(--blue);
+      }
+
+      .map-placeholder strong {
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .map-placeholder span {
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.5;
+      }
+
+      .map-preview {
+        display: block;
+        width: auto;
+        max-width: none;
+        min-width: 900px;
+        max-height: 720px;
+        object-fit: contain;
+        background: white;
+        border: 2px solid var(--asphalt);
+        box-shadow: 7px 7px 0 var(--blue);
+      }
+
+      .front-empty {
+        display: grid;
+        min-height: 420px;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .front-empty__content {
+        display: grid;
+        max-width: 460px;
+        justify-items: start;
+        gap: 12px;
+      }
+
+      .front-empty h2 {
+        margin: 0;
+        font-size: 1.45rem;
+      }
+
+      .front-empty p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.55;
+      }
+
+      .front-editor {
+        display: grid;
+        grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+        min-height: 520px;
+      }
+
+      .front-editor__form {
+        padding: 20px;
+        border-right: 2px solid var(--asphalt);
+      }
+
+      .front-editor__preview {
+        width: auto;
+        min-width: 0;
+      }
+
+      .configuration-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 18px;
+        background: white;
+        border: 2px solid var(--asphalt);
+        border-top: 0;
+        box-shadow: 6px 6px 0 var(--blue);
+      }
+
+      .configuration-footer p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
+      .ranges-layout {
+        display: grid;
+        grid-template-columns: minmax(270px, 0.8fr) minmax(420px, 1.35fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .range-view-switch {
+        margin-bottom: 14px;
+      }
+
+      .range-table-card {
+        overflow: hidden;
+        background: white;
+        border: 2px solid var(--asphalt);
+        box-shadow: 6px 6px 0 var(--blue);
+      }
+
+      .range-table-scroll {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .range-table {
+        width: 100%;
+        min-width: 880px;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .range-table th,
+      .range-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      .range-table th {
+        background: var(--cool-paper);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.76rem;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      .range-table th:nth-child(1) { width: 27%; }
+      .range-table th:nth-child(2) { width: 16%; }
+      .range-table th:nth-child(3),
+      .range-table th:nth-child(4) { width: 22%; }
+      .range-table th:nth-child(5) { width: 13%; }
+
+      .range-table input {
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px;
+        color: var(--asphalt);
+        background: white;
+        border: 1px solid var(--asphalt);
+        font: 400 0.8rem/1.2 "Space Grotesk", sans-serif;
+      }
+
+      .range-table input.is-error {
+        background: #f8edef;
+        border-color: var(--wine);
+      }
+
+      .range-table__location strong,
+      .range-table__location span {
+        display: block;
+      }
+
+      .range-table__location strong {
+        margin-bottom: 4px;
+        font-size: 0.78rem;
+      }
+
+      .range-table__location span,
+      .range-table__code {
+        color: var(--muted);
+        font-size: 0.68rem;
+      }
+
+      .range-table__state {
+        color: var(--wine);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .range-table__state.is-complete {
+        color: var(--blue);
+      }
+
+      .range-table-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 18px;
+      }
+
+      .range-table-footer p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.74rem;
+      }
+
+      .range-list-card,
+      .range-editor,
+      .review-card {
+        overflow: hidden;
+        background: white;
+        border: 2px solid var(--asphalt);
+        box-shadow: 6px 6px 0 var(--blue);
+      }
+
+      .range-card-heading,
+      .range-progress,
+      .range-editor__heading,
+      .review-card__heading {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .range-card-heading h2,
+      .range-editor__heading h2,
+      .review-card__heading h2 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+
+      .review-card__heading p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 0.74rem;
+      }
+
+      .range-progress {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
+      .range-progress strong {
+        color: var(--asphalt);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 1.1rem;
+      }
+
+      .range-location-list {
+        display: grid;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .range-location {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 5px 12px;
+        padding: 13px 16px;
+        text-align: left;
+        background: white;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        cursor: pointer;
+      }
+
+      .range-location:hover,
+      .range-location.is-selected {
+        background: var(--cool-paper);
+      }
+
+      .range-location.is-selected {
+        box-shadow: inset 5px 0 0 var(--wine);
+      }
+
+      .range-location__name {
+        overflow: hidden;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .range-location__state {
+        color: var(--wine);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .range-location__state.is-complete {
+        color: var(--blue);
+      }
+
+      .range-location__code,
+      .range-location__value {
+        color: var(--muted);
+        font-size: 0.68rem;
+      }
+
+      .range-location__value {
+        grid-column: 1 / -1;
+      }
+
+      .range-editor__heading p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .range-form {
+        display: grid;
+        gap: 18px;
+        padding: 20px;
+      }
+
+      .range-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .derived-coverage {
+        padding: 14px;
+        background: var(--cool-paper);
+        border-left: 5px solid var(--blue);
+      }
+
+      .derived-coverage strong {
+        display: block;
+        margin-bottom: 5px;
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.82rem;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      .derived-coverage span {
+        color: var(--muted);
+        font-size: 0.76rem;
+        line-height: 1.45;
+      }
+
+      .range-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .review-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        padding: 18px;
+      }
+
+      .review-check {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px 12px;
+        padding: 18px;
+        background: white;
+        border: 2px solid var(--line);
+      }
+
+      .review-check::before {
+        width: 13px;
+        height: 13px;
+        margin-top: 3px;
+        content: "";
+        background: var(--blue);
+      }
+
+      .review-check.is-pending {
+        border-color: #d8b8be;
+      }
+
+      .review-check.is-pending::before {
+        background: var(--wine);
+      }
+
+      .review-check strong {
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .review-check span {
+        grid-column: 2;
+        color: var(--muted);
+        font-size: 0.74rem;
+      }
+
+      .publish-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: center;
+        margin: 0 18px 18px;
+        padding: 18px;
+        background: var(--cool-paper);
+        border: 2px solid var(--asphalt);
+      }
+
+      .publish-panel h2,
+      .publish-panel p {
+        margin: 0;
+      }
+
+      .publish-panel h2 {
+        font-size: 1.2rem;
+      }
+
+      .publish-panel p {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 0.75rem;
+        line-height: 1.45;
+      }
+
+      .publish-control {
+        display: grid;
+        min-width: 240px;
+        gap: 12px;
+      }
+
+      .activation-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-size: 0.76rem;
+        line-height: 1.4;
+        cursor: pointer;
+      }
+
+      .activation-option input {
+        width: 16px;
+        height: 16px;
+        margin-top: 1px;
+        accent-color: var(--blue);
+      }
+
+      .review-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 18px;
+        border-top: 1px solid var(--line);
+      }
+
+      .search-query-card,
+      .search-views-card,
+      .search-details {
+        background: white;
+        border: 2px solid var(--asphalt);
+        box-shadow: 6px 6px 0 var(--blue);
+      }
+
+      .search-query-card {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.7fr) minmax(280px, 1.3fr) auto;
+        gap: 14px;
+        align-items: end;
+        margin-bottom: 18px;
+        padding: 18px;
+      }
+
+      .search-query-card .field {
+        margin: 0;
+      }
+
+      .search-empty {
+        display: grid;
+        min-height: 360px;
+        place-items: center;
+        padding: 28px;
+        color: var(--muted);
+        text-align: center;
+        border: 2px dashed var(--line);
+      }
+
+      .search-empty strong {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--asphalt);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 1.15rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .search-result-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 14px;
+        padding: 13px 16px;
+        background: var(--cool-paper);
+        border-left: 6px solid var(--blue);
+      }
+
+      .search-result-summary strong {
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .search-result-summary span {
+        color: var(--muted);
+        font-size: 0.74rem;
+      }
+
+      .search-workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.55fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .search-views-card {
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .search-view-heading,
+      .search-details__heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 15px 17px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .search-view-heading h2,
+      .search-details__heading h2 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+
+      .search-view-tabs {
+        display: flex;
+        gap: 7px;
+      }
+
+      .search-view-tab {
+        min-height: 34px;
+        padding: 0 10px;
+        color: var(--blue);
+        background: white;
+        border: 1px solid var(--blue);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .search-view-tab.is-active {
+        color: white;
+        background: var(--blue);
+      }
+
+      .search-view-tab:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .search-map-stage {
+        width: 100%;
+        min-height: 500px;
+        overflow: auto;
+        background-color: #e8e8e4;
+        background-image:
+          linear-gradient(rgb(17 17 17 / 7%) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(17 17 17 / 7%) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+
+      .search-map-inner {
+        display: grid;
+        min-width: 900px;
+        min-height: 500px;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .search-map-image {
+        display: block;
+        min-width: 820px;
+        max-height: 680px;
+        background: white;
+        border: 2px solid var(--asphalt);
+        box-shadow: 7px 7px 0 var(--wine);
+      }
+
+      .search-no-map {
+        max-width: 390px;
+        padding: 24px;
+        text-align: center;
+        background: var(--paper);
+        border: 2px dashed var(--blue);
+      }
+
+      .search-no-map strong,
+      .search-no-map span {
+        display: block;
+      }
+
+      .search-no-map strong {
+        margin-bottom: 7px;
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+      }
+
+      .search-no-map span {
+        color: var(--muted);
+        font-size: 0.75rem;
+        line-height: 1.5;
+      }
+
+      .search-details {
+        position: sticky;
+        top: 0;
+        overflow: hidden;
+      }
+
+      .search-facts {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 9px 14px;
+        margin: 0;
+        padding: 17px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .search-facts dt {
+        color: var(--muted);
+        font-size: 0.68rem;
+        text-transform: uppercase;
+      }
+
+      .search-facts dd {
+        margin: 0;
+        font-size: 0.74rem;
+        font-weight: 600;
+        text-align: right;
+      }
+
+      .textual-route {
+        padding: 17px;
+      }
+
+      .textual-route h3 {
+        margin: 0 0 13px;
+        font-size: 0.95rem;
+      }
+
+      .textual-route ol {
+        display: grid;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .textual-route li {
+        position: relative;
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        gap: 9px;
+        min-height: 42px;
+        align-items: start;
+        font-size: 0.76rem;
+      }
+
+      .textual-route li::before {
+        position: absolute;
+        top: 17px;
+        bottom: -1px;
+        left: 7px;
+        width: 1px;
+        content: "";
+        background: var(--line);
+      }
+
+      .textual-route li:last-child::before {
+        display: none;
+      }
+
+      .route-marker {
+        position: relative;
+        z-index: 1;
+        width: 15px;
+        height: 15px;
+        background: var(--blue);
+        border: 3px solid white;
+        box-shadow: 0 0 0 1px var(--blue);
+      }
+
+      .route-copy strong,
+      .route-copy span {
+        display: block;
+      }
+
+      .route-copy span {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 0.66rem;
+      }
+
+      .field select {
+        width: 100%;
+        min-height: 46px;
+        padding: 0 12px;
+        color: var(--asphalt);
+        background: white;
+        border: 2px solid var(--asphalt);
+        border-radius: 0;
+        font: 400 0.88rem/1 "Space Grotesk", sans-serif;
+      }
+
+      .control-group > input,
+      .control-group > select {
+        width: 100%;
+        min-height: 42px;
+        padding: 0 11px;
+        color: var(--asphalt);
+        background: white;
+        border: 2px solid var(--asphalt);
+        border-radius: 0;
+        font: 400 0.82rem/1 "Space Grotesk", sans-serif;
+      }
+
+      .map-save-row {
+        display: flex;
+        justify-content: flex-end;
+        padding: 14px 18px;
+        background: white;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .saved-map-list {
+        display: grid;
+        gap: 8px;
+        padding: 0 18px;
+        background: white;
+      }
+
+      .saved-map-list:not(:empty) {
+        padding-top: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .saved-map {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 11px 12px;
+        background: var(--paper);
+        border-left: 5px solid var(--blue);
+      }
+
+      .saved-map strong,
+      .saved-map span {
+        display: block;
+      }
+
+      .saved-map strong {
+        font-size: 0.8rem;
+      }
+
+      .saved-map span {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 0.68rem;
+      }
+
+      .saved-map__actions {
+        display: flex;
+        gap: 7px;
+      }
+
+      .map-assignments {
+        background: white;
+        border-top: 2px solid var(--asphalt);
+      }
+
+      .map-assignments > header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 17px 18px;
+        background: var(--cool-paper);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .map-assignments h2,
+      .map-assignments p {
+        margin: 0;
+      }
+
+      .map-assignments h2 {
+        font-size: 1.15rem;
+      }
+
+      .map-assignments p {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .assignment-table-wrap {
+        overflow-x: auto;
+      }
+
+      .assignment-table {
+        width: 100%;
+        min-width: 680px;
+        border-collapse: collapse;
+      }
+
+      .assignment-table th,
+      .assignment-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.72rem;
+        text-align: left;
+      }
+
+      .assignment-table th {
+        color: var(--muted);
+        font-size: 0.65rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .assignment-table select {
+        width: 100%;
+        min-height: 36px;
+        background: white;
+        border: 1px solid var(--asphalt);
+      }
+
+      .assignment-state {
+        color: var(--wine);
+        font-weight: 600;
+      }
+
+      .assignment-state.is-complete {
+        color: var(--blue);
+      }
+
+      .choice-list {
+        display: grid;
+        gap: 8px;
+        margin: 0 0 18px;
+        padding: 0;
+        border: 0;
+      }
+
+      .choice-list legend {
+        margin-bottom: 8px;
+        font: 700 0.78rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .choice-list label {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        padding: 11px;
+        background: white;
+        border: 1px solid var(--line);
+        cursor: pointer;
+      }
+
+      .choice-list input {
+        width: 16px;
+        height: 16px;
+        margin-top: 2px;
+        accent-color: var(--blue);
+      }
+
+      .choice-list strong,
+      .choice-list small {
+        display: block;
+      }
+
+      .choice-list small,
+      .dialog-copy {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        line-height: 1.45;
+      }
+
+      .dialog-copy {
+        margin-bottom: 18px;
+      }
+
+      .search-matches {
+        padding: 15px 17px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .search-matches h3 {
+        margin: 0 0 9px;
+        font: 700 0.78rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      #search-match-list {
+        display: grid;
+        gap: 6px;
+      }
+
+      .search-match {
+        display: grid;
+        gap: 3px;
+        width: 100%;
+        padding: 9px 10px;
+        color: var(--asphalt);
+        background: var(--paper);
+        border: 1px solid var(--line);
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .search-match.is-selected {
+        color: white;
+        background: var(--blue);
+        border-color: var(--blue);
+      }
+
+      .search-match span {
+        color: inherit;
+        font-size: 0.66rem;
+        opacity: 0.82;
+      }
+
+      .search-front-gallery {
+        display: grid;
+        width: 100%;
+        gap: 22px;
+      }
+
+      .search-front-card {
+        display: grid;
+        gap: 9px;
+        padding: 14px;
+        background: white;
+        border: 2px solid var(--asphalt);
+        box-shadow: 6px 6px 0 var(--wine);
+      }
+
+      .search-front-card strong {
+        font: 700 0.9rem/1 "Barlow Condensed", sans-serif;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .search-front-card img {
+        display: block;
+        width: 100%;
+        min-width: 760px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 820px) {
+        .shell {
+          height: auto;
+          min-height: calc(100vh - 82px);
+          display: block;
+          overflow: visible;
+        }
+
+        .sidebar {
+          min-height: 0;
+          flex-direction: row;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          overflow-x: auto;
+        }
+
+        .nav-link {
+          min-height: 40px;
+          flex: none;
+        }
+
+        .logout {
+          min-height: 40px;
+          margin-top: 0;
+          margin-left: auto;
+          flex: none;
+        }
+
+        main {
+          padding: 32px 18px 54px;
+          overflow: visible;
+        }
+
+        .form-layout,
+        .levels-layout,
+        .locations-layout,
+        .map-controls,
+        .front-editor,
+        .ranges-layout,
+        .search-workspace,
+        .search-query-card {
+          grid-template-columns: 1fr;
+        }
+
+        .search-details {
+          position: static;
+        }
+
+        .front-editor__form {
+          border-right: 0;
+          border-bottom: 2px solid var(--asphalt);
+        }
+
+        .flow-steps {
+          justify-content: flex-start;
+        }
+
+        .configuration-footer {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .publish-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .publish-control {
+          min-width: 0;
+        }
+
+        .range-table-footer {
+          align-items: stretch;
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .topbar {
+          padding-inline: 16px;
+        }
+
+        .sidebar {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          overflow: visible;
+        }
+
+        .nav-link {
+          padding-inline: 9px;
+        }
+
+        .logout {
+          padding-inline: 9px;
+          font-size: 0.72rem;
+        }
+
+        .brand-copy span {
+          display: none;
+        }
+
+        .page-heading {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .primary-action {
+          align-self: flex-start;
+          margin-left: 0;
+        }
+
+        .active-scheme {
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+
+        .scheme-table,
+        .scheme-table tbody,
+        .scheme-table tr,
+        .scheme-table td {
+          display: block;
+          width: 100%;
+        }
+
+        .scheme-table thead {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0 0 0 0);
+          white-space: nowrap;
+        }
+
+        .scheme-table tr {
+          padding: 16px;
+          border-bottom: 1px solid var(--asphalt);
+        }
+
+        .scheme-table tr:last-child {
+          border-bottom: 0;
+        }
+
+        .scheme-table td {
+          padding: 5px 0;
+          border: 0;
+        }
+
+        .scheme-id {
+          width: auto;
+        }
+
+        .scheme-table td:last-child {
+          padding-top: 13px;
+        }
+
+        .scheme-table td:nth-child(n) {
+          width: auto;
+          text-align: left;
+        }
+
+        .scheme-table td:nth-child(5) .row-actions {
+          justify-content: flex-start;
+        }
+
+        .level-row {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .level-identity {
+          width: 100%;
+          min-width: 0;
+        }
+
+        .capture-button,
+        .remove-level {
+          align-self: flex-start;
+        }
+
+        .location-row {
+          align-items: flex-start;
+          flex-wrap: wrap;
+          padding-left: calc(10px + var(--mobile-location-depth, 0px));
+        }
+
+        .location-actions {
+          width: 100%;
+          padding-left: 0;
+        }
+
+        .range-fields,
+        .review-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .range-footer,
+        .review-actions,
+        .search-result-summary {
+          align-items: stretch;
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Inicio de administración">
+        <span class="brand-mark" aria-hidden="true">BJFF</span>
+        <span class="brand-copy">
+          <strong>Localizador de libros</strong>
+          <span>Biblioteca José Figueres Ferrer</span>
+        </span>
+      </a>
+
+    </header>
+
+    <div class="shell">
+      <nav class="sidebar" aria-label="Administración">
+        <a class="nav-link" id="schemes-link" href="#" aria-current="page">Esquemas</a>
+        <a class="nav-link" id="search-tests-link" href="#">Pruebas de búsqueda</a>
+        <button class="logout" type="button">Cerrar sesión</button>
+      </nav>
+
+      <main>
+        <div class="content">
+          <div id="schemes-view" data-view="schemes">
+          <header class="page-heading">
+            <div>
+              <h1>Esquemas</h1>
+              <p>Abre un esquema existente o crea uno nuevo.</p>
+            </div>
+            <button class="primary-action" id="open-create" type="button">Crear esquema</button>
+          </header>
+
+          <section class="scheme-group" aria-labelledby="active-heading">
+            <div class="section-heading">
+              <h2 id="active-heading">Esquema activo</h2>
+            </div>
+
+            <article class="active-scheme">
+              <div>
+                <p class="scheme-name">Colección general 2025</p>
+                <div class="scheme-meta">
+                  <span class="status active">Activo</span>
+                  <span>Utilizado en la búsqueda pública</span>
+                </div>
+              </div>
+              <div class="row-actions">
+                <button class="action" type="button">Ver esquema</button>
+                <button class="action quiet clone-action" type="button" data-scheme-name="Colección general 2025">Clonar</button>
+              </div>
+            </article>
+          </section>
+
+          <section class="scheme-group" aria-labelledby="ready-heading">
+            <div class="section-heading">
+              <h2 id="ready-heading">Listos para publicar</h2>
+            </div>
+
+            <table class="scheme-table">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Esquema</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Actualización</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="ready-schemes-body">
+                <tr>
+                  <td class="scheme-id">25</td>
+                  <td><p class="scheme-name">Colección de referencia</p></td>
+                  <td><span class="status ready">Listo</span></td>
+                  <td class="updated">Ayer, 15:20</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="action" type="button">Revisar</button>
+                      <button class="action quiet clone-action" type="button" data-scheme-name="Colección de referencia">Clonar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="scheme-group" aria-labelledby="drafts-heading">
+            <div class="section-heading">
+              <h2 id="drafts-heading">Borradores</h2>
+            </div>
+
+            <table class="scheme-table">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Esquema</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Actualización</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="draft-schemes-body">
+                <tr>
+                  <td class="scheme-id">27</td>
+                  <td><p class="scheme-name">Colección general 2026</p></td>
+                  <td><span class="status progress">Rangos incompletos</span></td>
+                  <td class="updated">Hoy, 10:42</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="action" type="button">Continuar</button>
+                      <button class="action quiet clone-action" type="button" data-scheme-name="Colección general 2026">Clonar</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="scheme-id">19</td>
+                  <td><p class="scheme-name">Sala infantil</p></td>
+                  <td><span class="status draft">Borrador</span></td>
+                  <td class="updated">18 ago 2026</td>
+                  <td>
+                    <div class="row-actions">
+                      <button class="action" type="button">Continuar</button>
+                      <button class="action quiet clone-action" type="button" data-scheme-name="Sala infantil">Clonar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+          </div>
+
+          <div id="create-view" data-view="create" hidden>
+            <header class="flow-heading">
+              <div>
+                <button class="back-button" type="button" data-go="schemes">Volver a esquemas</button>
+                <h1>Crear esquema</h1>
+              </div>
+              <div class="flow-steps" aria-label="Progreso de configuración">
+                <button class="flow-step is-active" type="button" data-go="create" aria-current="step">
+                  <span>01</span><span>Esquema</span>
+                </button>
+                <button class="flow-step" id="create-levels-step" type="button" data-go="levels" disabled>
+                  <span>02</span><span>Niveles</span>
+                </button>
+                <button class="flow-step" id="create-locations-step" type="button" data-go="locations" disabled>
+                  <span>03</span><span>Ubicaciones</span>
+                </button>
+                <button class="flow-step" id="create-maps-step" type="button" data-go="maps" disabled>
+                  <span>04</span><span>Mapas</span>
+                </button>
+                <button class="flow-step" id="create-ranges-step" type="button" data-go="ranges" disabled>
+                  <span>05</span><span>Rangos</span>
+                </button>
+                <button class="flow-step" id="create-review-step" type="button" data-go="review" disabled>
+                  <span>06</span><span>Revisar</span>
+                </button>
+              </div>
+            </header>
+
+            <div class="form-layout">
+              <form class="form-card" id="scheme-form" novalidate>
+                <div class="field">
+                  <label for="scheme-name">Nombre del esquema</label>
+                  <input id="scheme-name" name="scheme-name" type="text" autocomplete="off" placeholder="Ej. Colección general 2027" />
+                  <p class="field-error" id="scheme-name-error" hidden>Escribe un nombre para continuar.</p>
+                </div>
+
+                <div class="field">
+                  <label for="scheme-description">Descripción <span>Opcional</span></label>
+                  <textarea id="scheme-description" name="scheme-description" placeholder="Describe cuándo o dónde se utilizará este esquema."></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button class="primary-action" type="submit">Guardar y definir niveles</button>
+                  <button class="secondary-action" type="button" data-go="schemes">Cancelar</button>
+                </div>
+              </form>
+
+              <aside class="side-card">
+                <h2>Nuevo borrador</h2>
+                <p>El esquema se crea inactivo. No afecta la búsqueda pública hasta que esté completo y se publique.</p>
+              </aside>
+            </div>
+          </div>
+
+          <div id="levels-view" data-view="levels" hidden>
+            <header class="flow-heading">
+              <div>
+                <button class="back-button" type="button" data-go="schemes">Volver a esquemas</button>
+                <h1>Definir niveles</h1>
+                <p class="scheme-meta" id="current-scheme-name">Nuevo esquema</p>
+              </div>
+              <div class="flow-steps" aria-label="Progreso de configuración">
+                <button class="flow-step" type="button" data-go="create">
+                  <span>01</span><span>Esquema</span>
+                </button>
+                <button class="flow-step is-active" type="button" data-go="levels" aria-current="step">
+                  <span>02</span><span>Niveles</span>
+                </button>
+                <button class="flow-step" id="levels-locations-step" type="button" data-go="locations" disabled>
+                  <span>03</span><span>Ubicaciones</span>
+                </button>
+                <button class="flow-step" id="levels-maps-step" type="button" data-go="maps" disabled>
+                  <span>04</span><span>Mapas</span>
+                </button>
+                <button class="flow-step" id="levels-ranges-step" type="button" data-go="ranges" disabled>
+                  <span>05</span><span>Rangos</span>
+                </button>
+                <button class="flow-step" id="levels-review-step" type="button" data-go="review" disabled>
+                  <span>06</span><span>Revisar</span>
+                </button>
+              </div>
+            </header>
+
+            <div class="levels-layout">
+              <section class="levels-card" aria-labelledby="levels-title">
+                <header class="levels-card__header">
+                  <h2 id="levels-title">Estructura física</h2>
+                </header>
+
+                <div class="level-list" id="level-list"></div>
+
+                <footer class="levels-footer">
+                  <button class="secondary-action" id="add-level" type="button">Agregar nivel inferior</button>
+                  <button class="primary-action" id="confirm-levels" type="button">Confirmar niveles</button>
+                  <button class="secondary-action" id="reset-levels" type="button" hidden>Editar niveles</button>
+                </footer>
+              </section>
+
+              <aside class="side-card capture-summary">
+                <h2>Precisión de búsqueda</h2>
+                <p id="capture-summary"></p>
+              </aside>
+            </div>
+          </div>
+
+          <div id="locations-view" data-view="locations" hidden>
+            <header class="flow-heading">
+              <div>
+                <button class="back-button" type="button" data-go="schemes">Volver a esquemas</button>
+                <h1>Crear ubicaciones</h1>
+                <p class="scheme-meta" id="locations-scheme-name">Nuevo esquema</p>
+              </div>
+              <div class="flow-steps" aria-label="Progreso de configuración">
+                <button class="flow-step" type="button" data-go="create">
+                  <span>01</span><span>Esquema</span>
+                </button>
+                <button class="flow-step" type="button" data-go="levels">
+                  <span>02</span><span>Niveles</span>
+                </button>
+                <button class="flow-step is-active" type="button" data-go="locations" aria-current="step">
+                  <span>03</span><span>Ubicaciones</span>
+                </button>
+                <button class="flow-step" id="locations-maps-step" type="button" data-go="maps" disabled>
+                  <span>04</span><span>Mapas</span>
+                </button>
+                <button class="flow-step" id="locations-ranges-step" type="button" data-go="ranges" disabled>
+                  <span>05</span><span>Rangos</span>
+                </button>
+                <button class="flow-step" id="locations-review-step" type="button" data-go="review" disabled>
+                  <span>06</span><span>Revisar</span>
+                </button>
+              </div>
+            </header>
+
+            <div class="locations-layout">
+              <section class="locations-card" aria-labelledby="locations-title">
+                <header class="locations-toolbar">
+                  <h2 id="locations-title">Árbol de ubicaciones</h2>
+                  <button class="secondary-action" id="add-root" type="button">Agregar Piso</button>
+                </header>
+
+                <div class="empty-locations" id="empty-locations">
+                  <h2>Todavía no hay ubicaciones</h2>
+                  <p>Agrega el primer Piso y construye cada rama siguiendo los niveles definidos.</p>
+                  <button class="primary-action" id="add-first-root" type="button">Crear Piso 1</button>
+                </div>
+
+                <div class="location-tree" id="location-tree" hidden></div>
+
+                <footer class="locations-footer">
+                  <button class="primary-action" id="confirm-locations" type="button" disabled>Confirmar ubicaciones</button>
+                  <div class="form-actions" id="post-location-actions" hidden>
+                    <button class="primary-action" type="button" data-go="maps">Configurar mapas</button>
+                    <button class="secondary-action" type="button" data-go="ranges">Asignar rangos</button>
+                    <button class="secondary-action" type="button" data-go="review">Revisar esquema</button>
+                    <button class="secondary-action" id="edit-locations" type="button">Editar ubicaciones</button>
+                  </div>
+                </footer>
+              </section>
+
+              <aside class="side-card">
+                <h2>Estructura definida</h2>
+                <p>Solo puedes agregar el nivel que corresponde debajo de cada ubicación.</p>
+                <div class="structure-list" id="structure-list"></div>
+              </aside>
+            </div>
+          </div>
+
+          <div id="maps-view" data-view="maps" hidden>
+            <header class="flow-heading">
+              <div>
+                <button class="back-button" type="button" data-go="schemes">Volver a esquemas</button>
+                <h1>Configurar mapas</h1>
+                <p class="scheme-meta" id="maps-scheme-name">Nuevo esquema</p>
+              </div>
+              <div class="flow-steps" aria-label="Progreso de configuración">
+                <button class="flow-step" type="button" data-go="create"><span>01</span><span>Esquema</span></button>
+                <button class="flow-step" type="button" data-go="levels"><span>02</span><span>Niveles</span></button>
+                <button class="flow-step" type="button" data-go="locations"><span>03</span><span>Ubicaciones</span></button>
+                <button class="flow-step is-active" type="button" data-go="maps" aria-current="step"><span>04</span><span>Mapas</span></button>
+                <button class="flow-step" id="maps-ranges-step" type="button" data-go="ranges" disabled><span>05</span><span>Rangos</span></button>
+                <button class="flow-step" id="maps-review-step" type="button" data-go="review" disabled><span>06</span><span>Revisar</span></button>
+              </div>
+            </header>
+
+            <div class="map-tabs" role="tablist" aria-label="Tipos de mapa">
+              <button class="map-tab is-active" id="top-map-tab" type="button" role="tab" aria-selected="true">Mapa superior</button>
+              <button class="map-tab" id="front-map-tab" type="button" role="tab" aria-selected="false">Mapas frontales</button>
+            </div>
+
+            <section class="map-panel" id="top-map-panel" role="tabpanel" aria-labelledby="top-map-tab">
+              <div class="map-controls">
+                <div class="control-group">
+                  <label class="control-label" for="top-map-name">Nombre del mapa</label>
+                  <input id="top-map-name" type="text" value="Plano principal" />
+                </div>
+
+                <div class="control-group">
+                  <span class="control-label">Archivo y ubicaciones</span>
+                  <div class="file-control">
+                    <label class="file-button" for="top-map-file">Cargar SVG</label>
+                    <input class="file-input" id="top-map-file" type="file" accept="image/svg+xml,.svg" />
+                    <button class="secondary-action" id="export-locations-csv" type="button">Generar CSV</button>
+                    <span class="file-note" id="top-map-file-note">Ningún archivo cargado</span>
+                  </div>
+                </div>
+
+                <div class="control-group">
+                  <span class="control-label">Niveles identificados dentro del SVG</span>
+                  <div class="level-options" id="map-level-options"></div>
+                </div>
+
+                <div class="control-group">
+                  <label class="control-label" for="top-map-drilldown">Vista al seleccionar una ubicación</label>
+                  <select id="top-map-drilldown">
+                    <option value="">Sin vista frontal</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="map-status" id="top-map-status">Carga un SVG que utilice atributos data-location-code.</div>
+
+              <div class="map-save-row">
+                <button class="primary-action" id="save-top-map" type="button" disabled>Guardar mapa superior</button>
+              </div>
+
+              <div class="saved-map-list" id="top-map-list" aria-label="Mapas superiores guardados"></div>
+
+              <div class="map-workspace">
+                <div class="map-canvas">
+                  <div class="map-placeholder" id="top-map-placeholder">
+                    <strong>Mapa superior</strong>
+                    <span>El archivo conservará su tamaño y esta área permitirá desplazamiento horizontal y vertical.</span>
+                  </div>
+                  <img class="map-preview" id="top-map-preview" alt="Vista previa del mapa superior" hidden />
+                </div>
+              </div>
+            </section>
+
+            <section class="map-panel" id="front-map-panel" role="tabpanel" aria-labelledby="front-map-tab" hidden>
+              <div class="saved-map-list" id="front-map-list" aria-label="Variantes frontales guardadas"></div>
+              <div class="map-save-row" id="add-front-variant-row" hidden>
+                <button class="primary-action" id="add-front-variant" type="button">Agregar otra variante</button>
+              </div>
+
+              <div class="front-empty" id="front-map-empty">
+                <div class="front-empty__content">
+                  <h2>No hay mapas frontales</h2>
+                  <p>Son opcionales. Crea las variantes necesarias y asígnalas a las ubicaciones correspondientes.</p>
+                  <button class="primary-action" id="add-front-map" type="button">Agregar variante frontal</button>
+                </div>
+              </div>
+
+              <div class="front-editor" id="front-map-editor" hidden>
+                <form class="front-editor__form" id="front-map-form">
+                  <div class="field">
+                    <label for="front-map-name">Nombre</label>
+                    <input id="front-map-name" type="text" value="Mueble frontal" />
+                  </div>
+                  <div class="field">
+                    <label for="front-variant-code">Código de variante</label>
+                    <input id="front-variant-code" type="text" value="mueble-6" autocomplete="off" />
+                  </div>
+                  <div class="field">
+                    <label for="front-map-level">Ubicaciones que usarán esta vista</label>
+                    <select id="front-map-level"></select>
+                  </div>
+                  <div class="field">
+                    <label for="front-slot-count">Cantidad de posiciones</label>
+                    <input id="front-slot-count" type="number" min="1" max="50" value="6" />
+                  </div>
+                  <div class="field">
+                    <label>Archivo SVG</label>
+                    <div class="file-control">
+                      <label class="file-button" for="front-map-file">Cargar SVG</label>
+                      <input class="file-input" id="front-map-file" type="file" accept="image/svg+xml,.svg" />
+                      <button class="secondary-action" id="use-demo-front-map" type="button">Usar vista de ejemplo</button>
+                      <span class="file-note" id="front-map-file-note">Ningún archivo cargado</span>
+                    </div>
+                  </div>
+                  <div class="map-status" id="front-map-status">Carga un SVG con posiciones data-slot consecutivas.</div>
+                  <div class="form-actions">
+                    <button class="primary-action" type="submit">Guardar variante</button>
+                    <button class="secondary-action" id="cancel-front-map" type="button">Cancelar</button>
+                  </div>
+                </form>
+
+                <div class="front-editor__preview map-workspace">
+                  <div class="map-canvas">
+                    <div class="map-placeholder" id="front-map-placeholder">
+                      <strong>Vista frontal</strong>
+                      <span>El SVG debe incluir posiciones consecutivas mediante data-slot.</span>
+                    </div>
+                    <img class="map-preview" id="front-map-preview" alt="Vista previa del mapa frontal" hidden />
+                  </div>
+                </div>
+              </div>
+
+              <section class="map-assignments" id="front-map-assignments" hidden aria-labelledby="front-assignments-title">
+                <header>
+                  <div>
+                    <h2 id="front-assignments-title">Asignar vistas frontales</h2>
+                    <p>Cada opción muestra únicamente variantes con la cantidad exacta de posiciones.</p>
+                  </div>
+                  <strong id="front-assignment-progress">0 de 0</strong>
+                </header>
+                <div class="assignment-table-wrap">
+                  <table class="assignment-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Ubicación</th>
+                        <th scope="col">Contenido</th>
+                        <th scope="col">Variante</th>
+                        <th scope="col">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody id="front-assignment-body"></tbody>
+                  </table>
+                </div>
+              </section>
+            </section>
+
+            <footer class="configuration-footer">
+              <p>Los rangos pueden configurarse antes o después de los mapas.</p>
+              <button class="primary-action" id="confirm-maps" type="button" disabled>Confirmar mapas</button>
+            </footer>
+          </div>
+
+          <div id="ranges-view" data-view="ranges" hidden>
+            <header class="flow-heading">
+              <div>
+                <button class="back-button" type="button" data-go="schemes">Volver a esquemas</button>
+                <h1>Asignar rangos</h1>
+                <p class="scheme-meta" id="ranges-scheme-name">Nuevo esquema</p>
+              </div>
+              <div class="flow-steps" aria-label="Progreso de configuración">
+                <button class="flow-step" type="button" data-go="create"><span>01</span><span>Esquema</span></button>
+                <button class="flow-step" type="button" data-go="levels"><span>02</span><span>Niveles</span></button>
+                <button class="flow-step" type="button" data-go="locations"><span>03</span><span>Ubicaciones</span></button>
+                <button class="flow-step" id="ranges-maps-step" type="button" data-go="maps" disabled><span>04</span><span>Mapas</span></button>
+                <button class="flow-step is-active" type="button" data-go="ranges" aria-current="step"><span>05</span><span>Rangos</span></button>
+                <button class="flow-step" id="ranges-review-step" type="button" data-go="review" disabled><span>06</span><span>Revisar</span></button>
+              </div>
+            </header>
+
+            <div class="map-tabs range-view-switch" role="tablist" aria-label="Vista de rangos">
+              <button class="map-tab is-active" id="range-focused-tab" type="button" role="tab" aria-selected="true">Edición individual</button>
+              <button class="map-tab" id="range-table-tab" type="button" role="tab" aria-selected="false">Tabla completa</button>
+            </div>
+
+            <div class="ranges-layout" id="range-focused-panel" role="tabpanel" aria-labelledby="range-focused-tab">
+              <section class="range-list-card" aria-labelledby="range-locations-title">
+                <header class="range-card-heading">
+                  <h2 id="range-locations-title">Ubicaciones de captura</h2>
+                </header>
+                <div class="range-progress">
+                  <span>Rangos definidos</span>
+                  <strong id="range-progress-value">0 de 0</strong>
+                </div>
+                <div class="range-location-list" id="range-location-list"></div>
+              </section>
+
+              <section class="range-editor" aria-labelledby="range-editor-title">
+                <header class="range-editor__heading">
+                  <h2 id="range-editor-title">Selecciona una ubicación</h2>
+                  <p id="range-editor-code"></p>
+                </header>
+                <form class="range-form" id="range-form">
+                  <div class="range-fields">
+                    <div class="field">
+                      <label for="range-start">Inicio del rango</label>
+                      <input id="range-start" type="text" autocomplete="off" placeholder="Ej. 500 A" disabled />
+                    </div>
+                    <div class="field">
+                      <label for="range-end">Fin del rango</label>
+                      <input id="range-end" type="text" autocomplete="off" placeholder="Ej. 519.9 Z" disabled />
+                    </div>
+                  </div>
+                  <div class="map-status" id="range-status">Selecciona una ubicación para asignar su rango.</div>
+                  <div class="derived-coverage">
+                    <strong>Cobertura superior</strong>
+                    <span id="derived-coverage-value">Se calculará a partir de los rangos guardados en las ubicaciones de captura.</span>
+                  </div>
+                  <div class="form-actions">
+                    <button class="primary-action" id="save-range-next" type="submit" disabled>Guardar y continuar</button>
+                    <button class="secondary-action" id="clear-range" type="button" disabled>Quitar rango</button>
+                  </div>
+                </form>
+              </section>
+            </div>
+
+            <section class="range-table-card" id="range-table-panel" role="tabpanel" aria-labelledby="range-table-tab" hidden>
+              <div class="range-table-scroll">
+                <table class="range-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Ubicación</th>
+                      <th scope="col">Código</th>
+                      <th scope="col">Inicio</th>
+                      <th scope="col">Fin</th>
+                      <th scope="col">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="range-table-body"></tbody>
+                </table>
+              </div>
+              <footer class="range-table-footer">
+                <p>Las filas con ambos extremos vacíos permanecen pendientes.</p>
+                <button class="primary-action" id="save-range-table" type="button">Guardar tabla</button>
+              </footer>
+            </section>
+
+            <footer class="range-footer">
+              <button class="primary-action" id="confirm-ranges" type="button" disabled>Confirmar rangos</button>
+            </footer>
+          </div>
+
+          <div id="review-view" data-view="review" hidden>
+            <header class="flow-heading">
+              <div>
+                <button class="back-button" type="button" data-go="schemes">Volver a esquemas</button>
+                <h1>Revisar y publicar</h1>
+                <p class="scheme-meta" id="review-scheme-name">Nuevo esquema</p>
+              </div>
+              <div class="flow-steps" aria-label="Progreso de configuración">
+                <button class="flow-step" type="button" data-go="create"><span>01</span><span>Esquema</span></button>
+                <button class="flow-step" type="button" data-go="levels"><span>02</span><span>Niveles</span></button>
+                <button class="flow-step" type="button" data-go="locations"><span>03</span><span>Ubicaciones</span></button>
+                <button class="flow-step" type="button" data-go="maps"><span>04</span><span>Mapas</span></button>
+                <button class="flow-step" type="button" data-go="ranges"><span>05</span><span>Rangos</span></button>
+                <button class="flow-step is-active" type="button" data-go="review" aria-current="step"><span>06</span><span>Revisar</span></button>
+              </div>
+            </header>
+
+            <section class="review-card" aria-labelledby="review-title">
+              <header class="review-card__heading">
+                <h2 id="review-title">Revisión del esquema</h2>
+                <p id="review-summary"></p>
+              </header>
+              <div class="review-grid">
+                <div class="review-check" id="review-levels-check"><strong>Niveles</strong><span id="review-levels"></span></div>
+                <div class="review-check" id="review-locations-check"><strong>Ubicaciones</strong><span id="review-locations"></span></div>
+                <div class="review-check" id="review-maps-check"><strong>Mapas</strong><span id="review-maps"></span></div>
+                <div class="review-check" id="review-ranges-check"><strong>Rangos</strong><span id="review-ranges"></span></div>
+              </div>
+              <section class="publish-panel" aria-labelledby="publish-title">
+                <div>
+                  <h2 id="publish-title">Publicación</h2>
+                  <p id="publication-status">Completa mapas y rangos para publicar.</p>
+                </div>
+                <div class="publish-control">
+                  <label class="activation-option">
+                    <input id="activate-on-publish" type="checkbox" checked />
+                    <span>Activar para la búsqueda pública</span>
+                  </label>
+                  <button class="primary-action" id="publish-scheme" type="button" disabled>Publicar y activar</button>
+                </div>
+              </section>
+              <footer class="review-actions">
+                <button class="secondary-action" id="review-search" type="button">Probar búsqueda</button>
+              </footer>
+            </section>
+          </div>
+
+          <div id="search-tests-view" data-view="search-tests" hidden>
+            <header class="page-heading">
+              <div>
+                <h1>Pruebas de búsqueda</h1>
+                <p>Consulta un esquema sin activarlo.</p>
+              </div>
+            </header>
+
+            <form class="search-query-card" id="search-test-form">
+              <div class="field">
+                <label for="search-test-scheme">Esquema</label>
+                <select id="search-test-scheme"></select>
+              </div>
+              <div class="field">
+                <label for="search-test-query">Código de clasificación</label>
+                <input id="search-test-query" type="text" autocomplete="off" placeholder="Ej. 500 A" />
+              </div>
+              <button class="primary-action" type="submit">Buscar</button>
+            </form>
+
+            <div class="search-empty" id="search-test-empty">
+              <div>
+                <strong>Sin consulta</strong>
+                <span>Escribe un código para revisar la ubicación que devolvería el esquema.</span>
+              </div>
+            </div>
+
+            <div id="search-test-results" hidden>
+              <div class="search-result-summary">
+                <strong id="search-result-title">1 ubicación encontrada</strong>
+                <span id="search-result-mode">Resultado textual</span>
+              </div>
+
+              <div class="search-workspace">
+                <section class="search-views-card" aria-labelledby="search-views-title">
+                  <header class="search-view-heading">
+                    <h2 id="search-views-title">Vistas</h2>
+                    <div class="search-view-tabs" role="tablist" aria-label="Vistas del resultado">
+                      <button class="search-view-tab is-active" id="search-top-tab" type="button" role="tab" aria-selected="true">Superior</button>
+                      <button class="search-view-tab" id="search-front-tab" type="button" role="tab" aria-selected="false" disabled>Frontal</button>
+                    </div>
+                  </header>
+                  <div class="search-map-stage">
+                    <div class="search-map-inner">
+                      <div class="search-no-map" id="search-no-map">
+                        <strong>Resultado sin mapa</strong>
+                        <span>La ruta textual está disponible en los detalles.</span>
+                      </div>
+                      <img class="search-map-image" id="search-map-image" alt="Mapa del resultado de búsqueda" hidden />
+                      <div class="search-front-gallery" id="search-front-gallery" hidden></div>
+                    </div>
+                  </div>
+                </section>
+
+                <aside class="search-details" aria-labelledby="search-details-title">
+                  <header class="search-details__heading">
+                    <h2 id="search-details-title">Detalles</h2>
+                  </header>
+                  <dl class="search-facts">
+                    <dt>Consulta</dt><dd id="search-detail-query"></dd>
+                    <dt>Interpretada</dt><dd id="search-detail-normalized"></dd>
+                    <dt>Esquema</dt><dd id="search-detail-scheme"></dd>
+                    <dt>Rango</dt><dd id="search-detail-range"></dd>
+                  </dl>
+                  <div class="search-matches">
+                    <h3>Coincidencias</h3>
+                    <div id="search-match-list"></div>
+                  </div>
+                  <div class="textual-route">
+                    <h3>Ruta textual</h3>
+                    <ol id="search-textual-route"></ol>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <dialog id="quantity-dialog">
+      <form class="dialog-content" id="quantity-form" method="dialog">
+        <h2 id="quantity-title">Agregar ubicaciones</h2>
+        <div class="field">
+          <label for="quantity">Cantidad</label>
+          <input id="quantity" name="quantity" type="number" min="1" max="50" value="2" />
+        </div>
+        <div class="form-actions">
+          <button class="primary-action" type="submit" value="confirm">Agregar</button>
+          <button class="secondary-action" type="button" id="cancel-quantity">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="clone-dialog">
+      <form class="dialog-content" id="clone-form" method="dialog">
+        <h2>Clonar esquema</h2>
+        <div class="field">
+          <label for="clone-name">Nombre de la copia</label>
+          <input id="clone-name" type="text" autocomplete="off" />
+        </div>
+        <fieldset class="choice-list">
+          <legend>Contenido</legend>
+          <label>
+            <input type="radio" name="clone-scope" value="levels" checked />
+            <span><strong>Solo niveles</strong><small>Copia la estructura física.</small></span>
+          </label>
+          <label>
+            <input type="radio" name="clone-scope" value="locations" />
+            <span><strong>Niveles y ubicaciones</strong><small>Regenera todos los códigos con el nuevo ID.</small></span>
+          </label>
+          <label>
+            <input type="radio" name="clone-scope" value="all" />
+            <span><strong>Todo</strong><small>Copia rangos, mapas y asignaciones; queda sin publicar.</small></span>
+          </label>
+        </fieldset>
+        <div class="form-actions">
+          <button class="primary-action" type="submit">Crear copia</button>
+          <button class="secondary-action" type="button" id="cancel-clone">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="activation-dialog">
+      <form class="dialog-content" id="activation-form" method="dialog">
+        <h2>Activar esquema</h2>
+        <p class="dialog-copy"><strong id="activation-scheme-name"></strong> reemplazará a Colección general 2025 en la búsqueda pública.</p>
+        <div class="form-actions">
+          <button class="primary-action" type="submit">Publicar y activar</button>
+          <button class="secondary-action" type="button" id="cancel-activation">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      const views = [...document.querySelectorAll("[data-view]")];
+      const schemesLink = document.querySelector("#schemes-link");
+      const searchTestsLink = document.querySelector("#search-tests-link");
+      const schemeForm = document.querySelector("#scheme-form");
+      const schemeNameInput = document.querySelector("#scheme-name");
+      const schemeNameError = document.querySelector("#scheme-name-error");
+      const currentSchemeName = document.querySelector("#current-scheme-name");
+      const locationsSchemeName = document.querySelector("#locations-scheme-name");
+      const createLevelsStep = document.querySelector("#create-levels-step");
+      const createLocationsStep = document.querySelector("#create-locations-step");
+      const createMapsStep = document.querySelector("#create-maps-step");
+      const createRangesStep = document.querySelector("#create-ranges-step");
+      const levelsLocationsStep = document.querySelector("#levels-locations-step");
+      const levelsMapsStep = document.querySelector("#levels-maps-step");
+      const levelsRangesStep = document.querySelector("#levels-ranges-step");
+      const locationsMapsStep = document.querySelector("#locations-maps-step");
+      const locationsRangesStep = document.querySelector("#locations-ranges-step");
+      const mapsRangesStep = document.querySelector("#maps-ranges-step");
+      const rangesMapsStep = document.querySelector("#ranges-maps-step");
+      const reviewStepButtons = [...document.querySelectorAll("#create-review-step, #levels-review-step, #locations-review-step, #maps-review-step, #ranges-review-step")];
+      const levelList = document.querySelector("#level-list");
+      const captureSummary = document.querySelector("#capture-summary");
+      const locationTree = document.querySelector("#location-tree");
+      const emptyLocations = document.querySelector("#empty-locations");
+      const addRootButton = document.querySelector("#add-root");
+      const addFirstRootButton = document.querySelector("#add-first-root");
+      const addLevelButton = document.querySelector("#add-level");
+      const confirmLevels = document.querySelector("#confirm-levels");
+      const resetLevels = document.querySelector("#reset-levels");
+      const confirmLocations = document.querySelector("#confirm-locations");
+      const editLocations = document.querySelector("#edit-locations");
+      const postLocationActions = document.querySelector("#post-location-actions");
+      const structureList = document.querySelector("#structure-list");
+      const quantityDialog = document.querySelector("#quantity-dialog");
+      const quantityForm = document.querySelector("#quantity-form");
+      const quantityInput = document.querySelector("#quantity");
+      const quantityTitle = document.querySelector("#quantity-title");
+      const toast = document.querySelector("#toast");
+      const mapsSchemeName = document.querySelector("#maps-scheme-name");
+      const topMapTab = document.querySelector("#top-map-tab");
+      const frontMapTab = document.querySelector("#front-map-tab");
+      const topMapPanel = document.querySelector("#top-map-panel");
+      const frontMapPanel = document.querySelector("#front-map-panel");
+      const mapLevelOptions = document.querySelector("#map-level-options");
+      const topMapName = document.querySelector("#top-map-name");
+      const topMapDrilldown = document.querySelector("#top-map-drilldown");
+      const topMapFile = document.querySelector("#top-map-file");
+      const topMapFileNote = document.querySelector("#top-map-file-note");
+      const topMapStatus = document.querySelector("#top-map-status");
+      const topMapPlaceholder = document.querySelector("#top-map-placeholder");
+      const topMapPreview = document.querySelector("#top-map-preview");
+      const saveTopMap = document.querySelector("#save-top-map");
+      const topMapList = document.querySelector("#top-map-list");
+      const exportLocationsCsv = document.querySelector("#export-locations-csv");
+      const frontMapEmpty = document.querySelector("#front-map-empty");
+      const addFrontMap = document.querySelector("#add-front-map");
+      const addFrontVariant = document.querySelector("#add-front-variant");
+      const addFrontVariantRow = document.querySelector("#add-front-variant-row");
+      const frontMapEditor = document.querySelector("#front-map-editor");
+      const frontMapForm = document.querySelector("#front-map-form");
+      const frontMapLevel = document.querySelector("#front-map-level");
+      const frontVariantCode = document.querySelector("#front-variant-code");
+      const frontSlotCount = document.querySelector("#front-slot-count");
+      const frontMapFile = document.querySelector("#front-map-file");
+      const useDemoFrontMap = document.querySelector("#use-demo-front-map");
+      const frontMapFileNote = document.querySelector("#front-map-file-note");
+      const frontMapStatus = document.querySelector("#front-map-status");
+      const frontMapPlaceholder = document.querySelector("#front-map-placeholder");
+      const frontMapPreview = document.querySelector("#front-map-preview");
+      const cancelFrontMap = document.querySelector("#cancel-front-map");
+      const frontMapList = document.querySelector("#front-map-list");
+      const frontMapAssignments = document.querySelector("#front-map-assignments");
+      const frontAssignmentProgress = document.querySelector("#front-assignment-progress");
+      const frontAssignmentBody = document.querySelector("#front-assignment-body");
+      const confirmMaps = document.querySelector("#confirm-maps");
+      const rangesSchemeName = document.querySelector("#ranges-scheme-name");
+      const rangeFocusedTab = document.querySelector("#range-focused-tab");
+      const rangeTableTab = document.querySelector("#range-table-tab");
+      const rangeFocusedPanel = document.querySelector("#range-focused-panel");
+      const rangeTablePanel = document.querySelector("#range-table-panel");
+      const rangeTableBody = document.querySelector("#range-table-body");
+      const saveRangeTable = document.querySelector("#save-range-table");
+      const rangeLocationList = document.querySelector("#range-location-list");
+      const rangeProgressValue = document.querySelector("#range-progress-value");
+      const rangeEditorTitle = document.querySelector("#range-editor-title");
+      const rangeEditorCode = document.querySelector("#range-editor-code");
+      const rangeForm = document.querySelector("#range-form");
+      const rangeStart = document.querySelector("#range-start");
+      const rangeEnd = document.querySelector("#range-end");
+      const rangeStatus = document.querySelector("#range-status");
+      const derivedCoverageValue = document.querySelector("#derived-coverage-value");
+      const saveRangeNext = document.querySelector("#save-range-next");
+      const clearRange = document.querySelector("#clear-range");
+      const confirmRanges = document.querySelector("#confirm-ranges");
+      const reviewSchemeName = document.querySelector("#review-scheme-name");
+      const reviewSummary = document.querySelector("#review-summary");
+      const reviewLevels = document.querySelector("#review-levels");
+      const reviewLocations = document.querySelector("#review-locations");
+      const reviewMaps = document.querySelector("#review-maps");
+      const reviewRanges = document.querySelector("#review-ranges");
+      const reviewMapsCheck = document.querySelector("#review-maps-check");
+      const reviewRangesCheck = document.querySelector("#review-ranges-check");
+      const publicationStatus = document.querySelector("#publication-status");
+      const activateOnPublish = document.querySelector("#activate-on-publish");
+      const publishScheme = document.querySelector("#publish-scheme");
+      const searchTestForm = document.querySelector("#search-test-form");
+      const searchTestScheme = document.querySelector("#search-test-scheme");
+      const searchTestQuery = document.querySelector("#search-test-query");
+      const searchTestEmpty = document.querySelector("#search-test-empty");
+      const searchTestResults = document.querySelector("#search-test-results");
+      const searchResultTitle = document.querySelector("#search-result-title");
+      const searchResultMode = document.querySelector("#search-result-mode");
+      const searchTopTab = document.querySelector("#search-top-tab");
+      const searchFrontTab = document.querySelector("#search-front-tab");
+      const searchNoMap = document.querySelector("#search-no-map");
+      const searchMapImage = document.querySelector("#search-map-image");
+      const searchFrontGallery = document.querySelector("#search-front-gallery");
+      const searchMatchList = document.querySelector("#search-match-list");
+      const searchDetailQuery = document.querySelector("#search-detail-query");
+      const searchDetailNormalized = document.querySelector("#search-detail-normalized");
+      const searchDetailScheme = document.querySelector("#search-detail-scheme");
+      const searchDetailRange = document.querySelector("#search-detail-range");
+      const searchTextualRoute = document.querySelector("#search-textual-route");
+      const cloneDialog = document.querySelector("#clone-dialog");
+      const cloneForm = document.querySelector("#clone-form");
+      const cloneName = document.querySelector("#clone-name");
+      const readySchemesBody = document.querySelector("#ready-schemes-body");
+      const draftSchemesBody = document.querySelector("#draft-schemes-body");
+      const activationDialog = document.querySelector("#activation-dialog");
+      const activationForm = document.querySelector("#activation-form");
+      const activationSchemeName = document.querySelector("#activation-scheme-name");
+
+      let levels = ["Piso", "Fila", "Cara", "Mueble", "Anaquel"];
+      let captureLevel = 4;
+      let locations = [];
+      let nextLocationId = 1;
+      let pendingParentId = null;
+      let pendingLevelIndex = 0;
+      let selectedMapLevels = new Set();
+      let topMapSource = "";
+      let topMapObjectUrl = "";
+      let frontMapSource = "";
+      let frontMapObjectUrl = "";
+      let frontMapSaved = false;
+      let topMapLayers = [];
+      let frontMapVariants = [];
+      let frontVariantAssignments = new Map();
+      let nextTopMapId = 1;
+      let nextFrontVariantId = 1;
+      let topMapValid = false;
+      let mapsConfigured = false;
+      let rangesConfigured = false;
+      let rangeAssignments = new Map();
+      let selectedRangeId = null;
+      let locationsConfirmed = false;
+      let searchTopSource = "";
+      let searchFrontViews = [];
+      let searchMatches = [];
+      let selectedSearchMatch = 0;
+      let searchMapObjectUrl = "";
+      let searchFrontObjectUrls = [];
+      let cloneSourceName = "";
+      let nextPrototypeSchemeId = 29;
+      let toastTimer;
+
+      function showView(name) {
+        views.forEach((view) => {
+          view.hidden = view.dataset.view !== name;
+        });
+
+        document.querySelector("main").scrollTo({ top: 0, behavior: "auto" });
+        const isSearchTest = name === "search-tests";
+        schemesLink.toggleAttribute("aria-current", !isSearchTest);
+        searchTestsLink.toggleAttribute("aria-current", isSearchTest);
+
+        if (name === "create") {
+          window.setTimeout(() => schemeNameInput.focus(), 0);
+        }
+
+        if (name === "levels") {
+          renderLevels();
+        }
+
+        if (name === "locations") {
+          renderLocations();
+        }
+
+        if (name === "maps") {
+          renderMapLevelOptions();
+          renderFrontLevelOptions();
+          renderTopMapDrilldownOptions();
+          renderSavedTopMaps();
+          renderSavedFrontMaps();
+          renderFrontAssignments();
+        }
+
+        if (name === "ranges") {
+          renderRanges();
+        }
+
+        if (name === "review") {
+          renderReview();
+        }
+
+        if (name === "search-tests") {
+          prepareSearchTest();
+        }
+      }
+
+      function showToast(message) {
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        toastTimer = window.setTimeout(() => {
+          toast.hidden = true;
+        }, 3200);
+      }
+
+      function escapeAttribute(value) {
+        return value
+          .replaceAll("&", "&amp;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;");
+      }
+
+      function updateSummary() {
+        const selected = levels[captureLevel];
+        const ancestors = levels.slice(0, captureLevel);
+        const coverage = ancestors.length
+          ? `${ancestors.join(", ")} recibirán cobertura calculada.`
+          : "No hay niveles superiores.";
+
+        const selectedName = document.createElement("strong");
+        selectedName.textContent = selected;
+        captureSummary.replaceChildren("Los rangos se asignarán en ", selectedName, `. ${coverage}`);
+      }
+
+      function renderLevels() {
+        levelList.innerHTML = "";
+        const levelsLocked = locations.length > 0;
+        addLevelButton.hidden = levelsLocked;
+        confirmLevels.hidden = levelsLocked;
+        resetLevels.hidden = !levelsLocked;
+
+        levels.forEach((name, index) => {
+          const row = document.createElement("div");
+          const depth = index * 26;
+          row.className = "level-row";
+          row.style.marginLeft = `${depth}px`;
+          row.style.width = `calc(100% - ${depth}px)`;
+
+          row.innerHTML = `
+            <div class="level-identity">
+              <span class="level-number">${String(index + 1).padStart(2, "0")}</span>
+              <input class="level-name" aria-label="Nombre del nivel ${index + 1}" value="${escapeAttribute(name)}" ${levelsLocked ? "disabled" : ""} />
+            </div>
+            <button class="capture-button ${index === captureLevel ? "is-selected" : ""}" type="button" ${levelsLocked ? "disabled" : ""}>
+              ${index === captureLevel ? "Nivel de captura" : "Usar para captura"}
+            </button>
+            ${!levelsLocked && index === levels.length - 1 && levels.length > 1 ? '<button class="remove-level" type="button">Quitar</button>' : ""}
+          `;
+
+          row.querySelector(".level-name").addEventListener("input", (event) => {
+            levels[index] = event.target.value;
+            updateSummary();
+          });
+
+          row.querySelector(".capture-button").addEventListener("click", () => {
+            captureLevel = index;
+            renderLevels();
+          });
+
+          row.querySelector(".remove-level")?.addEventListener("click", () => {
+            levels.pop();
+            captureLevel = Math.min(captureLevel, levels.length - 1);
+            renderLevels();
+          });
+
+          levelList.append(row);
+        });
+
+        updateSummary();
+      }
+
+      function childrenOf(parentId) {
+        return locations
+          .filter((location) => location.parentId === parentId)
+          .sort((a, b) => a.ordinal - b.ordinal);
+      }
+
+      function nextOrdinal(parentId) {
+        const siblings = childrenOf(parentId);
+        return siblings.length ? Math.max(...siblings.map((location) => location.ordinal)) + 1 : 1;
+      }
+
+      function addLocations(parentId, levelIndex, count) {
+        invalidateLocationDependentConfig();
+        const parent = parentId === null ? null : locations.find((location) => location.id === parentId);
+        let ordinal = nextOrdinal(parentId);
+
+        for (let index = 0; index < count; index += 1) {
+          const currentOrdinal = ordinal + index;
+          locations.push({
+            id: nextLocationId++,
+            parentId,
+            levelIndex,
+            ordinal: currentOrdinal,
+            path: parent ? [...parent.path, currentOrdinal] : [currentOrdinal],
+          });
+        }
+
+        renderLocations();
+      }
+
+      function descendantIds(id) {
+        const direct = childrenOf(id);
+        return direct.flatMap((child) => [child.id, ...descendantIds(child.id)]);
+      }
+
+      function removeLocation(id) {
+        const descendants = descendantIds(id);
+        if (descendants.length && !window.confirm("También se quitarán las ubicaciones contenidas. ¿Continuar?")) {
+          return;
+        }
+
+        const removedIds = new Set([id, ...descendants]);
+        invalidateLocationDependentConfig();
+        locations = locations.filter((location) => !removedIds.has(location.id));
+        renderLocations();
+      }
+
+      function flattenLocations() {
+        const flattened = [];
+        const visit = (location) => {
+          flattened.push(location);
+          childrenOf(location.id).forEach(visit);
+        };
+
+        childrenOf(null).forEach(visit);
+        return flattened;
+      }
+
+      function locationsAreComplete() {
+        if (!locations.length) return false;
+        const terminalIndex = levels.length - 1;
+        const hasTerminal = locations.some((location) => location.levelIndex === terminalIndex);
+        const branchesComplete = locations
+          .filter((location) => location.levelIndex < terminalIndex)
+          .every((location) => childrenOf(location.id).length > 0);
+        return hasTerminal && branchesComplete;
+      }
+
+      function openQuantity(parentId, levelIndex) {
+        pendingParentId = parentId;
+        pendingLevelIndex = levelIndex;
+        quantityInput.value = "2";
+        quantityTitle.textContent = `Agregar ${levels[levelIndex]}`;
+        quantityDialog.showModal();
+        quantityInput.select();
+      }
+
+      function renderLocations() {
+        const hasLocations = locations.length > 0;
+        emptyLocations.hidden = hasLocations;
+        locationTree.hidden = !hasLocations;
+        confirmLocations.disabled = !locationsAreComplete();
+        confirmLocations.hidden = locationsConfirmed;
+        postLocationActions.hidden = !locationsConfirmed;
+        addRootButton.hidden = locationsConfirmed;
+        locationTree.innerHTML = "";
+        structureList.innerHTML = "";
+        addRootButton.textContent = `Agregar ${levels[0]}`;
+        addFirstRootButton.textContent = `Crear ${levels[0]} 1`;
+
+        levels.forEach((level, index) => {
+          const item = document.createElement("span");
+          item.style.marginLeft = `${index * 10}px`;
+          item.textContent = `${String(index + 1).padStart(2, "0")} ${level}`;
+          structureList.append(item);
+        });
+
+        flattenLocations().forEach((location) => {
+          const canAdd = location.levelIndex < levels.length - 1;
+          const childLevelIndex = location.levelIndex + 1;
+          const childLevelName = canAdd ? levels[childLevelIndex] : "";
+          const childCount = childrenOf(location.id).length;
+          const incomplete = canAdd && childCount === 0;
+          const depth = location.levelIndex * 25;
+          const row = document.createElement("div");
+          row.className = `location-row${incomplete ? " is-incomplete" : ""}`;
+          row.style.setProperty("--location-depth", `${depth}px`);
+          row.style.setProperty("--mobile-location-depth", `${Math.round(depth * 0.42)}px`);
+
+          row.innerHTML = `
+            <span class="location-identity">
+              <span class="location-level">${String(location.levelIndex + 1).padStart(2, "0")}</span>
+              <span class="location-name">${escapeAttribute(levels[location.levelIndex])} ${location.ordinal}</span>
+            </span>
+            <span class="location-code">28-${location.path.join("-")}</span>
+            ${incomplete ? `<span class="location-warning">Falta ${escapeAttribute(childLevelName)}</span>` : ""}
+            <span class="location-row__spacer"></span>
+            <span class="location-actions">
+              ${!locationsConfirmed && canAdd ? `<button class="location-action add-one" type="button">Agregar ${escapeAttribute(childLevelName)}</button>` : ""}
+              ${!locationsConfirmed && canAdd ? '<button class="location-action add-quantity" type="button">Agregar cantidad</button>' : ""}
+              ${!locationsConfirmed ? '<button class="location-action remove" type="button">Quitar</button>' : '<span class="status ready">Confirmada</span>'}
+            </span>
+          `;
+
+          row.querySelector(".add-one")?.addEventListener("click", () => addLocations(location.id, childLevelIndex, 1));
+          row.querySelector(".add-quantity")?.addEventListener("click", () => openQuantity(location.id, childLevelIndex));
+          row.querySelector(".remove")?.addEventListener("click", () => removeLocation(location.id));
+          locationTree.append(row);
+        });
+      }
+
+      function terminalLocations() {
+        return locations
+          .filter((location) => location.levelIndex === captureLevel)
+          .sort((a, b) => a.path.join("-").localeCompare(b.path.join("-"), undefined, { numeric: true }));
+      }
+
+      function locationLabel(location) {
+        return location.path.map((ordinal, index) => `${levels[index]} ${ordinal}`).join(" / ");
+      }
+
+      function ancestorsOf(location) {
+        const ancestors = [];
+        let current = location;
+
+        while (current) {
+          ancestors.unshift(current);
+          current = current.parentId === null ? null : locations.find((candidate) => candidate.id === current.parentId);
+        }
+
+        return ancestors;
+      }
+
+      function updateReviewAvailability() {
+        reviewStepButtons.forEach((button) => {
+          button.disabled = !locationsConfirmed;
+        });
+      }
+
+      function invalidateLocationDependentConfig() {
+        locationsConfirmed = false;
+        mapsConfigured = false;
+        rangesConfigured = false;
+        topMapValid = false;
+        rangeAssignments.clear();
+        topMapLayers = [];
+        frontMapVariants = [];
+        frontVariantAssignments.clear();
+        frontMapSaved = false;
+        selectedRangeId = null;
+        confirmMaps.disabled = true;
+        createMapsStep.disabled = true;
+        levelsMapsStep.disabled = true;
+        locationsMapsStep.disabled = true;
+        rangesMapsStep.disabled = true;
+        createRangesStep.disabled = true;
+        levelsRangesStep.disabled = true;
+        locationsRangesStep.disabled = true;
+        mapsRangesStep.disabled = true;
+        updateReviewAvailability();
+        renderSavedTopMaps();
+        renderSavedFrontMaps();
+        renderFrontAssignments();
+      }
+
+      function renderRangeEditor() {
+        const location = terminalLocations().find((candidate) => candidate.id === selectedRangeId);
+        const hasLocation = Boolean(location);
+        rangeStart.disabled = !hasLocation;
+        rangeEnd.disabled = !hasLocation;
+        saveRangeNext.disabled = !hasLocation;
+        clearRange.disabled = !hasLocation || !rangeAssignments.has(selectedRangeId);
+
+        if (!location) {
+          rangeEditorTitle.textContent = "Selecciona una ubicación";
+          rangeEditorCode.textContent = "";
+          rangeStart.value = "";
+          rangeEnd.value = "";
+          setMapStatus(rangeStatus, "Selecciona una ubicación para asignar su rango.");
+          derivedCoverageValue.textContent = "Se calculará a partir de los rangos guardados en las ubicaciones de captura.";
+          return;
+        }
+
+        const assignment = rangeAssignments.get(location.id);
+        const upperLocations = ancestorsOf(location).slice(0, -1).map((ancestor) => `${levels[ancestor.levelIndex]} ${ancestor.ordinal}`);
+        rangeEditorTitle.textContent = locationLabel(location);
+        rangeEditorCode.textContent = `Código 28-${location.path.join("-")}`;
+        rangeStart.value = assignment?.start || "";
+        rangeEnd.value = assignment?.end || "";
+        setMapStatus(
+          rangeStatus,
+          assignment ? `Rango guardado: ${assignment.start} a ${assignment.end}.` : "Escribe ambos extremos del rango.",
+          assignment ? "valid" : "",
+        );
+        derivedCoverageValue.textContent = upperLocations.length
+          ? `Este rango contribuirá a la cobertura de ${upperLocations.join(", ")}.`
+          : "Esta ubicación no tiene niveles superiores.";
+      }
+
+      function setRangeView(viewName) {
+        const showFocused = viewName === "focused";
+        rangeFocusedTab.classList.toggle("is-active", showFocused);
+        rangeFocusedTab.setAttribute("aria-selected", String(showFocused));
+        rangeTableTab.classList.toggle("is-active", !showFocused);
+        rangeTableTab.setAttribute("aria-selected", String(!showFocused));
+        rangeFocusedPanel.hidden = !showFocused;
+        rangeTablePanel.hidden = showFocused;
+      }
+
+      function renderRangeTable() {
+        rangeTableBody.innerHTML = "";
+
+        terminalLocations().forEach((location) => {
+          const assignment = rangeAssignments.get(location.id);
+          const row = document.createElement("tr");
+          row.dataset.locationId = String(location.id);
+          row.innerHTML = `
+            <td class="range-table__location">
+              <strong>${escapeAttribute(`${levels[location.levelIndex]} ${location.ordinal}`)}</strong>
+              <span>${escapeAttribute(locationLabel(location))}</span>
+            </td>
+            <td class="range-table__code">28-${location.path.join("-")}</td>
+            <td><input class="range-table-start" aria-label="Inicio de ${escapeAttribute(locationLabel(location))}" type="text" value="${escapeAttribute(assignment?.start || "")}" placeholder="Inicio" /></td>
+            <td><input class="range-table-end" aria-label="Fin de ${escapeAttribute(locationLabel(location))}" type="text" value="${escapeAttribute(assignment?.end || "")}" placeholder="Fin" /></td>
+            <td><span class="range-table__state${assignment ? " is-complete" : ""}">${assignment ? "Definido" : "Pendiente"}</span></td>
+          `;
+          rangeTableBody.append(row);
+        });
+      }
+
+      function renderRanges() {
+        const terminals = terminalLocations();
+        if (!terminals.some((location) => location.id === selectedRangeId)) {
+          selectedRangeId = terminals[0]?.id ?? null;
+        }
+
+        rangeLocationList.innerHTML = "";
+        terminals.forEach((location) => {
+          const assignment = rangeAssignments.get(location.id);
+          const button = document.createElement("button");
+          button.className = `range-location${location.id === selectedRangeId ? " is-selected" : ""}`;
+          button.type = "button";
+          button.innerHTML = `
+            <span class="range-location__name">${escapeAttribute(`${levels[location.levelIndex]} ${location.ordinal}`)}</span>
+            <span class="range-location__state${assignment ? " is-complete" : ""}">${assignment ? "Definido" : "Pendiente"}</span>
+            <span class="range-location__code">28-${location.path.join("-")}</span>
+            <span class="range-location__value">${assignment ? `${escapeAttribute(assignment.start)} a ${escapeAttribute(assignment.end)}` : escapeAttribute(locationLabel(location))}</span>
+          `;
+          button.addEventListener("click", () => {
+            selectedRangeId = location.id;
+            renderRanges();
+          });
+          rangeLocationList.append(button);
+        });
+
+        const completed = terminals.filter((location) => rangeAssignments.has(location.id)).length;
+        rangeProgressValue.textContent = `${completed} de ${terminals.length}`;
+        confirmRanges.disabled = !terminals.length || completed !== terminals.length;
+        renderRangeEditor();
+        renderRangeTable();
+      }
+
+      function renderReview() {
+        const terminals = terminalLocations();
+        const assignedRanges = terminals.filter((location) => rangeAssignments.has(location.id)).length;
+        const readyToPublish = mapsConfigured && rangesConfigured;
+        reviewSchemeName.textContent = rangesSchemeName.textContent;
+        reviewLevels.textContent = `${levels.length} niveles; captura en ${levels[captureLevel]}`;
+        reviewLocations.textContent = `${locations.length} ubicaciones confirmadas`;
+        reviewMaps.textContent = mapsConfigured
+          ? `${topMapLayers.length} ${topMapLayers.length === 1 ? "mapa superior" : "mapas superiores"}; ${frontMapVariants.length} ${frontMapVariants.length === 1 ? "variante frontal" : "variantes frontales"}`
+          : topMapLayers.length ? "Mapas guardados, sin confirmar" : topMapValid ? "Mapa superior válido, sin guardar" : "Mapa superior pendiente";
+        reviewRanges.textContent = rangesConfigured
+          ? `${terminals.length} ${terminals.length === 1 ? "rango confirmado" : "rangos confirmados"}`
+          : `${assignedRanges} de ${terminals.length} ${terminals.length === 1 ? "rango definido" : "rangos definidos"}`;
+        reviewMapsCheck.classList.toggle("is-pending", !mapsConfigured);
+        reviewRangesCheck.classList.toggle("is-pending", !rangesConfigured);
+        reviewSummary.textContent = readyToPublish
+          ? "El esquema cumple los requisitos de publicación."
+          : "Puedes revisar el esquema ahora; la publicación seguirá bloqueada hasta completar mapas y rangos.";
+        publishScheme.disabled = !readyToPublish;
+        publishScheme.textContent = activateOnPublish.checked ? "Publicar y activar" : "Publicar esquema";
+        publicationStatus.textContent = readyToPublish
+          ? activateOnPublish.checked
+            ? "Al activarlo, este esquema reemplazará al esquema usado por la búsqueda pública."
+            : "El esquema quedará publicado, pero no se usará todavía en la búsqueda pública."
+          : "Completa y confirma mapas y rangos para publicar.";
+      }
+
+      function prepareSearchTest() {
+        const previousValue = searchTestScheme.value;
+        searchTestScheme.innerHTML = '<option value="active">Colección general 2025 (activo)</option>';
+
+        if (locationsConfirmed) {
+          const option = document.createElement("option");
+          option.value = "current";
+          option.textContent = `${currentSchemeName.textContent} (borrador)`;
+          searchTestScheme.append(option);
+        }
+
+        searchTestScheme.value = [...searchTestScheme.options].some((option) => option.value === previousValue)
+          ? previousValue
+          : locationsConfirmed ? "current" : "active";
+      }
+
+      function createActiveSearchMap() {
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 520" width="1000" height="520">
+          <rect width="1000" height="520" fill="#deded9" />
+          <path d="M70 75 H930 V445 H70 Z" fill="#f7f7f4" stroke="#50636a" stroke-width="5" />
+          <path d="M120 135 H880" stroke="#a9afb1" stroke-width="12" />
+          <path d="M120 260 H880" stroke="#a9afb1" stroke-width="12" />
+          <path d="M120 385 H880" stroke="#a9afb1" stroke-width="12" />
+          <g data-location-code="28-1-1-1-4">
+            <rect x="285" y="285" width="185" height="72" fill="#f7f7f4" stroke="#50636a" stroke-width="4" />
+            <text x="315" y="328" fill="#111111" font-family="Arial, sans-serif" font-size="22" font-weight="700">Mueble 4</text>
+          </g>
+          <g data-location-code="28-1-2-1-7">
+            <rect x="580" y="285" width="185" height="72" fill="#f7f7f4" stroke="#50636a" stroke-width="4" />
+            <text x="610" y="328" fill="#111111" font-family="Arial, sans-serif" font-size="22" font-weight="700">Mueble 7</text>
+          </g>
+          <text x="70" y="45" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Piso 1</text>
+        </svg>`;
+      }
+
+      function createDemoFrontSearchMap(slotCount, highlightedSlots) {
+        const shelfHeight = 62;
+        const items = Array.from({ length: slotCount }, (_, index) => {
+          const slot = index + 1;
+          const y = 50 + index * shelfHeight;
+          const highlighted = highlightedSlots.includes(slot);
+          return `<g data-slot="${slot}">
+            <rect x="70" y="${y}" width="720" height="46" fill="${highlighted ? "#e8c6cd" : "#f7f7f4"}" stroke="${highlighted ? "#88414e" : "#50636a"}" stroke-width="${highlighted ? 6 : 3}" />
+            <text x="92" y="${y + 30}" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="700">Anaquel ${slot}</text>
+          </g>`;
+        }).join("");
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 ${100 + slotCount * shelfHeight}" width="860" height="${100 + slotCount * shelfHeight}">
+          <rect width="860" height="${100 + slotCount * shelfHeight}" fill="#deded9" />${items}
+        </svg>`;
+      }
+
+      function highlightSearchMap(source, codes) {
+        const documentNode = new DOMParser().parseFromString(source, "image/svg+xml");
+        codes.forEach((code) => {
+          const node = documentNode.querySelector(`[data-location-code="${code}"]`);
+          const shape = node?.matches("rect, path, polygon") ? node : node?.querySelector("rect, path, polygon");
+          if (!shape) return;
+          shape.setAttribute("fill", "#e8c6cd");
+          shape.setAttribute("stroke", "#88414e");
+          shape.setAttribute("stroke-width", "7");
+        });
+        return new XMLSerializer().serializeToString(documentNode);
+      }
+
+      function highlightFrontMap(source, slots) {
+        const documentNode = new DOMParser().parseFromString(source, "image/svg+xml");
+        slots.forEach((slot) => {
+          const node = documentNode.querySelector(`[data-slot="${slot}"]`);
+          const shape = node?.matches("rect, path, polygon") ? node : node?.querySelector("rect, path, polygon");
+          if (!shape) return;
+          shape.setAttribute("fill", "#e8c6cd");
+          shape.setAttribute("stroke", "#88414e");
+          shape.setAttribute("stroke-width", "7");
+        });
+        return new XMLSerializer().serializeToString(documentNode);
+      }
+
+      function showSearchMap(source, label) {
+        if (searchMapObjectUrl) URL.revokeObjectURL(searchMapObjectUrl);
+        searchMapObjectUrl = "";
+        searchFrontGallery.hidden = true;
+        searchFrontGallery.innerHTML = "";
+
+        if (!source) {
+          searchMapImage.hidden = true;
+          searchMapImage.removeAttribute("src");
+          searchNoMap.hidden = false;
+          searchNoMap.querySelector("strong").textContent = "Resultado sin mapa";
+          searchNoMap.querySelector("span").textContent = "La ruta textual está disponible en los detalles.";
+          return;
+        }
+
+        searchMapObjectUrl = URL.createObjectURL(new Blob([source], { type: "image/svg+xml" }));
+        searchMapImage.src = searchMapObjectUrl;
+        searchMapImage.alt = label;
+        searchMapImage.hidden = false;
+        searchNoMap.hidden = true;
+      }
+
+      function showSearchFrontViews() {
+        if (searchMapObjectUrl) URL.revokeObjectURL(searchMapObjectUrl);
+        searchMapObjectUrl = "";
+        searchFrontObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+        searchFrontObjectUrls = [];
+        searchMapImage.hidden = true;
+        searchMapImage.removeAttribute("src");
+        searchNoMap.hidden = Boolean(searchFrontViews.length);
+        searchFrontGallery.innerHTML = "";
+        searchFrontGallery.hidden = !searchFrontViews.length;
+
+        searchFrontViews.forEach((view) => {
+          const url = URL.createObjectURL(new Blob([view.source], { type: "image/svg+xml" }));
+          searchFrontObjectUrls.push(url);
+          const card = document.createElement("article");
+          card.className = "search-front-card";
+          card.innerHTML = `<strong>${escapeAttribute(view.label)}</strong><img src="${url}" alt="Vista frontal de ${escapeAttribute(view.label)}" />`;
+          searchFrontGallery.append(card);
+        });
+      }
+
+      function setSearchMapView(viewName) {
+        const showTop = viewName === "top";
+        searchTopTab.classList.toggle("is-active", showTop);
+        searchTopTab.setAttribute("aria-selected", String(showTop));
+        searchFrontTab.classList.toggle("is-active", !showTop);
+        searchFrontTab.setAttribute("aria-selected", String(!showTop));
+        if (showTop) showSearchMap(searchTopSource, "Vista superior del resultado");
+        else showSearchFrontViews();
+      }
+
+      function renderTextualRoute(route) {
+        searchTextualRoute.innerHTML = "";
+        route.forEach((item) => {
+          const row = document.createElement("li");
+          row.innerHTML = `
+            <span class="route-marker" aria-hidden="true"></span>
+            <span class="route-copy">
+              <strong>${escapeAttribute(item.name)}</strong>
+              <span>${escapeAttribute(item.code)}</span>
+            </span>
+          `;
+          searchTextualRoute.append(row);
+        });
+      }
+
+      function selectSearchMatch(index) {
+        selectedSearchMatch = index;
+        const match = searchMatches[index];
+        if (!match) return;
+        searchDetailRange.textContent = match.range;
+        renderTextualRoute(match.route);
+        [...searchMatchList.children].forEach((button, buttonIndex) => {
+          button.classList.toggle("is-selected", buttonIndex === index);
+          button.setAttribute("aria-pressed", String(buttonIndex === index));
+        });
+      }
+
+      function renderSearchMatches() {
+        searchMatchList.innerHTML = "";
+        searchMatches.forEach((match, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `search-match${index === selectedSearchMatch ? " is-selected" : ""}`;
+          button.setAttribute("aria-pressed", String(index === selectedSearchMatch));
+          button.innerHTML = `<strong>${escapeAttribute(match.name)}</strong><span>${escapeAttribute(match.route.map((item) => item.name).join(" / "))}</span>`;
+          button.addEventListener("click", () => selectSearchMatch(index));
+          searchMatchList.append(button);
+        });
+        selectSearchMatch(Math.min(selectedSearchMatch, Math.max(0, searchMatches.length - 1)));
+      }
+
+      function runSearchTest(query) {
+        const normalized = query.trim().toUpperCase().replace(/\s+/g, " ");
+        const useActiveScheme = searchTestScheme.value === "active";
+        let schemeName;
+        let topSource = "";
+        let frontViews = [];
+        let matches = [];
+
+        if (useActiveScheme) {
+          schemeName = "Colección general 2025";
+          matches = [
+            {
+              name: "Anaquel 2",
+              range: "500 A a 519.9 Z",
+              route: [
+                { name: "Piso 1", code: "28-1" }, { name: "Fila 1", code: "28-1-1" },
+                { name: "Cara 1", code: "28-1-1-1" }, { name: "Mueble 4", code: "28-1-1-1-4" },
+                { name: "Anaquel 2", code: "28-1-1-1-4-2" },
+              ],
+            },
+            {
+              name: "Anaquel 5",
+              range: "510 B a 530 Z",
+              route: [
+                { name: "Piso 1", code: "28-1" }, { name: "Fila 1", code: "28-1-1" },
+                { name: "Cara 1", code: "28-1-1-1" }, { name: "Mueble 4", code: "28-1-1-1-4" },
+                { name: "Anaquel 5", code: "28-1-1-1-4-5" },
+              ],
+            },
+            {
+              name: "Anaquel 3",
+              range: "515 A a 540 Z",
+              route: [
+                { name: "Piso 1", code: "28-1" }, { name: "Fila 2", code: "28-1-2" },
+                { name: "Cara 1", code: "28-1-2-1" }, { name: "Mueble 7", code: "28-1-2-1-7" },
+                { name: "Anaquel 3", code: "28-1-2-1-7-3" },
+              ],
+            },
+          ];
+          topSource = highlightSearchMap(createActiveSearchMap(), ["28-1-1-1-4", "28-1-2-1-7"]);
+          frontViews = [
+            { label: "Mueble 4; Anaqueles 2 y 5", source: createDemoFrontSearchMap(6, [2, 5]) },
+            { label: "Mueble 7; Anaquel 3", source: createDemoFrontSearchMap(5, [3]) },
+          ];
+        } else {
+          const resultLocations = terminalLocations().filter((location) => rangeAssignments.has(location.id));
+          const candidates = (resultLocations.length ? resultLocations : terminalLocations()).slice(0, 3);
+          if (!candidates.length) {
+            showToast("El esquema no tiene ubicaciones de captura para probar.");
+            return;
+          }
+
+          schemeName = currentSchemeName.textContent;
+          matches = candidates.map((location) => {
+            const assignment = rangeAssignments.get(location.id);
+            return {
+              name: `${levels[location.levelIndex]} ${location.ordinal}`,
+              range: assignment ? `${assignment.start} a ${assignment.end}` : "Sin rango definido",
+              route: ancestorsOf(location).map((ancestor) => ({
+                name: `${levels[ancestor.levelIndex]} ${ancestor.ordinal}`,
+                code: `28-${ancestor.path.join("-")}`,
+              })),
+              location,
+            };
+          });
+
+          const primaryTopLayer = topMapLayers[0];
+          if (mapsConfigured && primaryTopLayer) {
+            const highlightCodes = [...new Set(candidates.flatMap((location) =>
+              ancestorsOf(location)
+                .filter((ancestor) => primaryTopLayer.levels.includes(ancestor.levelIndex))
+                .map((ancestor) => `28-${ancestor.path.join("-")}`),
+            ))];
+            topSource = highlightSearchMap(primaryTopLayer.source, highlightCodes);
+          }
+
+          if (mapsConfigured && frontMapVariants.length) {
+            const groups = new Map();
+            candidates.forEach((location) => {
+              const route = ancestorsOf(location);
+              const context = route.find((ancestor) => frontVariantAssignments.has(ancestor.id));
+              if (!context) return;
+              const variant = frontMapVariants.find((candidate) => candidate.id === frontVariantAssignments.get(context.id));
+              if (!variant) return;
+              const contextIndex = route.findIndex((ancestor) => ancestor.id === context.id);
+              const slot = route[contextIndex + 1]?.ordinal;
+              const group = groups.get(context.id) || { context, variant, slots: [] };
+              if (slot) group.slots.push(slot);
+              groups.set(context.id, group);
+            });
+            frontViews = [...groups.values()].map((group) => ({
+              label: `${levels[group.context.levelIndex]} ${group.context.ordinal}; ${group.slots.length} ${group.slots.length === 1 ? "resultado" : "resultados"}`,
+              source: highlightFrontMap(group.variant.source, [...new Set(group.slots)]),
+            }));
+          }
+        }
+
+        searchTopSource = topSource;
+        searchFrontViews = frontViews;
+        searchMatches = matches;
+        selectedSearchMatch = 0;
+        searchTestEmpty.hidden = true;
+        searchTestResults.hidden = false;
+        searchResultTitle.textContent = `${matches.length} ${matches.length === 1 ? "ubicación encontrada" : "ubicaciones encontradas"}`;
+        searchResultMode.textContent = topSource
+          ? frontViews.length ? `${frontViews.length} ${frontViews.length === 1 ? "vista frontal" : "vistas frontales"}` : "Vista superior; sin vista frontal"
+          : "Solo resultado textual";
+        searchDetailQuery.textContent = query.trim();
+        searchDetailNormalized.textContent = normalized;
+        searchDetailScheme.textContent = schemeName;
+        renderSearchMatches();
+        searchFrontTab.disabled = !frontViews.length;
+        setSearchMapView("top");
+      }
+
+      function setMapTab(tabName) {
+        const showTop = tabName === "top";
+        topMapTab.classList.toggle("is-active", showTop);
+        topMapTab.setAttribute("aria-selected", String(showTop));
+        frontMapTab.classList.toggle("is-active", !showTop);
+        frontMapTab.setAttribute("aria-selected", String(!showTop));
+        topMapPanel.hidden = !showTop;
+        frontMapPanel.hidden = showTop;
+      }
+
+      function setMapStatus(element, message, type = "") {
+        element.textContent = message;
+        element.classList.toggle("is-valid", type === "valid");
+        element.classList.toggle("is-error", type === "error");
+      }
+
+      function renderMapLevelOptions() {
+        mapLevelOptions.innerHTML = "";
+
+        levels.forEach((level, index) => {
+          const option = document.createElement("button");
+          option.className = `level-option${selectedMapLevels.has(index) ? " is-selected" : ""}`;
+          option.type = "button";
+          option.setAttribute("aria-pressed", String(selectedMapLevels.has(index)));
+          option.textContent = level;
+          option.addEventListener("click", () => {
+            if (selectedMapLevels.has(index)) {
+              selectedMapLevels.delete(index);
+            } else {
+              selectedMapLevels.add(index);
+            }
+            renderMapLevelOptions();
+            if (topMapSource) validateTopMap(topMapSource);
+          });
+          mapLevelOptions.append(option);
+        });
+      }
+
+      function renderFrontLevelOptions() {
+        const selectedValue = frontMapLevel.value;
+        frontMapLevel.innerHTML = "";
+
+        levels.slice(0, -1).forEach((level, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = level;
+          frontMapLevel.append(option);
+        });
+
+        frontMapLevel.value = selectedValue || String(Math.max(0, levels.length - 2));
+      }
+
+      function renderTopMapDrilldownOptions() {
+        const previousValue = topMapDrilldown.value;
+        topMapDrilldown.innerHTML = '<option value="">Sin vista frontal</option>';
+        if (frontMapVariants.length) {
+          const option = document.createElement("option");
+          option.value = "front";
+          option.textContent = "Variantes frontales configuradas";
+          topMapDrilldown.append(option);
+        }
+        topMapDrilldown.value = [...topMapDrilldown.options].some((option) => option.value === previousValue)
+          ? previousValue
+          : "";
+      }
+
+      function frontAssignmentTargets() {
+        const contextLevels = new Set(frontMapVariants.map((variant) => variant.contextLevelIndex));
+        return locations.filter((location) => contextLevels.has(location.levelIndex));
+      }
+
+      function frontAssignmentsComplete() {
+        if (!frontMapVariants.length) return true;
+        const targets = frontAssignmentTargets();
+        if (!targets.length) return false;
+        return targets.every((location) => {
+          const variant = frontMapVariants.find((candidate) => candidate.id === frontVariantAssignments.get(location.id));
+          return variant
+            && variant.contextLevelIndex === location.levelIndex
+            && variant.slotCount === childrenOf(location.id).length;
+        });
+      }
+
+      function topLayersCoverTerminals() {
+        if (!topMapLayers.length) return false;
+        return terminalLocations().every((terminal) =>
+          topMapLayers.some((layer) => {
+            const codes = new Set(
+              [...layer.source.matchAll(/data-location-code\s*=\s*["']([^"']+)["']/gi)].map((match) => match[1]),
+            );
+            return ancestorsOf(terminal).some(
+              (ancestor) => layer.levels.includes(ancestor.levelIndex) && codes.has(`28-${ancestor.path.join("-")}`),
+            );
+          }),
+        );
+      }
+
+      function updateMapCompletion() {
+        const frontsReady = frontAssignmentsComplete();
+        const frontsLinked = !frontMapVariants.length || topMapLayers.some((layer) => layer.drilldown);
+        confirmMaps.disabled = !topLayersCoverTerminals() || !frontsReady || !frontsLinked;
+        if (mapsConfigured && confirmMaps.disabled) mapsConfigured = false;
+        updateReviewAvailability();
+      }
+
+      function renderSavedTopMaps() {
+        topMapList.innerHTML = "";
+        topMapLayers.forEach((layer) => {
+          const row = document.createElement("article");
+          row.className = "saved-map";
+          row.innerHTML = `
+            <div>
+              <strong>${escapeAttribute(layer.name)}</strong>
+              <span>${escapeAttribute(layer.levels.map((index) => levels[index]).join(", "))}${layer.drilldown ? "; abre vistas frontales" : ""}</span>
+            </div>
+            <div class="saved-map__actions">
+              ${frontMapVariants.length ? `<button class="location-action toggle-drilldown" type="button">${layer.drilldown ? "Quitar enlace" : "Usar frontales"}</button>` : ""}
+              <button class="location-action edit-top" type="button">Editar</button>
+              <button class="location-action remove remove-top" type="button">Quitar</button>
+            </div>`;
+          row.querySelector(".toggle-drilldown")?.addEventListener("click", () => {
+            layer.drilldown = !layer.drilldown;
+            mapsConfigured = false;
+            renderSavedTopMaps();
+            updateMapCompletion();
+          });
+          row.querySelector(".edit-top").addEventListener("click", () => {
+            mapsConfigured = false;
+            topMapLayers = topMapLayers.filter((candidate) => candidate.id !== layer.id);
+            topMapName.value = layer.name;
+            selectedMapLevels = new Set(layer.levels);
+            topMapDrilldown.value = layer.drilldown ? "front" : "";
+            topMapSource = layer.source;
+            renderMapLevelOptions();
+            validateTopMap(topMapSource);
+            renderSavedTopMaps();
+          });
+          row.querySelector(".remove-top").addEventListener("click", () => {
+            topMapLayers = topMapLayers.filter((candidate) => candidate.id !== layer.id);
+            mapsConfigured = false;
+            renderSavedTopMaps();
+            updateMapCompletion();
+          });
+          topMapList.append(row);
+        });
+        updateMapCompletion();
+      }
+
+      function renderSavedFrontMaps() {
+        frontMapList.innerHTML = "";
+        frontMapVariants.forEach((variant) => {
+          const row = document.createElement("article");
+          row.className = "saved-map";
+          row.innerHTML = `
+            <div>
+              <strong>${escapeAttribute(variant.name)}</strong>
+              <span>${escapeAttribute(variant.code)}; ${escapeAttribute(levels[variant.contextLevelIndex])}; ${variant.slotCount} posiciones</span>
+            </div>
+            <div class="saved-map__actions">
+              <button class="location-action remove remove-front" type="button">Quitar</button>
+            </div>`;
+          row.querySelector(".remove-front").addEventListener("click", () => {
+            frontMapVariants = frontMapVariants.filter((candidate) => candidate.id !== variant.id);
+            [...frontVariantAssignments.entries()].forEach(([locationId, variantId]) => {
+              if (variantId === variant.id) frontVariantAssignments.delete(locationId);
+            });
+            frontMapSaved = frontMapVariants.length > 0;
+            mapsConfigured = false;
+            renderSavedFrontMaps();
+            renderFrontAssignments();
+            renderTopMapDrilldownOptions();
+            renderSavedTopMaps();
+          });
+          frontMapList.append(row);
+        });
+        frontMapEmpty.hidden = frontMapVariants.length > 0 || !frontMapEditor.hidden;
+        addFrontVariantRow.hidden = !frontMapVariants.length || !frontMapEditor.hidden;
+      }
+
+      function renderFrontAssignments() {
+        const targets = frontAssignmentTargets();
+        frontMapAssignments.hidden = !frontMapVariants.length;
+        frontAssignmentBody.innerHTML = "";
+        let completed = 0;
+
+        targets.forEach((location) => {
+          const childCount = childrenOf(location.id).length;
+          const compatible = frontMapVariants.filter(
+            (variant) => variant.contextLevelIndex === location.levelIndex && variant.slotCount === childCount,
+          );
+          const selectedVariantId = frontVariantAssignments.get(location.id);
+          const isComplete = compatible.some((variant) => variant.id === selectedVariantId);
+          if (isComplete) completed += 1;
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><strong>${escapeAttribute(`${levels[location.levelIndex]} ${location.ordinal}`)}</strong><br><span class="location-code">28-${location.path.join("-")}</span></td>
+            <td>${childCount} ${childCount === 1 ? "ubicación" : "ubicaciones"}</td>
+            <td><select aria-label="Variante para ${escapeAttribute(locationLabel(location))}">
+              <option value="">Sin asignar</option>
+              ${compatible.map((variant) => `<option value="${variant.id}" ${variant.id === selectedVariantId ? "selected" : ""}>${escapeAttribute(variant.name)} (${variant.slotCount})</option>`).join("")}
+            </select></td>
+            <td><span class="assignment-state${isComplete ? " is-complete" : ""}">${isComplete ? "Asignada" : compatible.length ? "Pendiente" : "Sin variante compatible"}</span></td>`;
+          row.querySelector("select").addEventListener("change", (event) => {
+            const variantId = Number(event.target.value);
+            if (variantId) frontVariantAssignments.set(location.id, variantId);
+            else frontVariantAssignments.delete(location.id);
+            mapsConfigured = false;
+            renderFrontAssignments();
+          });
+          frontAssignmentBody.append(row);
+        });
+
+        frontAssignmentProgress.textContent = `${completed} de ${targets.length}`;
+        updateMapCompletion();
+      }
+
+      function findUnsafeSvgContent(source) {
+        const unsafePattern = /<script\b|<foreignObject\b|\son[a-z]+\s*=|(?:href|xlink:href)\s*=\s*["'](?:https?:|\/\/|javascript:|data:text\/html)/i;
+        return unsafePattern.test(source);
+      }
+
+      function sanitizeSvg(source) {
+        const declarations = source.match(/<!DOCTYPE[\s\S]*?(?:\]>|>)|<!ENTITY[\s\S]*?>/gi) || [];
+        const sourceWithoutDeclarations = source.replace(/<!DOCTYPE[\s\S]*?(?:\]>|>)|<!ENTITY[\s\S]*?>/gi, "");
+        const documentNode = new DOMParser().parseFromString(sourceWithoutDeclarations, "image/svg+xml");
+        if (documentNode.querySelector("parsererror") || documentNode.documentElement.localName !== "svg") {
+          return { error: "El archivo no contiene XML SVG válido.", source: "", removed: 0 };
+        }
+
+        let removed = declarations.length;
+        documentNode.querySelectorAll("script, foreignObject, iframe, object, embed").forEach((element) => {
+          element.remove();
+          removed += 1;
+        });
+
+        documentNode.querySelectorAll("style").forEach((element) => {
+          if (/(?:@import|url\s*\(\s*["']?(?:https?:|\/\/|javascript:))/i.test(element.textContent || "")) {
+            element.remove();
+            removed += 1;
+          }
+        });
+
+        documentNode.querySelectorAll("*").forEach((element) => {
+          [...element.attributes].forEach((attribute) => {
+            const name = attribute.name.toLowerCase();
+            const value = attribute.value.trim();
+            const isEvent = name.startsWith("on");
+            const isExternalReference = ["href", "xlink:href", "src"].includes(name)
+              && /^(?:https?:|\/\/|javascript:|data:text\/html)/i.test(value);
+            const isUnsafeStyle = /(?:@import|url\s*\(\s*["']?(?:https?:|\/\/|javascript:))/i.test(value);
+            if (isEvent || isExternalReference || isUnsafeStyle) {
+              element.removeAttribute(attribute.name);
+              removed += 1;
+            }
+          });
+        });
+
+        return {
+          error: "",
+          source: new XMLSerializer().serializeToString(documentNode),
+          removed,
+        };
+      }
+
+      function showSvgPreview(source, preview, placeholder, currentUrl, saveUrl) {
+        if (currentUrl) URL.revokeObjectURL(currentUrl);
+        const url = URL.createObjectURL(new Blob([source], { type: "image/svg+xml" }));
+        saveUrl(url);
+        preview.src = url;
+        preview.hidden = false;
+        placeholder.hidden = true;
+      }
+
+      function validateSvgBase(source) {
+        if (!/<svg\b[^>]*>/i.test(source)) return "El archivo no contiene un SVG válido.";
+        if (findUnsafeSvgContent(source)) return "El SVG contiene contenido activo o referencias externas no permitidas.";
+        return "";
+      }
+
+      function setTopMapValidity(isValid) {
+        topMapValid = isValid;
+        saveTopMap.disabled = !isValid;
+        if (!isValid) mapsConfigured = false;
+        updateMapCompletion();
+      }
+
+      function validateTopMap(source, removedContent = 0) {
+        setTopMapValidity(false);
+        const baseError = validateSvgBase(source);
+        if (baseError) {
+          setMapStatus(topMapStatus, baseError, "error");
+          return false;
+        }
+
+        if (!selectedMapLevels.size) {
+          setMapStatus(topMapStatus, "Selecciona al menos un nivel identificado en el SVG.", "error");
+          return false;
+        }
+
+        const codes = [...source.matchAll(/data-location-code\s*=\s*["']([^"']+)["']/gi)].map((match) => match[1]);
+        if (!codes.length) {
+          setMapStatus(topMapStatus, "No se encontraron atributos data-location-code.", "error");
+          return false;
+        }
+
+        const duplicates = codes.filter((code, index) => codes.indexOf(code) !== index);
+        if (duplicates.length) {
+          setMapStatus(topMapStatus, `Hay códigos repetidos: ${[...new Set(duplicates)].join(", ")}.`, "error");
+          return false;
+        }
+
+        const availableCodes = new Set(
+          locations
+            .filter((location) => selectedMapLevels.has(location.levelIndex))
+            .map((location) => `28-${location.path.join("-")}`),
+        );
+        const unknownCodes = codes.filter((code) => !availableCodes.has(code));
+        if (unknownCodes.length) {
+          setMapStatus(topMapStatus, `Códigos que no corresponden a los niveles elegidos: ${unknownCodes.join(", ")}.`, "error");
+          return false;
+        }
+
+        const codeSet = new Set(codes);
+        const uncoveredTerminals = terminalLocations().filter((terminal) =>
+          !ancestorsOf(terminal).some(
+            (ancestor) => selectedMapLevels.has(ancestor.levelIndex) && codeSet.has(`28-${ancestor.path.join("-")}`),
+          ),
+        );
+        if (uncoveredTerminals.length) {
+          setMapStatus(
+            topMapStatus,
+            `${removedContent ? `${removedContent} elementos o atributos peligrosos eliminados. ` : ""}${codes.length} ubicaciones reconocidas; ${uncoveredTerminals.length} ubicaciones de captura deberán cubrirse con otro mapa superior.`,
+            "valid",
+          );
+        } else {
+          setMapStatus(
+            topMapStatus,
+            `${removedContent ? `${removedContent} elementos o atributos peligrosos eliminados. ` : ""}${codes.length} ubicaciones reconocidas en el mapa superior.`,
+            "valid",
+          );
+        }
+        showSvgPreview(source, topMapPreview, topMapPlaceholder, topMapObjectUrl, (url) => {
+          topMapObjectUrl = url;
+        });
+        setTopMapValidity(true);
+        return true;
+      }
+
+      function validateFrontMap(source, removedContent = 0) {
+        const baseError = validateSvgBase(source);
+        if (baseError) {
+          setMapStatus(frontMapStatus, baseError, "error");
+          return false;
+        }
+
+        const expectedCount = Math.max(1, Math.min(50, Number.parseInt(frontSlotCount.value, 10) || 1));
+        const slots = [...source.matchAll(/data-slot\s*=\s*["'](\d+)["']/gi)].map((match) => Number(match[1]));
+        const expectedSlots = Array.from({ length: expectedCount }, (_, index) => index + 1);
+        const uniqueSlots = [...new Set(slots)].sort((a, b) => a - b);
+        const matchesExpected = uniqueSlots.length === expectedSlots.length && uniqueSlots.every((slot, index) => slot === expectedSlots[index]);
+
+        if (slots.length !== uniqueSlots.length) {
+          setMapStatus(frontMapStatus, "Hay posiciones data-slot repetidas.", "error");
+          return false;
+        }
+
+        if (!matchesExpected) {
+          setMapStatus(frontMapStatus, `El SVG debe incluir las posiciones 1 a ${expectedCount} sin saltos.`, "error");
+          return false;
+        }
+
+        setMapStatus(
+          frontMapStatus,
+          `${removedContent ? `${removedContent} elementos o atributos peligrosos eliminados. ` : ""}${expectedCount} posiciones reconocidas en el mapa frontal.`,
+          "valid",
+        );
+        showSvgPreview(source, frontMapPreview, frontMapPlaceholder, frontMapObjectUrl, (url) => {
+          frontMapObjectUrl = url;
+        });
+        return true;
+      }
+
+      async function readSvgFile(file, onRead, note, status) {
+        if (!file) return;
+        note.textContent = file.name;
+
+        try {
+          const source = await file.text();
+          const sanitized = sanitizeSvg(source);
+          if (sanitized.error) {
+            setMapStatus(status, sanitized.error, "error");
+            return;
+          }
+          onRead(sanitized.source, sanitized.removed);
+        } catch {
+          setMapStatus(status, "No fue posible leer el archivo.", "error");
+        }
+      }
+
+      function resetFrontMapEditor() {
+        frontMapSource = "";
+        frontMapSaved = frontMapVariants.length > 0;
+        frontMapFile.value = "";
+        frontMapFileNote.textContent = "Ningún archivo cargado";
+        setMapStatus(frontMapStatus, "Carga un SVG con posiciones data-slot consecutivas.");
+        if (frontMapObjectUrl) URL.revokeObjectURL(frontMapObjectUrl);
+        frontMapObjectUrl = "";
+        frontMapPreview.removeAttribute("src");
+        frontMapPreview.hidden = true;
+        frontMapPlaceholder.hidden = false;
+        frontMapEditor.hidden = true;
+        frontMapEmpty.hidden = frontMapVariants.length > 0;
+        addFrontVariantRow.hidden = !frontMapVariants.length;
+      }
+
+      document.querySelector("#open-create").addEventListener("click", () => showView("create"));
+      schemesLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        showView("schemes");
+      });
+      searchTestsLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        showView("search-tests");
+      });
+
+      document.querySelectorAll("[data-go]").forEach((button) => {
+        button.addEventListener("click", () => showView(button.dataset.go));
+      });
+
+      schemeForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = schemeNameInput.value.trim();
+
+        if (!name) {
+          schemeNameError.hidden = false;
+          schemeNameInput.focus();
+          return;
+        }
+
+        schemeNameError.hidden = true;
+        currentSchemeName.textContent = name;
+        createLevelsStep.disabled = false;
+        showView("levels");
+      });
+
+      schemeNameInput.addEventListener("input", () => {
+        if (schemeNameInput.value.trim()) schemeNameError.hidden = true;
+      });
+
+      addLevelButton.addEventListener("click", () => {
+        levels.push("Nuevo nivel");
+        renderLevels();
+        const inputs = levelList.querySelectorAll(".level-name");
+        inputs[inputs.length - 1].select();
+      });
+
+      confirmLevels.addEventListener("click", () => {
+        const hasEmpty = levels.some((level) => !level.trim());
+
+        if (hasEmpty) {
+          showToast("Todos los niveles necesitan un nombre.");
+          return;
+        }
+
+        locations = [];
+        nextLocationId = 1;
+        invalidateLocationDependentConfig();
+        selectedMapLevels = new Set([Math.max(0, levels.length - 2)]);
+        locationsSchemeName.textContent = currentSchemeName.textContent;
+        createLocationsStep.disabled = false;
+        levelsLocationsStep.disabled = false;
+        showView("locations");
+        showToast(`Niveles confirmados. La raíz interna fue creada; la captura se realizará en ${levels[captureLevel]}.`);
+      });
+
+      document.querySelector("#add-root").addEventListener("click", () => addLocations(null, 0, 1));
+      document.querySelector("#add-first-root").addEventListener("click", () => addLocations(null, 0, 1));
+
+      resetLevels.addEventListener("click", () => {
+        if (!window.confirm("Editar los niveles eliminará las ubicaciones, mapas y rangos del borrador. ¿Continuar?")) return;
+        locations = [];
+        nextLocationId = 1;
+        invalidateLocationDependentConfig();
+        renderLevels();
+        renderLocations();
+        showToast("Niveles desbloqueados. La configuración dependiente fue retirada del prototipo.");
+      });
+
+      editLocations.addEventListener("click", () => {
+        const hasDependentConfiguration = topMapLayers.length || frontMapVariants.length || rangeAssignments.size;
+        if (hasDependentConfiguration && !window.confirm("Editar ubicaciones quitará los mapas, asignaciones y rangos del borrador. ¿Continuar?")) return;
+        invalidateLocationDependentConfig();
+        renderLocations();
+        showToast("Ubicaciones desbloqueadas para edición.");
+      });
+
+      quantityForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const count = Math.max(1, Math.min(50, Number.parseInt(quantityInput.value, 10) || 1));
+        addLocations(pendingParentId, pendingLevelIndex, count);
+        quantityDialog.close();
+      });
+
+      document.querySelector("#cancel-quantity").addEventListener("click", () => quantityDialog.close());
+
+      confirmLocations.addEventListener("click", () => {
+        if (!locationsAreComplete()) {
+          showToast("Completa todas las ramas antes de confirmar.");
+          return;
+        }
+
+        mapsSchemeName.textContent = locationsSchemeName.textContent;
+        rangesSchemeName.textContent = locationsSchemeName.textContent;
+        locationsConfirmed = true;
+        updateReviewAvailability();
+        createMapsStep.disabled = false;
+        levelsMapsStep.disabled = false;
+        locationsMapsStep.disabled = false;
+        rangesMapsStep.disabled = false;
+        createRangesStep.disabled = false;
+        levelsRangesStep.disabled = false;
+        locationsRangesStep.disabled = false;
+        mapsRangesStep.disabled = false;
+        renderMapLevelOptions();
+        renderFrontLevelOptions();
+        renderLocations();
+        setMapTab("top");
+        showToast("Ubicaciones confirmadas. Puedes continuar con mapas o rangos.");
+      });
+
+      topMapTab.addEventListener("click", () => setMapTab("top"));
+      frontMapTab.addEventListener("click", () => setMapTab("front"));
+
+      topMapFile.addEventListener("change", () => {
+        readSvgFile(
+          topMapFile.files[0],
+          (source, removed) => {
+            topMapSource = source;
+            validateTopMap(source, removed);
+          },
+          topMapFileNote,
+          topMapStatus,
+        );
+      });
+
+      exportLocationsCsv.addEventListener("click", () => {
+        if (!locations.length) {
+          showToast("No hay ubicaciones para incluir en el CSV.");
+          return;
+        }
+        const quoteCsv = (value) => `"${String(value).replaceAll('"', '""')}"`;
+        const rows = [
+          ["location_code", "name", "level_name", "sort_order"],
+          ...flattenLocations().map((location) => [
+            `28-${location.path.join("-")}`,
+            `${levels[location.levelIndex]} ${location.ordinal}`,
+            levels[location.levelIndex],
+            location.ordinal,
+          ]),
+        ];
+        const csv = rows.map((row) => row.map(quoteCsv).join(",")).join("\r\n");
+        const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `ubicaciones-esquema-28.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast("CSV generado con todas las ubicaciones visibles.");
+      });
+
+      saveTopMap.addEventListener("click", () => {
+        const name = topMapName.value.trim();
+        if (!name) {
+          showToast("Escribe un nombre para el mapa superior.");
+          topMapName.focus();
+          return;
+        }
+        if (!topMapSource || !validateTopMap(topMapSource)) {
+          showToast("Carga un mapa superior válido antes de guardarlo.");
+          return;
+        }
+        topMapLayers.push({
+          id: nextTopMapId++,
+          name,
+          source: topMapSource,
+          levels: [...selectedMapLevels],
+          drilldown: topMapDrilldown.value === "front",
+        });
+        mapsConfigured = false;
+        topMapSource = "";
+        topMapValid = false;
+        topMapFile.value = "";
+        topMapFileNote.textContent = "Ningún archivo cargado";
+        topMapName.value = `Plano superior ${topMapLayers.length + 1}`;
+        saveTopMap.disabled = true;
+        if (topMapObjectUrl) URL.revokeObjectURL(topMapObjectUrl);
+        topMapObjectUrl = "";
+        topMapPreview.hidden = true;
+        topMapPreview.removeAttribute("src");
+        topMapPlaceholder.hidden = false;
+        setMapStatus(topMapStatus, "Carga otro SVG o confirma los mapas guardados.");
+        renderSavedTopMaps();
+        showToast("Mapa superior guardado.");
+      });
+
+      addFrontMap.addEventListener("click", () => {
+        frontMapEmpty.hidden = true;
+        frontMapEditor.hidden = false;
+        addFrontVariantRow.hidden = true;
+        renderFrontLevelOptions();
+        document.querySelector("#front-map-name").focus();
+      });
+
+      addFrontVariant.addEventListener("click", () => {
+        frontMapEmpty.hidden = true;
+        addFrontVariantRow.hidden = true;
+        frontMapEditor.hidden = false;
+        renderFrontLevelOptions();
+        document.querySelector("#front-map-name").value = `Mueble frontal ${frontMapVariants.length + 1}`;
+        frontVariantCode.value = `mueble-${frontMapVariants.length + 1}`;
+        document.querySelector("#front-map-name").focus();
+      });
+
+      cancelFrontMap.addEventListener("click", resetFrontMapEditor);
+
+      frontMapFile.addEventListener("change", () => {
+        readSvgFile(
+          frontMapFile.files[0],
+          (source, removed) => {
+            frontMapSource = source;
+            validateFrontMap(source, removed);
+          },
+          frontMapFileNote,
+          frontMapStatus,
+        );
+      });
+
+      useDemoFrontMap.addEventListener("click", () => {
+        const slotCount = Math.max(1, Math.min(50, Number.parseInt(frontSlotCount.value, 10) || 1));
+        frontMapSource = createDemoFrontSearchMap(slotCount, []);
+        frontMapFile.value = "";
+        frontMapFileNote.textContent = "Vista frontal de ejemplo";
+        validateFrontMap(frontMapSource);
+      });
+
+      frontSlotCount.addEventListener("input", () => {
+        if (frontMapSource) validateFrontMap(frontMapSource);
+      });
+
+      frontMapForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = document.querySelector("#front-map-name").value.trim();
+        const code = frontVariantCode.value.trim();
+
+        if (!name) {
+          showToast("Escribe un nombre para el mapa frontal.");
+          document.querySelector("#front-map-name").focus();
+          return;
+        }
+
+        if (!code || frontMapVariants.some((variant) => variant.code === code)) {
+          showToast(code ? "Ese código de variante ya existe." : "Escribe un código para la variante.");
+          frontVariantCode.focus();
+          return;
+        }
+
+        if (!frontMapSource || !validateFrontMap(frontMapSource)) {
+          showToast("Carga un SVG frontal válido antes de guardarlo.");
+          return;
+        }
+
+        frontMapVariants.push({
+          id: nextFrontVariantId++,
+          name,
+          code,
+          contextLevelIndex: Number(frontMapLevel.value),
+          slotCount: Math.max(1, Math.min(50, Number.parseInt(frontSlotCount.value, 10) || 1)),
+          source: frontMapSource,
+        });
+        frontMapSaved = true;
+        mapsConfigured = false;
+        resetFrontMapEditor();
+        renderSavedFrontMaps();
+        renderFrontAssignments();
+        renderTopMapDrilldownOptions();
+        renderSavedTopMaps();
+        showToast(`Variante frontal “${name}” guardada.`);
+      });
+
+      confirmMaps.addEventListener("click", () => {
+        if (!topMapLayers.length) {
+          showToast("Guarda al menos un mapa superior antes de confirmar.");
+          return;
+        }
+        if (!topLayersCoverTerminals()) {
+          showToast("Los mapas superiores guardados todavía no cubren todas las ubicaciones de captura.");
+          return;
+        }
+        if (!frontAssignmentsComplete()) {
+          showToast("Asigna una variante compatible a cada ubicación frontal.");
+          return;
+        }
+        if (frontMapVariants.length && !topMapLayers.some((layer) => layer.drilldown)) {
+          showToast("Enlaza las variantes frontales desde al menos un mapa superior.");
+          return;
+        }
+
+        mapsConfigured = true;
+        updateReviewAvailability();
+        if (rangesConfigured) {
+          showView("review");
+          showToast("Mapas y rangos confirmados. El esquema está listo para revisión.");
+        } else {
+          showToast("Mapas confirmados. Puedes continuar con los rangos.");
+        }
+      });
+
+      rangeFocusedTab.addEventListener("click", () => setRangeView("focused"));
+      rangeTableTab.addEventListener("click", () => {
+        renderRangeTable();
+        setRangeView("table");
+      });
+
+      saveRangeTable.addEventListener("click", () => {
+        const draftAssignments = new Map(rangeAssignments);
+        const incompleteRows = [];
+
+        rangeTableBody.querySelectorAll("tr").forEach((row) => {
+          const locationId = Number(row.dataset.locationId);
+          const startInput = row.querySelector(".range-table-start");
+          const endInput = row.querySelector(".range-table-end");
+          const start = startInput.value.trim();
+          const end = endInput.value.trim();
+          const isIncomplete = Boolean(start) !== Boolean(end);
+          startInput.classList.toggle("is-error", isIncomplete);
+          endInput.classList.toggle("is-error", isIncomplete);
+
+          if (isIncomplete) {
+            incompleteRows.push(row);
+          } else if (start && end) {
+            draftAssignments.set(locationId, { start, end });
+          } else {
+            draftAssignments.delete(locationId);
+          }
+        });
+
+        if (incompleteRows.length) {
+          incompleteRows[0].querySelector(".is-error").focus();
+          showToast("Cada rango necesita inicio y fin.");
+          return;
+        }
+
+        rangeAssignments = draftAssignments;
+        rangesConfigured = false;
+        updateReviewAvailability();
+        renderRanges();
+        setRangeView("table");
+        showToast("Tabla de rangos guardada.");
+      });
+
+      rangeForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const location = terminalLocations().find((candidate) => candidate.id === selectedRangeId);
+        const start = rangeStart.value.trim();
+        const end = rangeEnd.value.trim();
+
+        if (!location || !start || !end) {
+          setMapStatus(rangeStatus, "Escribe el inicio y el fin del rango.", "error");
+          return;
+        }
+
+        rangeAssignments.set(location.id, { start, end });
+        rangesConfigured = false;
+        updateReviewAvailability();
+        const terminals = terminalLocations();
+        const currentIndex = terminals.findIndex((candidate) => candidate.id === location.id);
+        const nextPending = terminals.slice(currentIndex + 1).find((candidate) => !rangeAssignments.has(candidate.id))
+          || terminals.find((candidate) => !rangeAssignments.has(candidate.id));
+        selectedRangeId = nextPending?.id ?? location.id;
+        renderRanges();
+        showToast("Rango guardado.");
+      });
+
+      clearRange.addEventListener("click", () => {
+        if (selectedRangeId === null) return;
+        rangeAssignments.delete(selectedRangeId);
+        rangesConfigured = false;
+        updateReviewAvailability();
+        renderRanges();
+        showToast("Rango eliminado.");
+      });
+
+      confirmRanges.addEventListener("click", () => {
+        const terminals = terminalLocations();
+        if (!terminals.length || terminals.some((location) => !rangeAssignments.has(location.id))) {
+          showToast("Completa todos los rangos antes de confirmar.");
+          return;
+        }
+
+        rangesConfigured = true;
+        updateReviewAvailability();
+        if (mapsConfigured) {
+          showView("review");
+          showToast("Mapas y rangos confirmados. El esquema está listo para revisión.");
+        } else {
+          showToast("Rangos confirmados. Puedes continuar con los mapas.");
+        }
+      });
+
+      searchTestForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const query = searchTestQuery.value.trim();
+        if (!query) {
+          showToast("Escribe un código de clasificación para buscar.");
+          searchTestQuery.focus();
+          return;
+        }
+        runSearchTest(query);
+      });
+
+      searchTopTab.addEventListener("click", () => setSearchMapView("top"));
+      searchFrontTab.addEventListener("click", () => setSearchMapView("front"));
+
+      document.querySelector("#review-search").addEventListener("click", () => {
+        showView("search-tests");
+        if (locationsConfirmed) searchTestScheme.value = "current";
+        searchTestQuery.focus();
+      });
+
+      activateOnPublish.addEventListener("change", renderReview);
+
+      document.addEventListener("click", (event) => {
+        const cloneButton = event.target.closest(".clone-action");
+        if (!cloneButton) return;
+        cloneSourceName = cloneButton.dataset.schemeName || "Esquema";
+        cloneName.value = `Copia de ${cloneSourceName}`;
+        cloneDialog.showModal();
+        cloneName.select();
+      });
+
+      document.querySelector("#cancel-clone").addEventListener("click", () => cloneDialog.close());
+
+      cloneForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = cloneName.value.trim();
+        const scope = cloneForm.elements.namedItem("clone-scope").value;
+        if (!name) {
+          showToast("Escribe un nombre para la copia.");
+          cloneName.focus();
+          return;
+        }
+
+        const schemeId = nextPrototypeSchemeId++;
+        const isCompleteCopy = scope === "all";
+        const statusLabel = scope === "levels"
+          ? "Solo niveles"
+          : scope === "locations" ? "Mapas y rangos pendientes" : "Listo";
+        const statusClass = isCompleteCopy ? "ready" : "progress";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="scheme-id">${schemeId}</td>
+          <td><p class="scheme-name">${escapeAttribute(name)}</p></td>
+          <td><span class="status ${statusClass}">${statusLabel}</span></td>
+          <td class="updated">Ahora</td>
+          <td><div class="row-actions">
+            <button class="action" type="button">${isCompleteCopy ? "Revisar" : "Continuar"}</button>
+            <button class="action quiet clone-action" type="button" data-scheme-name="${escapeAttribute(name)}">Clonar</button>
+          </div></td>`;
+        (isCompleteCopy ? readySchemesBody : draftSchemesBody).prepend(row);
+        cloneDialog.close();
+        showToast(`Esquema clonado desde “${cloneSourceName}”. La copia quedó sin publicar.`);
+      });
+
+      document.querySelector("#cancel-activation").addEventListener("click", () => activationDialog.close());
+
+      activationForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        activationDialog.close();
+        showToast("Publicación y activación simuladas. El esquema reemplazó al activo solo en el prototipo.");
+      });
+
+      publishScheme.addEventListener("click", () => {
+        if (!mapsConfigured || !rangesConfigured) {
+          showToast("Confirma mapas y rangos antes de publicar.");
+          return;
+        }
+        if (activateOnPublish.checked) {
+          activationSchemeName.textContent = reviewSchemeName.textContent;
+          activationDialog.showModal();
+          return;
+        }
+        showToast("Publicación simulada. El esquema quedó listo, pero no reemplazó al activo.");
+      });
+    </script>
+  </body>
+</html>
