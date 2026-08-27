@@ -14,10 +14,10 @@ async function login() {
 }
 
 async function addSingleLocation(buttonName: string) {
-  fireEvent.click(screen.getByRole('button', { name: buttonName }));
+  fireEvent.click(await screen.findByRole('button', { name: buttonName }));
   const dialog = screen.getByRole('dialog');
   fireEvent.change(within(dialog).getByLabelText('Cantidad'), { target: { value: '1' } });
-  fireEvent.click(within(dialog).getByRole('button', { name: 'Añadir', exact: true }));
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Añadir' }));
   await waitForElementToBeRemoved(dialog);
 }
 
@@ -59,7 +59,7 @@ describe('flujo administrativo', () => {
     await addSingleLocation('Añadir Anaquel bajo Mueble 1');
 
     expect(screen.queryByText(/raíz interna/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/-1-1-1-1-1$/)).toBeInTheDocument();
+    expect(await screen.findByText(/-1-1-1-1-1$/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar ubicaciones' }));
 
     expect(await screen.findByText('Las ubicaciones están confirmadas.')).toBeInTheDocument();
