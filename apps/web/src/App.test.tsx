@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { App } from './App';
+import { MockAdminGateway } from './admin/MockAdminGateway';
 
 describe('App', () => {
   afterEach(() => {
@@ -50,7 +51,7 @@ describe('App', () => {
 
   it('permite entrar y cerrar la sesión mock', async () => {
     window.history.replaceState({}, '', '/login');
-    render(<App />);
+    render(<App adminGateway={new MockAdminGateway()} />);
 
     fireEvent.change(screen.getByLabelText('Usuario'), { target: { value: 'admin' } });
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'admin' } });

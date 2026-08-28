@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 
-import { useAdmin } from '../AdminContext';
+import { errorMessage, useAdmin } from '../AdminContext';
 import { Modal } from '../components/Common';
 import type { SchemeWorkspaceContext } from '../components/WorkflowLayout';
 import type { Location, Scheme } from '../types';
@@ -50,7 +50,7 @@ function LocationBranch({
 
 export function LocationsScreen() {
   const { scheme } = useOutletContext<SchemeWorkspaceContext>();
-  const { gateway, commit } = useAdmin();
+  const { gateway, commit, notify } = useAdmin();
   const [addParent, setAddParent] = useState<Location | 'root' | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Location | null>(null);
   const [reopen, setReopen] = useState(false);
@@ -107,13 +107,17 @@ export function LocationsScreen() {
   }
 
   async function downloadCsv() {
-    const { data } = await gateway.exportLocationsCsv(scheme.id);
-    const url = URL.createObjectURL(new Blob([data], { type: 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `ubicaciones-${scheme.id}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    try {
+      const { data } = await gateway.exportLocationsCsv(scheme.id);
+      const url = URL.createObjectURL(new Blob([data], { type: 'text/csv;charset=utf-8' }));
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `ubicaciones-${scheme.id}.csv`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (requestError) {
+      notify(errorMessage(requestError), 'error');
+    }
   }
 
   return (

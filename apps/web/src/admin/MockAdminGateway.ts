@@ -1,15 +1,17 @@
 import type { AdminGateway } from './AdminGateway';
-import { highlightSvg, sanitizeSvgForPreview } from './svg';
+import { highlightSvg, sanitizeSvgForPreview, svgDataUrl } from './svg';
 import {
   AdminGatewayError,
   type AddLocationsInput,
   type ApiSuccess,
   type CloneScope,
+  type CreateFrontLayerInput,
   type CreateSchemeInput,
   type FrontMapLayer,
   type Location,
   type LocationRange,
   type MapValidation,
+  type ReplaceMapSvgInput,
   type ReplaceLevelInput,
   type SaveFrontVariantInput,
   type SaveRangeInput,
@@ -19,6 +21,7 @@ import {
   type SchemeReview,
   type SearchMatch,
   type SearchTestResult,
+  type UpdateMapLayerInput,
   type UpdateSchemeInput,
   locationRoute,
   schemeCanRunSearchTests,
@@ -33,8 +36,23 @@ function fail(status: number, code: string, message: string, details: string[] =
   throw new AdminGatewayError(status, { code, message, details });
 }
 
+function readFile(file: File) {
+  if (typeof file.text === 'function') return file.text();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(String(reader.result ?? '')));
+    reader.addEventListener('error', () => reject(reader.error ?? new Error('No se pudo leer el SVG.')));
+    reader.readAsText(file);
+  });
+}
+
 function now() {
   return new Date().toISOString();
+}
+
+function assetSource(assetUrl: string | null) {
+  if (!assetUrl?.startsWith('data:image/svg+xml;charset=utf-8,')) return '';
+  return decodeURIComponent(assetUrl.slice(assetUrl.indexOf(',') + 1));
 }
 
 function defaultLevels(schemeId: string): SchemeLevel[] {
@@ -128,24 +146,28 @@ function completeSeedScheme(id: string, name: string, active: boolean): Scheme {
   const topSource = seedTopSvg(base);
   base.topMaps = [{
     id: `${id}-top-1`,
+    svgId: `${id}-top-svg-1`,
     name: 'Plano principal',
     svgName: 'Piso 1',
-    source: topSource,
+    assetUrl: svgDataUrl(topSource),
     representedLevelIds: [levels[3]!.id],
+    drilldowns: { [levels[3]!.id]: `${id}-front-1` },
     enabled: true,
+    svgEnabled: true,
   }];
   const furniture = locations.filter((location) => location.levelId === levels[3]!.id);
   base.frontLayers = [{
     id: `${id}-front-1`,
     name: 'Muebles estándar',
-    representedLevelId: levels[3]!.id,
+    representedLevelId: levels[4]!.id,
     enabled: true,
     variants: [{
       id: `${id}-variant-1`,
       name: 'Tres anaqueles',
       variantCode: 'shelves-3',
       slotCount: 3,
-      source: seedFrontSvg(),
+      assetUrl: svgDataUrl(seedFrontSvg()),
+      enabled: true,
     }],
     assignments: Object.fromEntries(
       furniture.map((location) => [location.id, `${id}-variant-1`]),
@@ -256,9 +278,14 @@ export class MockAdminGateway implements AdminGateway {
   }
 
   async deleteScheme(schemeId: string) {
-    this.scheme(schemeId);
+    const scheme = this.scheme(schemeId);
     this.schemes.delete(schemeId);
-    return response(null);
+    return response({
+      schemeId,
+      deleted: true as const,
+      wasActive: scheme.isActive,
+      wasPublished: scheme.publishedAt !== null,
+    });
   }
 
   async cloneScheme(schemeId: string, input: { name: string; scope: CloneScope }) {
@@ -315,16 +342,25 @@ export class MockAdminGateway implements AdminGateway {
           ...range,
           locationId: locationIdMap.get(range.locationId)!,
         }));
+        const frontLayerIdMap = new Map(source.frontLayers.map((layer, index) => [
+          layer.id,
+          `${id}-front-${index + 1}`,
+        ]));
         clone.topMaps = source.topMaps.map((map, index) => {
-          let rewritten = map.source;
+          let rewritten = assetSource(map.assetUrl);
           source.locations.forEach((location) => {
             rewritten = rewritten.replaceAll(location.code, `${id}-${location.path.join('-')}`);
           });
           return {
             ...map,
             id: `${id}-top-${index + 1}`,
-            source: rewritten,
+            svgId: `${id}-top-svg-${index + 1}`,
+            assetUrl: svgDataUrl(rewritten),
             representedLevelIds: map.representedLevelIds.map((levelId) => levelIdMap.get(levelId)!),
+            drilldowns: Object.fromEntries(Object.entries(map.drilldowns).map(([levelId, frontLayerId]) => [
+              levelIdMap.get(levelId)!,
+              frontLayerId === null ? null : frontLayerIdMap.get(frontLayerId) ?? null,
+            ])),
           };
         });
         clone.frontLayers = source.frontLayers.map((layer, layerIndex) => {
@@ -336,7 +372,7 @@ export class MockAdminGateway implements AdminGateway {
           });
           return {
             ...layer,
-            id: `${id}-front-${layerIndex + 1}`,
+            id: frontLayerIdMap.get(layer.id)!,
             representedLevelId: levelIdMap.get(layer.representedLevelId)!,
             variants,
             assignments: Object.fromEntries(
@@ -531,7 +567,7 @@ export class MockAdminGateway implements AdminGateway {
     scheme.ranges = [...scheme.ranges.filter((item) => item.locationId !== input.locationId), range];
     this.deriveRangeStatus(scheme);
     this.touch(scheme);
-    return response(range);
+    return response(scheme.ranges);
   }
 
   async saveRanges(schemeId: string, items: SaveRangeInput[]) {
@@ -563,20 +599,38 @@ export class MockAdminGateway implements AdminGateway {
     if (!input.name.trim() || !input.representedLevelIds.length) {
       fail(422, 'MAP_METADATA_REQUIRED', 'Indica el nombre y al menos un nivel representado.');
     }
-    const source = sanitizeSvgForPreview(input.source);
+    const source = sanitizeSvgForPreview(await readFile(input.file));
     if (!source.includes('data-location-code=')) {
       fail(422, 'TOP_CODES_REQUIRED', 'El SVG superior no contiene códigos de ubicación.');
     }
+    const entityId = this.nextEntityId++;
+    const layerId = `${schemeId}-top-mock-${entityId}`;
+    const svgId = `${schemeId}-top-svg-mock-${entityId}`;
     scheme.topMaps.push({
-      id: `${schemeId}-top-${this.nextEntityId++}`,
+      id: layerId,
+      svgId,
       name: input.name.trim(),
       svgName: input.svgName.trim() || input.name.trim(),
-      source,
+      assetUrl: svgDataUrl(source),
       representedLevelIds: input.representedLevelIds,
+      drilldowns: Object.fromEntries(input.representedLevelIds.map((levelId) => [levelId, null])),
       enabled: true,
+      svgEnabled: true,
     });
     this.touch(scheme);
-    return response(scheme);
+    return response({ mapLayerId: layerId, mapLayerSvgId: svgId, assetUrl: svgDataUrl(source), removedItems: 0 });
+  }
+
+  async updateMapLayer(schemeId: string, layerId: string, input: UpdateMapLayerInput) {
+    const scheme = this.scheme(schemeId);
+    this.editable(scheme);
+    const layer = scheme.topMaps.find((candidate) => candidate.id === layerId)
+      ?? scheme.frontLayers.find((candidate) => candidate.id === layerId);
+    if (!layer) fail(404, 'MAP_LAYER_NOT_FOUND', 'La capa de mapa no existe.');
+    if (input.name !== undefined) layer.name = input.name.trim();
+    if (input.enabled !== undefined) layer.enabled = input.enabled;
+    this.touch(scheme);
+    return response(null);
   }
 
   async deleteTopMap(schemeId: string, mapId: string) {
@@ -587,43 +641,90 @@ export class MockAdminGateway implements AdminGateway {
     return response(null);
   }
 
+  async createFrontLayer(schemeId: string, input: CreateFrontLayerInput) {
+    const scheme = this.scheme(schemeId);
+    this.editable(scheme);
+    if (!input.name.trim()) fail(422, 'FRONT_METADATA_REQUIRED', 'Escribe el nombre de la capa.');
+    const id = `${schemeId}-front-mock-${this.nextEntityId++}`;
+    scheme.frontLayers.push({
+      id,
+      name: input.name.trim(),
+      representedLevelId: input.representedLevelId,
+      enabled: true,
+      variants: [],
+      assignments: {},
+    });
+    this.touch(scheme);
+    return response({ mapLayerId: id });
+  }
+
   async saveFrontVariant(schemeId: string, input: SaveFrontVariantInput) {
     const scheme = this.scheme(schemeId);
     this.editable(scheme);
-    if (!input.layerName.trim() || !input.variantName.trim() || !input.variantCode.trim()) {
-      fail(422, 'FRONT_METADATA_REQUIRED', 'Completa los datos de la capa y la variante.');
+    if (!input.variantName.trim() || !input.variantCode.trim()) {
+      fail(422, 'FRONT_METADATA_REQUIRED', 'Completa los datos de la variante.');
     }
     if (!Number.isInteger(input.slotCount) || input.slotCount < 1) {
       fail(422, 'INVALID_SLOT_COUNT', 'La variante necesita al menos un espacio.');
     }
-    const source = sanitizeSvgForPreview(input.source);
+    const source = sanitizeSvgForPreview(await readFile(input.file));
     const slots = [...source.matchAll(/data-slot="(\d+)"/g)].map((match) => Number(match[1]));
     if (new Set(slots).size < input.slotCount) {
       fail(422, 'FRONT_SLOTS_REQUIRED', 'El SVG no contiene todos los espacios declarados.');
     }
-    let layer = input.layerId
-      ? scheme.frontLayers.find((candidate) => candidate.id === input.layerId)
-      : undefined;
-    if (!layer) {
-      layer = {
-        id: `${schemeId}-front-${this.nextEntityId++}`,
-        name: input.layerName.trim(),
-        representedLevelId: input.representedLevelId,
-        enabled: true,
-        variants: [],
-        assignments: {},
-      };
-      scheme.frontLayers.push(layer);
-    }
+    const layer = scheme.frontLayers.find((candidate) => candidate.id === input.layerId);
+    if (!layer) fail(404, 'FRONT_LAYER_NOT_FOUND', 'La capa frontal no existe.');
+    const variantId = `${schemeId}-variant-mock-${this.nextEntityId++}`;
+    const assetUrl = svgDataUrl(source);
     layer.variants.push({
-      id: `${schemeId}-variant-${this.nextEntityId++}`,
+      id: variantId,
       name: input.variantName.trim(),
       variantCode: input.variantCode.trim(),
       slotCount: input.slotCount,
-      source,
+      assetUrl,
+      enabled: true,
     });
     this.touch(scheme);
-    return response(scheme);
+    return response({ mapLayerSvgId: variantId, assetUrl, removedItems: 0 });
+  }
+
+  async replaceMapSvg(schemeId: string, svgId: string, input: ReplaceMapSvgInput) {
+    const scheme = this.scheme(schemeId);
+    this.editable(scheme);
+    const top = scheme.topMaps.find((map) => map.svgId === svgId);
+    const frontLayer = scheme.frontLayers.find((layer) => layer.variants.some((variant) => variant.id === svgId));
+    const variant = frontLayer?.variants.find((candidate) => candidate.id === svgId);
+    if (!top && !variant) fail(404, 'MAP_SVG_NOT_FOUND', 'El SVG no existe.');
+    const previousAssetUrl = top?.assetUrl ?? variant?.assetUrl ?? '';
+    const source = input.file ? sanitizeSvgForPreview(await readFile(input.file)) : assetSource(previousAssetUrl);
+    const assetUrl = svgDataUrl(source);
+    if (top) {
+      if (input.name !== undefined) top.svgName = input.name.trim();
+      if (input.enabled !== undefined) top.svgEnabled = input.enabled;
+      if (input.file) top.assetUrl = assetUrl;
+    }
+    if (variant) {
+      if (input.name !== undefined) variant.name = input.name.trim();
+      if (input.variantCode !== undefined) variant.variantCode = input.variantCode.trim();
+      if (input.slotCount !== undefined) variant.slotCount = input.slotCount;
+      if (input.enabled !== undefined) variant.enabled = input.enabled;
+      if (input.file) variant.assetUrl = assetUrl;
+    }
+    this.touch(scheme);
+    return response({ mapLayerSvgId: svgId, assetUrl: input.file ? assetUrl : previousAssetUrl, removedItems: 0 });
+  }
+
+  async deleteMapSvg(schemeId: string, svgId: string) {
+    const scheme = this.scheme(schemeId);
+    this.editable(scheme);
+    scheme.frontLayers.forEach((layer) => {
+      layer.variants = layer.variants.filter((variant) => variant.id !== svgId);
+      Object.entries(layer.assignments).forEach(([locationId, variantId]) => {
+        if (variantId === svgId) delete layer.assignments[locationId];
+      });
+    });
+    this.touch(scheme);
+    return response(null);
   }
 
   async assignFrontVariant(
@@ -642,13 +743,38 @@ export class MockAdminGateway implements AdminGateway {
     if (variantId) layer.assignments[contextLocationId] = variantId;
     else delete layer.assignments[contextLocationId];
     this.touch(scheme);
-    return response(scheme);
+    return response(null);
   }
 
   async deleteFrontLayer(schemeId: string, layerId: string) {
     const scheme = this.scheme(schemeId);
     this.editable(scheme);
     scheme.frontLayers = scheme.frontLayers.filter((layer) => layer.id !== layerId);
+    scheme.topMaps.forEach((map) => {
+      Object.entries(map.drilldowns).forEach(([levelId, frontLayerId]) => {
+        if (frontLayerId === layerId) map.drilldowns[levelId] = null;
+      });
+    });
+    this.touch(scheme);
+    return response(null);
+  }
+
+  async setDrilldown(
+    schemeId: string,
+    topLayerId: string,
+    schemeLevelId: string,
+    frontLayerId: string | null,
+  ) {
+    const scheme = this.scheme(schemeId);
+    this.editable(scheme);
+    const top = scheme.topMaps.find((map) => map.id === topLayerId);
+    if (!top || !top.representedLevelIds.includes(schemeLevelId)) {
+      fail(404, 'MAP_LEVEL_NOT_FOUND', 'La capa superior no representa ese nivel.');
+    }
+    if (frontLayerId && !scheme.frontLayers.some((layer) => layer.id === frontLayerId)) {
+      fail(404, 'FRONT_LAYER_NOT_FOUND', 'La capa frontal no existe.');
+    }
+    top.drilldowns[schemeLevelId] = frontLayerId;
     this.touch(scheme);
     return response(null);
   }
@@ -658,26 +784,49 @@ export class MockAdminGateway implements AdminGateway {
   }
 
   private mapValidation(scheme: Scheme): MapValidation {
-    const terminals = terminalLocations(scheme);
+    const ranged = new Set(scheme.ranges.map((range) => range.locationId));
+    const terminals = terminalLocations(scheme).filter((location) => ranged.has(location.id));
     const covered = terminals.filter((terminal) => scheme.topMaps.some((map) => {
-      if (!map.enabled) return false;
+      if (!map.enabled || !map.svgEnabled) return false;
       const representedAncestors = locationRoute(scheme, terminal).filter((ancestor) =>
         map.representedLevelIds.includes(ancestor.levelId),
       );
-      return representedAncestors.some((ancestor) => map.source.includes(`data-location-code="${ancestor.code}"`));
+      const source = assetSource(map.assetUrl);
+      return representedAncestors.some((ancestor) => source.includes(`data-location-code="${ancestor.code}"`));
     }));
-    const frontWarnings: string[] = [];
+    let missingAssignmentCount = 0;
+    let unlinkedLayerCount = 0;
     scheme.frontLayers.filter((layer) => layer.enabled).forEach((layer) => {
-      if (!layer.variants.length) frontWarnings.push(`${layer.name}: falta una variante.`);
-      const contexts = scheme.locations.filter((location) => location.levelId === layer.representedLevelId);
+      const representedIndex = scheme.levels.findIndex((level) => level.id === layer.representedLevelId);
+      const contextLevel = scheme.levels[representedIndex - 1];
+      const contexts = scheme.locations.filter((location) => location.levelId === contextLevel?.id);
       const missing = contexts.filter((context) => !layer.assignments[context.id]);
-      if (missing.length) frontWarnings.push(`${layer.name}: faltan ${missing.length} asignaciones.`);
+      missingAssignmentCount += missing.length;
+      if (!layer.variants.some((variant) => variant.enabled)) missingAssignmentCount += Math.max(1, contexts.length);
+      const linked = scheme.topMaps.some((map) => map.enabled
+        && Object.values(map.drilldowns).includes(layer.id));
+      if (!linked) unlinkedLayerCount += 1;
     });
+    const missingCodes = terminals.filter((location) => !covered.includes(location)).map((location) => location.code);
+    const blockers = [];
+    if (!scheme.topMaps.some((map) => map.enabled)) blockers.push({ code: 'TOP_MAP_REQUIRED', message: 'Se requiere al menos un mapa superior habilitado.' });
+    if (missingCodes.length) blockers.push({ code: 'TOP_COVERAGE_INCOMPLETE', message: 'Los mapas superiores no cubren todos los rangos.' });
+    if (missingAssignmentCount) blockers.push({ code: 'FRONT_ASSIGNMENTS_INCOMPLETE', message: 'Hay capas frontales con asignaciones incompletas.' });
+    if (unlinkedLayerCount) blockers.push({ code: 'FRONT_LAYER_NOT_LINKED', message: 'Hay capas frontales sin enlace desde un mapa superior.' });
     return {
-      ready: terminals.length > 0 && covered.length === terminals.length && frontWarnings.length === 0,
-      topCoveredLocationIds: covered.map((location) => location.id),
-      missingTopLocationIds: terminals.filter((location) => !covered.includes(location)).map((location) => location.id),
-      frontWarnings,
+      ready: blockers.length === 0,
+      top: {
+        layerCount: scheme.topMaps.filter((map) => map.enabled).length,
+        coveredTerminalCount: covered.length,
+        terminalCount: terminals.length,
+        missingLocationCodes: missingCodes,
+      },
+      front: {
+        layerCount: scheme.frontLayers.filter((layer) => layer.enabled).length,
+        missingAssignmentCount,
+        unlinkedLayerCount,
+      },
+      blockers,
     };
   }
 
@@ -687,9 +836,9 @@ export class MockAdminGateway implements AdminGateway {
     const ranged = new Set(scheme.ranges.map((range) => range.locationId));
     const missing = terminals.filter((location) => !ranged.has(location.id));
     const maps = this.mapValidation(scheme);
-    const blockers: string[] = [];
-    if (scheme.status !== 'ASSIGNED') blockers.push('Completa los rangos de todas las ubicaciones de captura.');
-    if (!maps.ready) blockers.push('Completa la cobertura de mapas superiores y las capas frontales habilitadas.');
+    const blockers = [];
+    if (scheme.status !== 'ASSIGNED') blockers.push({ code: 'RANGES_INCOMPLETE', message: 'Completa los rangos de todas las ubicaciones de captura.' });
+    blockers.push(...maps.blockers);
     const review: SchemeReview = {
       schemeId,
       levelCount: scheme.levels.length,
@@ -709,7 +858,7 @@ export class MockAdminGateway implements AdminGateway {
     this.editable(scheme);
     const review = (await this.reviewScheme(schemeId)).data;
     if (!review.publishable) {
-      fail(422, 'SCHEME_NOT_PUBLISHABLE', 'El esquema todavía no se puede publicar.', review.blockers);
+      fail(422, 'SCHEME_NOT_PUBLISHABLE', 'El esquema todavía no se puede publicar.', review.blockers.map((blocker) => blocker.message));
     }
     scheme.publishedAt = now();
     if (activate) this.activate(scheme);
@@ -767,9 +916,11 @@ export class MockAdminGateway implements AdminGateway {
               .map((location) => location.code)
           : [];
       }))];
-      return codes.length ? [{
+      const source = assetSource(map.assetUrl);
+      return codes.length && source ? [{
+        id: map.id,
         name: map.name,
-        source: highlightSvg(map.source, 'data-location-code', codes),
+        assetUrl: svgDataUrl(highlightSvg(source, 'data-location-code', codes)),
         highlightLocationCodes: codes,
       }] : [];
     });
@@ -779,13 +930,14 @@ export class MockAdminGateway implements AdminGateway {
         const terminal = scheme.locations.find((location) => location.id === match.locationId);
         if (!terminal) return;
         const route = locationRoute(scheme, terminal);
-        const contextIndex = route.findIndex((location) => location.levelId === layer.representedLevelId);
-        const context = route[contextIndex];
-        if (!context) return;
+        const representedIndex = route.findIndex((location) => location.levelId === layer.representedLevelId);
+        const represented = route[representedIndex];
+        const context = route[representedIndex - 1];
+        if (!context || !represented) return;
         const variantId = layer.assignments[context.id];
         if (!variantId) return;
         const group = grouped.get(context.id) ?? { context, variantId, slots: [] };
-        const slot = route[contextIndex + 1]?.ordinal;
+        const slot = represented.ordinal;
         if (slot) group.slots.push(slot);
         grouped.set(context.id, group);
       });
@@ -794,8 +946,9 @@ export class MockAdminGateway implements AdminGateway {
         if (!variant) return [];
         const slots = [...new Set(group.slots)];
         return [{
+          id: `${layer.id}:${group.context.id}:${variant.id}`,
           name: `${group.context.name}; ${slots.length} ${slots.length === 1 ? 'resultado' : 'resultados'}`,
-          source: highlightSvg(variant.source, 'data-slot', slots),
+          assetUrl: svgDataUrl(highlightSvg(assetSource(variant.assetUrl), 'data-slot', slots)),
           highlightSlots: slots,
         }];
       });

@@ -60,7 +60,7 @@ export function ReviewScreen() {
           <Link to="../locations">Ver</Link>
         </article>
         <article className={`admin-card admin-review-check ${review.mapValidation.ready ? '' : 'is-pending'}`}>
-          <div><strong>Mapas</strong><span>{review.mapValidation.missingTopLocationIds.length ? `${review.mapValidation.missingTopLocationIds.length} ubicaciones sin cobertura` : 'Cobertura superior completa'}</span></div>
+          <div><strong>Mapas</strong><span>{review.mapValidation.top.missingLocationCodes.length ? `${review.mapValidation.top.missingLocationCodes.length} ubicaciones sin cobertura` : 'Cobertura superior completa'}</span></div>
           <Link to="../maps">{review.mapValidation.ready ? 'Ver' : 'Completar'}</Link>
         </article>
         <article className={`admin-card admin-review-check ${review.missingRangeLocationIds.length ? 'is-pending' : ''}`}>
@@ -75,7 +75,7 @@ export function ReviewScreen() {
           {scheme.publishedAt ? (
             <p>Publicado el {new Intl.DateTimeFormat('es-CR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(scheme.publishedAt))}.</p>
           ) : review.blockers.length ? (
-            <ul>{review.blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul>
+            <ul>{review.blockers.map((blocker) => <li key={blocker.code}>{blocker.message}</li>)}</ul>
           ) : <p>El esquema cumple los requisitos de publicación.</p>}
         </div>
 

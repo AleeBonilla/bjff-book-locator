@@ -10,7 +10,7 @@ import {
 } from 'react';
 
 import type { AdminGateway } from './AdminGateway';
-import { MockAdminGateway } from './MockAdminGateway';
+import { HttpAdminGateway } from './HttpAdminGateway';
 import { AdminGatewayError, type ApiSuccess, type Scheme } from './types';
 
 interface Notice {
@@ -23,6 +23,8 @@ interface AdminContextValue {
   gateway: AdminGateway;
   schemes: Scheme[];
   loading: boolean;
+  error: string;
+  pending: boolean;
   revision: number;
   notice: Notice | null;
   refresh: () => void;
@@ -32,10 +34,12 @@ interface AdminContextValue {
 
 const AdminContext = createContext<AdminContextValue | null>(null);
 
-export function AdminProvider({ children }: { children: ReactNode }) {
-  const gatewayRef = useRef<AdminGateway>(new MockAdminGateway());
+export function AdminProvider({ children, gateway }: { children: ReactNode; gateway?: AdminGateway | undefined }) {
+  const gatewayRef = useRef<AdminGateway>(gateway ?? new HttpAdminGateway());
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [pendingCount, setPendingCount] = useState(0);
   const [revision, setRevision] = useState(0);
   const [notice, setNotice] = useState<Notice | null>(null);
   const noticeId = useRef(0);
@@ -55,11 +59,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setError('');
     void gatewayRef.current.listSchemes().then(({ data }) => {
       if (active) {
         setSchemes(data);
-        setLoading(false);
       }
+    }).catch((requestError: unknown) => {
+      if (active) setError(errorMessage(requestError));
+    }).finally(() => {
+      if (active) setLoading(false);
     });
     return () => {
       active = false;
@@ -67,6 +75,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, [revision]);
 
   const commit = useCallback(async <T,>(request: Promise<ApiSuccess<T>>, successMessage?: string) => {
+    setPendingCount((current) => current + 1);
     try {
       const result = await request;
       refresh();
@@ -75,6 +84,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       notify(errorMessage(error), 'error');
       throw error;
+    } finally {
+      setPendingCount((current) => Math.max(0, current - 1));
     }
   }, [notify, refresh]);
 
@@ -82,12 +93,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     gateway: gatewayRef.current,
     schemes,
     loading,
+    error,
+    pending: pendingCount > 0,
     revision,
     notice,
     refresh,
     notify,
     commit,
-  }), [commit, loading, notice, notify, refresh, revision, schemes]);
+  }), [commit, error, loading, notice, notify, pendingCount, refresh, revision, schemes]);
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }
