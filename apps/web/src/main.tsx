@@ -8,6 +8,7 @@ import '@fontsource/barlow-condensed/latin-ext-800.css';
 
 import { App } from './App';
 import './styles.css';
+import './admin/admin.css';
 
 const rootElement = document.getElementById('root');
 

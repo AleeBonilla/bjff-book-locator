@@ -531,6 +531,15 @@ input:focus-visible {
   background: var(--asphalt);
 }
 
+.login-error {
+  margin: 0.85rem 0 0;
+  padding: 0.7rem 0.8rem;
+  color: var(--asphalt);
+  background: rgb(136 65 78 / 14%);
+  border-left: 4px solid var(--red);
+  font-size: 0.85rem;
+}
+
 @media (max-width: 719px) {
   .private-access-link span {
     display: none;
