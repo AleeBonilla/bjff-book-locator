@@ -157,7 +157,7 @@ La base de datos permite varias capas de ambos tipos. La aplicación aplica los 
 
 1. La aplicación crea un `map_layer` con `view_type = TOP` y `render_mode = STATIC`.
 2. El usuario selecciona los niveles físicos representados y la aplicación los registra en `map_layer_scheme_levels`.
-3. La aplicación exporta un CSV con `location_code`, `name`, `level_name` y `sort_order`.
+3. El usuario exporta un CSV completo ordenado por jerarquía o uno limitado a un nivel físico. El archivo incluye `location_code`, `level_name`, `full_path`, `parent_code`, `name` y `sort_order`.
 4. El diseñador crea el SVG y asigna `data-location-code` a cada elemento interactivo.
 5. La aplicación recibe el archivo, lo almacena y registra su `asset_url`.
 6. La aplicación sanitiza el SVG según la política de la sección 11.

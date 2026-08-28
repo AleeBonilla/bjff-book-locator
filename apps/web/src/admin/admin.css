@@ -1177,6 +1177,12 @@
   min-width: 0;
 }
 
+.admin-form-note {
+  margin: -4px 0 0;
+  color: var(--admin-muted);
+  font-size: 0.82rem;
+}
+
 .admin-main[aria-busy='true'] {
   cursor: progress;
 }

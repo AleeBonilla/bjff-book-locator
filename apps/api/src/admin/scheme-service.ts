@@ -687,14 +687,56 @@ export class SchemeService {
     });
   }
 
-  async exportLocationsCsv(schemeId: number): Promise<string> {
+  async exportLocationsCsv(schemeId: number, levelId?: number): Promise<string> {
     await getScheme(this.pool, schemeId);
-    const rows = visibleLocations(await getLocations(this.pool, schemeId));
+    const [locationRows, levelRows] = await Promise.all([
+      getLocations(this.pool, schemeId),
+      getLevels(this.pool, schemeId),
+    ]);
+    if (levelId !== undefined && !levelRows.some((level) => (
+      level.scheme_level_id === levelId && level.parent_level_id !== null
+    ))) {
+      throw new ApiError(422, 'INVALID_CSV_LEVEL', 'El nivel solicitado no pertenece al esquema.');
+    }
+    const rows = visibleLocations(locationRows);
+    const byId = new Map(rows.map((row) => [row.location_id, row]));
+    const routeFor = (row: LocationRow) => {
+      const route: LocationRow[] = [];
+      const visited = new Set<number>();
+      let current: LocationRow | undefined = row;
+      while (current !== undefined && !visited.has(current.location_id)) {
+        visited.add(current.location_id);
+        route.unshift(current);
+        current = current.parent_location_id === null
+          ? undefined
+          : byId.get(current.parent_location_id);
+      }
+      return route;
+    };
+    const exportRows = rows.map((row) => {
+      const route = routeFor(row);
+      return { row, route, order: route.map((item) => item.sort_order) };
+    }).filter((item) => levelId === undefined || item.row.scheme_level_id === levelId);
+    exportRows.sort((left, right) => {
+      const length = Math.min(left.order.length, right.order.length);
+      for (let index = 0; index < length; index += 1) {
+        const difference = (left.order[index] as number) - (right.order[index] as number);
+        if (difference !== 0) return difference;
+      }
+      return left.order.length - right.order.length;
+    });
     const quote = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
-    return [
-      ['location_code', 'name', 'level_name', 'sort_order'],
-      ...rows.map((row) => [row.code, row.name, row.level_name, row.sort_order]),
-    ].map((row) => row.map(quote).join(',')).join('\r\n');
+    return `\uFEFF${[
+      ['location_code', 'level_name', 'full_path', 'parent_code', 'name', 'sort_order'],
+      ...exportRows.map(({ row, route }) => [
+        row.code,
+        row.level_name,
+        route.map((item) => item.name).join(' / '),
+        row.parent_location_id === null ? '' : (byId.get(row.parent_location_id)?.code ?? ''),
+        row.name,
+        row.sort_order,
+      ]),
+    ].map((row) => row.map(quote).join(';')).join('\r\n')}`;
   }
 
   async searchText(schemeId: number, callNumber: string) {

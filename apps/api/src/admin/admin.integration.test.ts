@@ -72,6 +72,21 @@ describe('API administrativa con PostgreSQL', () => {
     const secondShelf = shelves.body.data[1] as { locationId: number };
     await api.post(`/api/admin/schemes/${schemeId}/locations/confirm`).expect(200);
 
+    const completeCsv = await api.get(`/api/admin/schemes/${schemeId}/locations.csv`).expect(200);
+    const completeCsvLines = completeCsv.text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(completeCsvLines[0]).toBe('"location_code";"level_name";"full_path";"parent_code";"name";"sort_order"');
+    expect(completeCsvLines[1]).toContain(`"${floor.code}";"Piso";"Piso 1";""`);
+    expect(completeCsvLines[2]).toContain(`"${floor.code}-1";"Anaquel";"Piso 1 / Anaquel 1";"${floor.code}"`);
+
+    const shelfCsv = await api
+      .get(`/api/admin/schemes/${schemeId}/locations.csv`)
+      .query({ levelId: shelfLevelId })
+      .expect(200);
+    const shelfCsvLines = shelfCsv.text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(shelfCsvLines).toHaveLength(3);
+    expect(shelfCsv.text).not.toContain('"Piso";"Piso 1"');
+    await api.get(`/api/admin/schemes/${schemeId}/locations.csv`).query({ levelId: 999_999 }).expect(422);
+
     await api.put(`/api/admin/schemes/${schemeId}/ranges`).send({
       items: [
         { locationId: firstShelf.locationId, rangeStart: '300.1', rangeEnd: '300.19' },

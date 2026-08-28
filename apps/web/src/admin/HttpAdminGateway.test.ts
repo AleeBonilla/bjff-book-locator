@@ -76,10 +76,12 @@ describe('HttpAdminGateway', () => {
     expect(detail.frontLayers[0]).toMatchObject({ representedLevelId: '12', assignments: { 101: '91' } });
   });
 
-  it('envía SVG multipart, conserva el nombre y trata el CSV como texto', async () => {
+  it('envía SVG multipart y solicita el CSV del nivel elegido como texto', async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       const url = String(input);
-      if (url.endsWith('/locations.csv')) return new Response('location_code,name\r\n41-1,Mueble 1');
+      if (url.endsWith('/locations.csv?levelId=12')) {
+        return new Response('\uFEFF"location_code";"name"\r\n"41-1";"Mueble 1"');
+      }
       const form = init?.body as FormData;
       expect(init?.method).toBe('POST');
       expect(init?.headers).toBeUndefined();
@@ -100,10 +102,10 @@ describe('HttpAdminGateway', () => {
       representedLevelIds: ['11'],
       file: new File(['<svg/>'], 'plano.svg', { type: 'image/svg+xml' }),
     });
-    const csv = await gateway.exportLocationsCsv('41');
+    const csv = await gateway.exportLocationsCsv('41', '12');
 
     expect(upload.data).toEqual({ mapLayerId: '80', mapLayerSvgId: '90', assetUrl: '/api/assets/maps/41/top.svg', removedItems: 2 });
-    expect(csv.data).toContain('41-1,Mueble 1');
+    expect(csv.data).toContain('"41-1";"Mueble 1"');
   });
 
   it('envía confirmación al eliminar y conserva el error funcional de la API', async () => {

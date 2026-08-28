@@ -20,6 +20,7 @@ import {
   drilldownSchema,
   frontVariantMetadataSchema,
   layerParamsSchema,
+  locationCsvQuerySchema,
   locationParamsSchema,
   publishSchema,
   rangeInputSchema,
@@ -173,7 +174,8 @@ export function createAdminRouter(options: AdminRouterOptions): Router {
 
   router.get('/schemes/:schemeId/locations.csv', async (request, response) => {
     const { schemeId } = schemeIdParamsSchema.parse(request.params);
-    const csv = await schemes.exportLocationsCsv(schemeId);
+    const { levelId } = locationCsvQuerySchema.parse(request.query);
+    const csv = await schemes.exportLocationsCsv(schemeId, levelId);
     response.setHeader('Content-Type', 'text/csv; charset=utf-8');
     response.setHeader('Content-Disposition', `attachment; filename="ubicaciones-esquema-${schemeId}.csv"`);
     response.send(csv);

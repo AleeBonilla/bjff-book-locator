@@ -54,6 +54,8 @@ export function LocationsScreen() {
   const [addParent, setAddParent] = useState<Location | 'root' | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Location | null>(null);
   const [reopen, setReopen] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [csvLevelId, setCsvLevelId] = useState('all');
   const editable = scheme.status === 'LEVELS_DEFINED' && !scheme.publishedAt;
   const roots = scheme.locations
     .filter((location) => location.parentLocationId === null)
@@ -106,15 +108,20 @@ export function LocationsScreen() {
     }
   }
 
-  async function downloadCsv() {
+  async function downloadCsv(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     try {
-      const { data } = await gateway.exportLocationsCsv(scheme.id);
+      const selectedLevelId = csvLevelId === 'all' ? undefined : csvLevelId;
+      const { data } = await gateway.exportLocationsCsv(scheme.id, selectedLevelId);
       const url = URL.createObjectURL(new Blob([data], { type: 'text/csv;charset=utf-8' }));
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `ubicaciones-${scheme.id}.csv`;
+      anchor.download = selectedLevelId === undefined
+        ? `ubicaciones-${scheme.id}-completo.csv`
+        : `ubicaciones-${scheme.id}-nivel-${selectedLevelId}.csv`;
       anchor.click();
       URL.revokeObjectURL(url);
+      setCsvOpen(false);
     } catch (requestError) {
       notify(errorMessage(requestError), 'error');
     }
@@ -124,7 +131,7 @@ export function LocationsScreen() {
     <section className="admin-stage" aria-labelledby="locations-title">
       <div className="admin-stage-heading">
         <div><h2 id="locations-title">Crear ubicaciones</h2><p>Añade cada rama siguiendo los niveles definidos.</p></div>
-        <button className="admin-button admin-button--quiet" type="button" onClick={() => void downloadCsv()} disabled={!scheme.locations.length}>Generar CSV</button>
+        <button className="admin-button admin-button--quiet" type="button" onClick={() => setCsvOpen(true)} disabled={!scheme.locations.length}>Generar CSV</button>
       </div>
 
       <div className="admin-card admin-location-card">
@@ -161,6 +168,23 @@ export function LocationsScreen() {
             <div className="admin-form-actions">
               <button className="admin-button" type="submit">Añadir</button>
               <button className="admin-button admin-button--quiet" type="button" onClick={() => setAddParent(null)}>Cancelar</button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
+
+      {csvOpen ? (
+        <Modal title="Generar CSV" onClose={() => setCsvOpen(false)}>
+          <form className="admin-form" onSubmit={(event) => void downloadCsv(event)}>
+            <label htmlFor="csv-content">Ubicaciones incluidas</label>
+            <select id="csv-content" value={csvLevelId} onChange={(event) => setCsvLevelId(event.target.value)} autoFocus>
+              <option value="all">Todos los niveles, ordenados</option>
+              {scheme.levels.map((level) => <option key={level.id} value={level.id}>Solo {level.name}</option>)}
+            </select>
+            <p className="admin-form-note">Incluye el código, la ruta completa y el código de la ubicación superior.</p>
+            <div className="admin-form-actions">
+              <button className="admin-button" type="submit">Descargar CSV</button>
+              <button className="admin-button admin-button--quiet" type="button" onClick={() => setCsvOpen(false)}>Cancelar</button>
             </div>
           </form>
         </Modal>

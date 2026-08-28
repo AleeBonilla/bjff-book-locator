@@ -77,5 +77,5 @@ export interface AdminGateway {
   publishScheme(schemeId: string, activate: boolean): Promise<ApiSuccess<Scheme>>;
   activateScheme(schemeId: string): Promise<ApiSuccess<Scheme>>;
   searchTests(schemeId: string, callNumber: string): Promise<ApiSuccess<SearchTestResult>>;
-  exportLocationsCsv(schemeId: string): Promise<ApiSuccess<string>>;
+  exportLocationsCsv(schemeId: string, levelId?: string): Promise<ApiSuccess<string>>;
 }

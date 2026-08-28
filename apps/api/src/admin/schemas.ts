@@ -52,6 +52,10 @@ export const addLocationsSchema = z.object({
   quantity: z.number().int().min(1).max(50),
 });
 
+export const locationCsvQuerySchema = z.object({
+  levelId: z.coerce.number().int().positive().optional(),
+});
+
 export const destructiveResetSchema = z.object({
   confirmDataLoss: z.literal(true),
 });

@@ -964,18 +964,31 @@ export class MockAdminGateway implements AdminGateway {
     return response(result);
   }
 
-  async exportLocationsCsv(schemeId: string) {
+  async exportLocationsCsv(schemeId: string, levelId?: string) {
     const scheme = this.scheme(schemeId);
     const escape = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
+    const byId = new Map(scheme.locations.map((location) => [location.id, location]));
+    const locations = scheme.locations
+      .filter((location) => levelId === undefined || location.levelId === levelId)
+      .sort((left, right) => {
+        const length = Math.min(left.path.length, right.path.length);
+        for (let index = 0; index < length; index += 1) {
+          const difference = (left.path[index] as number) - (right.path[index] as number);
+          if (difference !== 0) return difference;
+        }
+        return left.path.length - right.path.length;
+      });
     const lines = [
-      ['location_code', 'name', 'level_name', 'sort_order'],
-      ...scheme.locations.map((location) => [
+      ['location_code', 'level_name', 'full_path', 'parent_code', 'name', 'sort_order'],
+      ...locations.map((location) => [
         location.code,
-        location.name,
         scheme.levels.find((level) => level.id === location.levelId)?.name ?? '',
+        locationRoute(scheme, location).map((item) => item.name).join(' / '),
+        location.parentLocationId ? (byId.get(location.parentLocationId)?.code ?? '') : '',
+        location.name,
         location.sortOrder,
       ]),
     ];
-    return response(lines.map((line) => line.map(escape).join(',')).join('\r\n'));
+    return response(`\uFEFF${lines.map((line) => line.map(escape).join(';')).join('\r\n')}`);
   }
 }

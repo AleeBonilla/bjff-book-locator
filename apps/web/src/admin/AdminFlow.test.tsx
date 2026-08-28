@@ -69,6 +69,22 @@ describe('flujo administrativo', () => {
     expect(within(workflow).getByRole('link', { name: '05 Rangos' })).toBeInTheDocument();
   });
 
+  it('permite exportar todas las ubicaciones o elegir un nivel', async () => {
+    await login();
+    const readyScheme = screen.getByRole('row', { name: /Colección general 2026/ });
+    fireEvent.click(within(readyScheme).getByRole('link', { name: 'Revisar' }));
+    const workflow = await screen.findByRole('navigation', { name: 'Progreso de configuración' });
+    fireEvent.click(within(workflow).getByRole('link', { name: '03 Ubicaciones' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Generar CSV' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Generar CSV' });
+    const selection = within(dialog).getByLabelText('Ubicaciones incluidas');
+    expect(within(selection).getByRole('option', { name: 'Todos los niveles, ordenados' })).toBeInTheDocument();
+    expect(within(selection).getByRole('option', { name: 'Solo Anaquel' })).toBeInTheDocument();
+    fireEvent.change(selection, { target: { value: '23-level-5' } });
+    expect(selection).toHaveValue('23-level-5');
+  });
+
   it('ejecuta una búsqueda interna con coincidencias, mapas y ruta textual', async () => {
     await login();
     fireEvent.click(screen.getByRole('link', { name: 'Pruebas de búsqueda' }));

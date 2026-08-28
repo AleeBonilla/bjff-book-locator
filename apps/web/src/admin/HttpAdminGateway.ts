@@ -578,10 +578,11 @@ export class HttpAdminGateway implements AdminGateway {
     return { data };
   }
 
-  async exportLocationsCsv(schemeId: string) {
+  async exportLocationsCsv(schemeId: string, levelId?: string) {
     let response: Response;
     try {
-      response = await fetch(this.url(`/schemes/${encodeURIComponent(schemeId)}/locations.csv`));
+      const query = levelId === undefined ? '' : `?levelId=${encodeURIComponent(levelId)}`;
+      response = await fetch(this.url(`/schemes/${encodeURIComponent(schemeId)}/locations.csv${query}`));
     } catch {
       throw new AdminGatewayError(0, {
         code: 'API_UNAVAILABLE',
