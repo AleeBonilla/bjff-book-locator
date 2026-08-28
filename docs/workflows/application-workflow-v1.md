@@ -289,7 +289,7 @@ Un usuario registrado puede ejecutar una búsqueda de revisión sobre un esquema
 | `LEVELS_DEFINED` a `DRAFT` | Eliminar primero las ubicaciones. |
 | Esquema activo o publicado | Crear una nueva versión en `DRAFT`; no modificar la versión publicada. |
 
-Las eliminaciones y el cambio de estado deben formar una operación transaccional. Si el esquema estuvo publicado, la aplicación conserva el original y trabaja sobre un clon inactivo y sin metadatos de publicación.
+Las regresiones y el cambio de estado deben formar una operación transaccional. Si el esquema estuvo publicado, el flujo normal conserva el original y trabaja sobre un clon inactivo y sin metadatos de publicación.
 
 Al clonar, el usuario elige uno de estos alcances:
 
@@ -299,7 +299,13 @@ Al clonar, el usuario elige uno de estos alcances:
 | Niveles y ubicaciones | Lo anterior más `locations`, sin rangos | `LEVELS_DEFINED` |
 | Todo | Niveles, ubicaciones, rangos, capas, SVG y asignaciones | Estado correspondiente a la cobertura copiada; nunca activo ni publicado |
 
-Todo clon recibe un nuevo `scheme_id`. Si se copian ubicaciones, la aplicación regenera sus códigos con el identificador nuevo. La copia completa también debe actualizar los `data-location-code` de los SVG superiores; el tratamiento de los archivos locales forma parte del pendiente `WF-OPEN-09`.
+Todo clon recibe un nuevo `scheme_id`. Si se copian ubicaciones, la aplicación regenera sus códigos con el identificador nuevo. La copia completa actualiza los `data-location-code` de los SVG superiores, copia los archivos sanitizados al directorio del esquema nuevo y conserva los `data-slot` frontales.
+
+### 10.1 Zona de riesgo
+
+La etapa 07 permite eliminar de forma irreversible cualquier esquema, incluso uno publicado o activo. Antes de ejecutar la operación, la interfaz muestra el estado actual, los datos que se retirarán y el efecto sobre la búsqueda pública.
+
+La eliminación exige confirmación explícita y retira transaccionalmente niveles, ubicaciones, rangos, mapas, variantes, asignaciones y relaciones. Los SVG se borran después de confirmar la transacción. Si se elimina el esquema activo, no se activa otro automáticamente; la búsqueda pública permanece sin esquema disponible hasta que un administrador active uno.
 
 ## 11. Fallos de carga y consistencia
 
@@ -345,6 +351,7 @@ Además de presentar la interfaz, la aplicación debe:
 - restringir el drilldown a `TOP` con destino `FRONT`;
 - devolver y representar todos los rangos coincidentes;
 - impedir cambios estructurales sobre esquemas publicados;
+- reservar la zona de riesgo como única vía para eliminar un esquema publicado o activo;
 - informar errores de configuración sin exponer detalles internos innecesarios.
 
 ## 13. Pendientes no bloqueantes de la V1
@@ -372,4 +379,5 @@ El flujo se considera implementado cuando se puede demostrar que:
 - una búsqueda sin vista frontal sigue mostrando la capa superior;
 - la revisión interna puede presentar un resultado textual sobre un esquema no activo;
 - el drilldown se limita a `TOP` con destino `FRONT`;
-- la clonación ofrece los alcances definidos y nunca crea un clon activo o publicado.
+- la clonación ofrece los alcances definidos y nunca crea un clon activo o publicado;
+- la zona de riesgo exige confirmación y puede dejar el sistema sin esquema activo.

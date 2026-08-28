@@ -50,6 +50,7 @@ Todas las rutas de la tabla parten de `/api/admin/schemes`.
 | `POST /` | `name`, `shortDescription?` | Esquema `DRAFT` con `ddc-base-v1`. |
 | `GET /:schemeId` | Ninguna | Esquema, niveles visibles y ubicaciones visibles. |
 | `PATCH /:schemeId` | `name?`, `shortDescription?` | Metadatos actualizados si no está publicado. |
+| `DELETE /:schemeId` | `confirmDataLoss: true` | Elimina el esquema y todos sus datos, aunque esté publicado o activo. |
 | `POST /:schemeId/clone` | `name`, `scope` | Clon `levels`, `levels_and_locations` o `all`. |
 | `GET, PUT /:schemeId/levels` | `PUT`: arreglo `levels` | Consulta o reemplaza la gramática física en `DRAFT`. |
 | `POST /:schemeId/levels/confirm` | Ninguna | Crea la ubicación raíz interna y pasa a `LEVELS_DEFINED`. |
@@ -66,6 +67,7 @@ Todas las rutas de la tabla parten de `/api/admin/schemes`.
 | `POST /:schemeId/maps/front` | `name`, `representedLevelId` | Crea una capa frontal. |
 | `POST /:schemeId/maps/front/:layerId/variants` | Carga multipart FRONT | Añade una variante con slots. |
 | `PUT, DELETE /:schemeId/maps/svgs/:svgId` | `PUT`: carga multipart | Reemplaza metadatos o archivo, o elimina el SVG. |
+| `PATCH /:schemeId/maps/layers/:layerId` | `name?`, `enabled?` | Cambia el nombre o la disponibilidad de una capa editable. |
 | `DELETE /:schemeId/maps/layers/:layerId` | Ninguna | Elimina capa, relaciones y archivos asociados. |
 | `PUT /:schemeId/maps/layers/:layerId/assignments/:contextLocationId` | `mapLayerSvgId` | Asigna o retira una variante frontal. |
 | `PUT /:schemeId/maps/layers/:layerId/drilldowns/:schemeLevelId` | `frontLayerId` | Configura el enlace TOP a FRONT. |
@@ -128,6 +130,8 @@ Una variante FRONT requiere:
 
 El límite predeterminado es 10 MiB. Solo la versión sanitizada se almacena y se expone bajo `/api/assets/maps/`.
 
+Una capa deshabilitada permanece configurada, pero no participa en validación, publicación ni resultados visuales. Los cambios de nombre y disponibilidad están prohibidos después de publicar.
+
 ## Resultado de búsqueda interna
 
 `search-tests` devuelve todas las coincidencias solapadas. Cada coincidencia contiene su rango y ruta textual. `maps.topViews` añade `highlightLocationCodes`; `maps.frontViews` agrupa cada contexto y añade `highlightSlots`. Ambos arreglos pueden estar vacíos cuando el esquema todavía no tiene mapas.
@@ -143,3 +147,9 @@ npm run assets:reconcile
 ```
 
 El comando elimina temporales y SVG sin referencia en `map_layer_svgs`. No mantiene historial de versiones.
+
+## Eliminación de esquemas
+
+`DELETE /:schemeId` exige el cuerpo `{ "confirmDataLoss": true }`. Esta operación es la única excepción a la inmutabilidad de un esquema publicado: elimina niveles, ubicaciones, rangos, capas, variantes, asignaciones y relaciones en una transacción. Los archivos se retiran después de confirmar PostgreSQL.
+
+La respuesta informa si el esquema estaba activo o publicado. Si se elimina el activo, la API no selecciona un reemplazo y el sistema queda sin esquema activo hasta que un administrador active otro.

@@ -133,6 +133,76 @@ export class MapService {
     }));
   }
 
+  async deleteScheme(schemeId: number) {
+    const assets = await this.getAssetUrls(schemeId);
+    const result = await withTransaction(this.pool, async (client) => {
+      const scheme = await getScheme(client, schemeId, true);
+      if (scheme.status === 'ASSIGNED') {
+        await client.query(
+          `UPDATE schemes
+              SET is_active = false, published_by = NULL, published_at = NULL,
+                  status = 'PARTIALLY_ASSIGNED'
+            WHERE scheme_id = $1`,
+          [schemeId],
+        );
+      }
+
+      if (!['DRAFT', 'LEVELS_DEFINED'].includes(scheme.status)) {
+        await client.query(
+          `DELETE FROM map_layer_svg_assignments
+            WHERE map_layer_id IN (SELECT map_layer_id FROM map_layers WHERE scheme_id = $1)`,
+          [schemeId],
+        );
+        await client.query(
+          `UPDATE map_layer_scheme_levels
+              SET drilldown_map_layer_id = NULL
+            WHERE drilldown_map_layer_id IN (SELECT map_layer_id FROM map_layers WHERE scheme_id = $1)`,
+          [schemeId],
+        );
+        await client.query(
+          `DELETE FROM map_layer_scheme_levels
+            WHERE map_layer_id IN (SELECT map_layer_id FROM map_layers WHERE scheme_id = $1)`,
+          [schemeId],
+        );
+        await client.query(
+          `DELETE FROM map_layer_svgs
+            WHERE map_layer_id IN (SELECT map_layer_id FROM map_layers WHERE scheme_id = $1)`,
+          [schemeId],
+        );
+        await client.query('DELETE FROM map_layers WHERE scheme_id = $1', [schemeId]);
+      }
+
+      if (['PARTIALLY_ASSIGNED', 'ASSIGNED'].includes(scheme.status)) {
+        await client.query(
+          `UPDATE locations
+              SET range_start_raw = NULL, range_end_raw = NULL,
+                  range_start_normalized = NULL, range_end_normalized = NULL,
+                  range_start_key = NULL, range_end_key = NULL
+            WHERE scheme_id = $1 AND range_start_key IS NOT NULL`,
+          [schemeId],
+        );
+        await client.query(`UPDATE schemes SET status = 'LOCATIONS_DEFINED' WHERE scheme_id = $1`, [schemeId]);
+      }
+      if (['LOCATIONS_DEFINED', 'PARTIALLY_ASSIGNED', 'ASSIGNED'].includes(scheme.status)) {
+        await client.query(`UPDATE schemes SET status = 'LEVELS_DEFINED' WHERE scheme_id = $1`, [schemeId]);
+      }
+      if (scheme.status !== 'DRAFT') {
+        await client.query('DELETE FROM locations WHERE scheme_id = $1', [schemeId]);
+        await client.query(`UPDATE schemes SET status = 'DRAFT' WHERE scheme_id = $1`, [schemeId]);
+      }
+      await client.query('DELETE FROM scheme_levels WHERE scheme_id = $1', [schemeId]);
+      await client.query('DELETE FROM schemes WHERE scheme_id = $1', [schemeId]);
+      return {
+        schemeId,
+        deleted: true,
+        wasActive: scheme.is_active,
+        wasPublished: scheme.published_at !== null,
+      };
+    });
+    await this.removeAssetsBestEffort(assets);
+    return result;
+  }
+
   async createTopLayer(
     schemeId: number,
     metadata: { name: string; svgName: string; representedLevelIds: number[] },
@@ -385,6 +455,26 @@ export class MapService {
     });
     await this.removeAssetsBestEffort(assets.rows.map((row) => row.asset_url));
     return { mapLayerId: layerId, deleted: true };
+  }
+
+  async updateLayer(
+    schemeId: number,
+    layerId: number,
+    input: { name?: string | undefined; enabled?: boolean | undefined },
+  ) {
+    return withTransaction(this.pool, async (client) => {
+      await assertMapEditable(client, schemeId);
+      await requireLayer(client, schemeId, layerId);
+      const result = await client.query<LayerRow>(
+        `UPDATE map_layers
+            SET name = COALESCE($3, name),
+                enabled = COALESCE($4, enabled)
+          WHERE scheme_id = $1 AND map_layer_id = $2
+        RETURNING map_layer_id, scheme_id, name, view_type, render_mode, enabled`,
+        [schemeId, layerId, input.name ?? null, input.enabled ?? null],
+      );
+      return result.rows[0] as LayerRow;
+    });
   }
 
   async deleteSvg(schemeId: number, svgId: number) {
