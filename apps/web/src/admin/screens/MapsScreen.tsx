@@ -4,9 +4,17 @@ import { useOutletContext } from 'react-router-dom';
 import { errorMessage, useAdmin } from '../AdminContext';
 import type { SchemeWorkspaceContext } from '../components/WorkflowLayout';
 import { svgDataUrl } from '../svg';
-import type { MapValidation } from '../types';
+import { terminalLevel, type MapValidation } from '../types';
 
 type MapTab = 'top' | 'front';
+
+function pluralizeLevel(name: string) {
+  const normalized = name.trim().toLocaleLowerCase('es');
+  if (!normalized) return 'ubicaciones';
+  if (normalized.endsWith('z')) return `${normalized.slice(0, -1)}ces`;
+  if (/[aeiouáéíóú]$/.test(normalized)) return `${normalized}s`;
+  return `${normalized}es`;
+}
 
 export function MapsScreen() {
   const { scheme } = useOutletContext<SchemeWorkspaceContext>();
@@ -19,6 +27,10 @@ export function MapsScreen() {
   const [frontSource, setFrontSource] = useState('');
   const [frontFileName, setFrontFileName] = useState('');
   const editable = !scheme.publishedAt;
+  const terminal = terminalLevel(scheme);
+  const terminalIndex = terminal ? scheme.levels.findIndex((level) => level.id === terminal.id) : -1;
+  const frontContextLevel = terminalIndex > 0 ? scheme.levels[terminalIndex - 1] : null;
+  const terminalPlural = pluralizeLevel(terminal?.name ?? 'ubicación');
 
   useEffect(() => {
     let active = true;
@@ -158,11 +170,11 @@ export function MapsScreen() {
             <form className="admin-card admin-form admin-map-form" onSubmit={(event) => void saveFront(event)}>
               <div className="admin-field"><label htmlFor="front-layer">Capa</label><select id="front-layer" name="layerId"><option value="">Nueva capa</option>{scheme.frontLayers.map((layer) => <option key={layer.id} value={layer.id}>{layer.name}</option>)}</select></div>
               <div className="admin-field"><label htmlFor="front-layer-name">Nombre de capa nueva</label><input id="front-layer-name" name="layerName" placeholder="Muebles estándar" /></div>
-              <div className="admin-field"><label htmlFor="front-level">Nivel representado</label><select id="front-level" name="representedLevelId" defaultValue={scheme.levels.at(-2)?.id}>{scheme.levels.slice(0, -1).map((level) => <option key={level.id} value={level.id}>{level.name}</option>)}</select></div>
-              <div className="admin-form-grid"><div className="admin-field"><label htmlFor="variant-name">Variante</label><input id="variant-name" name="variantName" placeholder="Cinco anaqueles" required /></div><div className="admin-field"><label htmlFor="variant-code">Código</label><input id="variant-code" name="variantCode" placeholder="shelves-5" required /></div></div>
-              <div className="admin-field"><label htmlFor="slot-count">Cantidad de espacios</label><input id="slot-count" name="slotCount" type="number" min="1" max="50" defaultValue="5" required /></div>
-              <label className="admin-file-field"><span>Archivo SVG</span><input type="file" accept=".svg,image/svg+xml" onChange={(event) => void readSvg(event.target.files?.[0], 'front')} required /><small>{frontFileName || 'Cada espacio debe incluir data-slot.'}</small></label>
-              <button className="admin-button" type="submit" disabled={!frontSource}>Guardar variante</button>
+              <div className="admin-field"><label htmlFor="front-level">Se asigna a cada</label><output className="admin-derived-value" id="front-level">{frontContextLevel?.name ?? 'No disponible'}</output><input name="representedLevelId" type="hidden" value={frontContextLevel?.id ?? ''} /></div>
+              <div className="admin-form-grid"><div className="admin-field"><label htmlFor="variant-name">Variante</label><input id="variant-name" name="variantName" placeholder={`Ej. 5 ${terminalPlural}`} required /></div><div className="admin-field"><label htmlFor="variant-code">Código</label><input id="variant-code" name="variantCode" placeholder="variante-5" required /></div></div>
+              <div className="admin-field"><label htmlFor="slot-count">Cantidad de {terminalPlural}</label><input id="slot-count" name="slotCount" type="number" min="1" max="50" defaultValue="5" required /></div>
+              <label className="admin-file-field"><span>Archivo SVG</span><input type="file" accept=".svg,image/svg+xml" onChange={(event) => void readSvg(event.target.files?.[0], 'front')} required /><small>{frontFileName || 'Selecciona la vista frontal.'}</small></label>
+              <button className="admin-button" type="submit" disabled={!frontSource || !frontContextLevel}>Guardar variante</button>
             </form>
           ) : null}
 
@@ -172,11 +184,25 @@ export function MapsScreen() {
               return (
                 <article className="admin-card admin-front-layer" key={layer.id}>
                   <div className="admin-card-heading"><div><strong>{layer.name}</strong><span>{layer.variants.length} {layer.variants.length === 1 ? 'variante' : 'variantes'}</span></div>{editable ? <button className="admin-button admin-button--danger admin-button--compact" type="button" onClick={() => void commit(gateway.deleteFrontLayer(scheme.id, layer.id), 'Capa eliminada.').catch(() => undefined)}>Eliminar</button> : null}</div>
-                  <div className="admin-variant-list">{layer.variants.map((variant) => <button key={variant.id} type="button" onClick={() => setPreview({ name: variant.name, source: variant.source })}><strong>{variant.name}</strong><span>{variant.slotCount} espacios</span></button>)}</div>
+                  <div className="admin-variant-list">{layer.variants.map((variant) => <button key={variant.id} type="button" onClick={() => setPreview({ name: variant.name, source: variant.source })}><strong>{variant.name}</strong><span>{variant.slotCount} {terminalPlural}</span></button>)}</div>
                   <div className="admin-assignment-list">
-                    {contexts.map((location) => (
-                      <label key={location.id}><span>{location.name}<small>{location.code}</small></span><select aria-label={`Variante para ${location.name}`} value={layer.assignments[location.id] ?? ''} onChange={(event) => void assign(layer.id, location.id, event.target.value)} disabled={!editable}><option value="">Sin asignar</option>{layer.variants.map((variant) => <option key={variant.id} value={variant.id}>{variant.name}</option>)}</select></label>
-                    ))}
+                    {contexts.map((location) => {
+                      const assignedId = layer.assignments[location.id] ?? '';
+                      const assigned = layer.variants.find((variant) => variant.id === assignedId);
+                      return (
+                        <div className="admin-assignment-row" key={location.id}>
+                          <span>{location.name}<small>{location.code}</small></span>
+                          {editable ? (
+                            <select aria-label={`Variante para ${location.name}`} value={assignedId} onChange={(event) => void assign(layer.id, location.id, event.target.value)}><option value="">Sin asignar</option>{layer.variants.map((variant) => <option key={variant.id} value={variant.id}>{variant.name}</option>)}</select>
+                          ) : (
+                            <details className="admin-readonly-select">
+                              <summary>{assigned?.name ?? 'Sin asignar'}</summary>
+                              <ul>{layer.variants.map((variant) => <li className={variant.id === assignedId ? 'is-current' : ''} key={variant.id}>{variant.name}</li>)}</ul>
+                            </details>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </article>
               );

@@ -1,12 +1,14 @@
 import { type FormEvent, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { useAdmin } from '../AdminContext';
 import { PageLoading } from '../components/Common';
 import { svgDataUrl } from '../svg';
-import type { SearchTestResult } from '../types';
+import { schemeCanRunSearchTests, type SearchTestResult } from '../types';
 
 export function SearchTestsScreen() {
   const { schemes, loading, gateway, notify } = useAdmin();
+  const [searchParams] = useSearchParams();
   const [result, setResult] = useState<SearchTestResult | null>(null);
   const [selectedMatch, setSelectedMatch] = useState(0);
   const [mapView, setMapView] = useState<'top' | 'front'>('top');
@@ -28,15 +30,22 @@ export function SearchTestsScreen() {
   const match = result?.matches[selectedMatch];
   const hasTop = Boolean(result?.maps.topViews.length);
   const hasFront = Boolean(result?.maps.frontViews.length);
+  const searchableSchemes = schemes.filter(schemeCanRunSearchTests);
+  const requestedSchemeId = searchParams.get('schemeId');
+  const defaultSchemeId = requestedSchemeId && searchableSchemes.some((scheme) => scheme.id === requestedSchemeId)
+    ? requestedSchemeId
+    : searchableSchemes.find((scheme) => scheme.isActive)?.id ?? searchableSchemes[0]?.id;
 
   return (
     <div className="admin-content admin-content--wide">
-      <header className="admin-page-heading"><div><h1>Pruebas de búsqueda</h1><p>Consulta cualquier esquema, aunque todavía no tenga mapas.</p></div></header>
+      <header className="admin-page-heading"><div><h1>Pruebas de búsqueda</h1><p>Consulta esquemas con rangos parcial o completamente definidos.</p></div></header>
 
       <form className="admin-card admin-search-form" onSubmit={(event) => void search(event)}>
-        <div className="admin-field"><label htmlFor="test-scheme">Esquema</label><select id="test-scheme" name="schemeId" defaultValue={schemes.find((scheme) => scheme.isActive)?.id}>{schemes.map((scheme) => <option key={scheme.id} value={scheme.id}>{scheme.name}{scheme.isActive ? ' (activo)' : ''}</option>)}</select></div>
-        <div className="admin-field admin-search-query"><label htmlFor="test-call-number">Signatura</label><input id="test-call-number" name="callNumber" placeholder="Ej. 515 A" required /><button className="admin-button" type="submit">Buscar</button></div>
+        <div className="admin-field"><label htmlFor="test-scheme">Esquema</label><select id="test-scheme" name="schemeId" defaultValue={defaultSchemeId} disabled={!searchableSchemes.length}>{searchableSchemes.map((scheme) => <option key={scheme.id} value={scheme.id}>{scheme.name}{scheme.isActive ? ' (activo)' : ''}</option>)}</select></div>
+        <div className="admin-field admin-search-query"><label htmlFor="test-call-number">Signatura</label><input id="test-call-number" name="callNumber" placeholder="Ej. 515 A" required disabled={!searchableSchemes.length} /><button className="admin-button" type="submit" disabled={!searchableSchemes.length}>Buscar</button></div>
       </form>
+
+      {!searchableSchemes.length ? <div className="admin-empty">No hay esquemas con rangos definidos.</div> : null}
 
       {!result ? <div className="admin-empty admin-search-empty">Ejecuta una búsqueda para ver las coincidencias y su recorrido.</div> : (
         <section className="admin-search-results" aria-live="polite">

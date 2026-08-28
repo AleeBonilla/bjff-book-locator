@@ -243,3 +243,7 @@ export function locationRoute(scheme: Scheme, location: Location) {
 export function schemeCanUseMapsAndRanges(scheme: Scheme) {
   return ['LOCATIONS_DEFINED', 'PARTIALLY_ASSIGNED', 'ASSIGNED'].includes(scheme.status);
 }
+
+export function schemeCanRunSearchTests(scheme: Scheme) {
+  return ['PARTIALLY_ASSIGNED', 'ASSIGNED'].includes(scheme.status);
+}

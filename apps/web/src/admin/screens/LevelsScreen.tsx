@@ -76,19 +76,12 @@ export function LevelsScreen() {
         ))}
       </div>
 
-      <div className="admin-summary-strip">
-        <strong>Precisión de búsqueda</strong>
-        <span>Los rangos se asignarán en {names[terminalIndex] || 'el nivel seleccionado'}; la cobertura superior se calculará.</span>
-      </div>
-
       {editable ? (
         <div className="admin-form-actions">
           <button className="admin-button admin-button--quiet" type="button" onClick={() => void save(false)}>Guardar</button>
           <button className="admin-button" type="button" onClick={() => void save(true)}>Confirmar niveles</button>
         </div>
-      ) : (
-        <p className="admin-locked-note">Los niveles están confirmados.</p>
-      )}
+      ) : null}
     </section>
   );
 }

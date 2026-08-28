@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { AdminRoot } from './admin/components/AdminShell';
 import { WorkflowLayout } from './admin/components/WorkflowLayout';
+import { DangerZoneScreen } from './admin/screens/DangerZoneScreen';
 import { LevelsScreen } from './admin/screens/LevelsScreen';
 import { LocationsScreen } from './admin/screens/LocationsScreen';
 import { MapsScreen } from './admin/screens/MapsScreen';
@@ -35,6 +36,7 @@ export function App() {
                 <Route path="maps" element={<MapsScreen />} />
                 <Route path="ranges" element={<RangesScreen />} />
                 <Route path="review" element={<ReviewScreen />} />
+                <Route path="danger" element={<DangerZoneScreen />} />
               </Route>
             </Route>
           </Route>

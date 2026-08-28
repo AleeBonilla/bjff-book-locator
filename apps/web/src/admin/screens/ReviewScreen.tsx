@@ -44,7 +44,10 @@ export function ReviewScreen() {
     <section className="admin-stage" aria-labelledby="review-title">
       <div className="admin-stage-heading">
         <div><h2 id="review-title">Revisar y publicar</h2><p>La publicación habilita este esquema para la búsqueda pública.</p></div>
-        <span className={`admin-readiness ${review.publishable || scheme.publishedAt ? 'is-ready' : ''}`}>{scheme.publishedAt ? 'Publicado' : review.publishable ? 'Listo' : 'Incompleto'}</span>
+        <div className="admin-stage-actions">
+          <Link className="admin-button admin-button--quiet" to={`/admin/search-tests?schemeId=${encodeURIComponent(scheme.id)}`}>Probar búsqueda</Link>
+          <span className={`admin-readiness ${review.publishable || scheme.publishedAt ? 'is-ready' : ''}`}>{scheme.publishedAt ? 'Publicado' : review.publishable ? 'Listo' : 'Incompleto'}</span>
+        </div>
       </div>
 
       <div className="admin-review-grid">

@@ -23,16 +23,15 @@ function SchemeForm({
   }
 
   return (
-    <form className="admin-card admin-form" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="admin-card admin-form admin-scheme-form" onSubmit={(event) => void handleSubmit(event)}>
       <div className="admin-field">
         <label htmlFor="scheme-name">Nombre del esquema</label>
         <input id="scheme-name" name="name" defaultValue={initialName} maxLength={120} required autoFocus />
       </div>
       <div className="admin-field">
-        <label htmlFor="scheme-description">Descripción breve <span>Opcional</span></label>
+        <label htmlFor="scheme-description">Descripción breve (opcional)</label>
         <textarea id="scheme-description" name="description" defaultValue={initialDescription} rows={3} maxLength={280} />
       </div>
-      <p className="admin-form-note">El perfil de ordenamiento se asigna automáticamente.</p>
       <div className="admin-form-actions">
         <button className="admin-button" type="submit">{submitLabel}</button>
         <Link className="admin-button admin-button--quiet" to="/admin">Cancelar</Link>
@@ -57,8 +56,8 @@ export function NewSchemeScreen() {
   return (
     <div className="admin-content admin-content--wide">
       <div className="admin-workspace-heading">
-        <Link className="admin-back" to="/admin">Volver a esquemas</Link>
         <div><p className="admin-eyebrow">Nuevo esquema</p><h1>Crear esquema</h1></div>
+        <Link className="admin-back" to="/admin">Volver a esquemas</Link>
       </div>
       <WorkflowSteps scheme={null} />
       <section className="admin-stage" aria-labelledby="new-scheme-title">
@@ -85,7 +84,10 @@ export function SchemeDetailsScreen() {
     <section className="admin-stage" aria-labelledby="scheme-details-title">
       <div className="admin-stage-heading"><div><h2 id="scheme-details-title">Datos del esquema</h2></div></div>
       {scheme.publishedAt ? (
-        <div className="admin-card"><p>Este esquema está publicado y se conserva sin cambios.</p></div>
+        <div className="admin-status-notice admin-status-notice--panel" role="status">
+          <strong>Esquema publicado</strong>
+          <span>No se pueden realizar cambios.</span>
+        </div>
       ) : (
         <SchemeForm
           initialName={scheme.name}
@@ -94,6 +96,7 @@ export function SchemeDetailsScreen() {
           onSubmit={update}
         />
       )}
+
     </section>
   );
 }

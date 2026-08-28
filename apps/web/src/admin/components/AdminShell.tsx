@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth/AuthContext';
+import { Brand } from '../../components/Brand';
 import { AdminProvider, useAdmin } from '../AdminContext';
 
 function AdminLayout() {
@@ -17,9 +18,9 @@ function AdminLayout() {
     <div className="admin-page">
       <header className="admin-topbar">
         <NavLink className="admin-brand" to="/admin" aria-label="Ir a esquemas">
-          <span className="admin-brand__mark">BJFF</span>
+          <span className="admin-brand__logo"><Brand /></span>
           <span className="admin-brand__copy">
-            <strong>Localizador de libros</strong>
+            <strong>Panel de configuración</strong>
             <span>Biblioteca José Figueres Ferrer</span>
           </span>
         </NavLink>

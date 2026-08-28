@@ -21,6 +21,7 @@ export interface AdminGateway {
   getScheme(schemeId: string): Promise<ApiSuccess<Scheme>>;
   createScheme(input: CreateSchemeInput): Promise<ApiSuccess<Scheme>>;
   updateScheme(schemeId: string, input: UpdateSchemeInput): Promise<ApiSuccess<Scheme>>;
+  deleteScheme(schemeId: string): Promise<ApiSuccess<null>>;
   cloneScheme(
     schemeId: string,
     input: { name: string; scope: CloneScope },

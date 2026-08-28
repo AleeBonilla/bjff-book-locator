@@ -125,10 +125,7 @@ export function LocationsScreen() {
 
       <div className="admin-card admin-location-card">
         {!roots.length ? (
-          <div className="admin-empty admin-empty--action">
-            <span>Aún no hay ubicaciones.</span>
-            {editable ? <button className="admin-button" type="button" onClick={() => setAddParent('root')}>Añadir {scheme.levels[0]?.name ?? 'ubicación'}</button> : null}
-          </div>
+          <div className="admin-empty"><span>Aún no hay ubicaciones.</span></div>
         ) : (
           <ol className="admin-location-tree">
             {roots.map((root) => <LocationBranch key={root.id} location={root} scheme={scheme} editable={editable} onAdd={setAddParent} onDelete={setDeleteTarget} />)}
@@ -138,13 +135,13 @@ export function LocationsScreen() {
 
       {editable ? (
         <div className="admin-form-actions admin-form-actions--between">
-          {roots.length ? <button className="admin-button admin-button--quiet" type="button" onClick={() => setAddParent('root')}>Añadir {scheme.levels[0]?.name ?? 'raíz física'}</button> : <span />}
+          <button className="admin-button admin-button--quiet" type="button" onClick={() => setAddParent('root')}>Añadir {scheme.levels[0]?.name ?? 'raíz física'}</button>
           <button className="admin-button" type="button" onClick={() => void confirmLocations()} disabled={!scheme.locations.length}>Confirmar ubicaciones</button>
         </div>
       ) : (
-        <div className="admin-post-actions">
-          <span>Las ubicaciones están confirmadas.</span>
-          <div>
+        <div className="admin-completion-panel">
+          <p className="admin-status-notice">Las ubicaciones están confirmadas.</p>
+          <div className="admin-completion-actions">
             {!scheme.publishedAt ? <button className="admin-button admin-button--danger" type="button" onClick={() => setReopen(true)}>Editar ubicaciones</button> : null}
             <Link className="admin-button" to="../maps">Configurar mapas</Link>
             <Link className="admin-button admin-button--quiet" to="../ranges">Asignar rangos</Link>

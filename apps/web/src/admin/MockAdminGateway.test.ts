@@ -59,6 +59,10 @@ describe('MockAdminGateway', () => {
     })).data;
     await gateway.confirmLocations(schemeId);
 
+    await expect(gateway.searchTests(schemeId, '515 A')).rejects.toMatchObject({
+      code: 'SCHEME_NOT_SEARCHABLE',
+    });
+
     await gateway.saveRange(schemeId, {
       locationId: firstShelves[0]!.id,
       rangeStart: '500 A',

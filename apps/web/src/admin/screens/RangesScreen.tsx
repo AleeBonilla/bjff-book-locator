@@ -76,7 +76,7 @@ export function RangesScreen() {
   return (
     <section className="admin-stage" aria-labelledby="ranges-title">
       <div className="admin-stage-heading">
-        <div><h2 id="ranges-title">Asignar rangos</h2><p>Los rangos solapados están permitidos.</p></div>
+        <div><h2 id="ranges-title">Asignar rangos</h2></div>
         <span className={`admin-readiness ${completed === terminals.length && terminals.length ? 'is-ready' : ''}`}>{completed} de {terminals.length}</span>
       </div>
 
@@ -133,7 +133,7 @@ export function RangesScreen() {
         </div>
       )}
 
-      {completed === terminals.length && terminals.length ? <div className="admin-post-actions"><span>Todos los rangos están definidos.</span><Link className="admin-button" to="../review">Revisar esquema</Link></div> : null}
+      {completed === terminals.length && terminals.length ? <div className="admin-completion-panel"><p className="admin-status-notice">Todos los rangos están definidos.</p><Link className="admin-button" to="../review">Revisar esquema</Link></div> : null}
     </section>
   );
 }

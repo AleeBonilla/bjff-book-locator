@@ -21,6 +21,7 @@ import {
   type SearchTestResult,
   type UpdateSchemeInput,
   locationRoute,
+  schemeCanRunSearchTests,
   terminalLocations,
 } from './types';
 
@@ -252,6 +253,12 @@ export class MockAdminGateway implements AdminGateway {
     if (input.shortDescription !== undefined) scheme.shortDescription = input.shortDescription.trim();
     this.touch(scheme);
     return response(scheme);
+  }
+
+  async deleteScheme(schemeId: string) {
+    this.scheme(schemeId);
+    this.schemes.delete(schemeId);
+    return response(null);
   }
 
   async cloneScheme(schemeId: string, input: { name: string; scope: CloneScope }) {
@@ -729,20 +736,16 @@ export class MockAdminGateway implements AdminGateway {
 
   async searchTests(schemeId: string, callNumber: string) {
     const scheme = this.scheme(schemeId);
+    if (!schemeCanRunSearchTests(scheme)) {
+      fail(409, 'SCHEME_NOT_SEARCHABLE', 'El esquema todavía no tiene rangos para probar la búsqueda.');
+    }
     const query = callNumber.trim();
     if (!query) fail(400, 'CALL_NUMBER_REQUIRED', 'Escribe una signatura para probar.');
     const normalized = query.toUpperCase().replace(/\s+/g, ' ');
-    const ranges = scheme.ranges.length ? scheme.ranges : terminalLocations(scheme).slice(0, 3).map((location) => ({
-      locationId: location.id,
-      rangeStart: 'Sin rango',
-      rangeEnd: 'Sin rango',
-    }));
-    let matchedRanges = ranges.filter((range) =>
-      range.rangeStart === 'Sin rango'
-      || (range.rangeStart.localeCompare(normalized, undefined, { numeric: true }) <= 0
-        && range.rangeEnd.localeCompare(normalized, undefined, { numeric: true }) >= 0),
+    const matchedRanges = scheme.ranges.filter((range) =>
+      range.rangeStart.localeCompare(normalized, undefined, { numeric: true }) <= 0
+        && range.rangeEnd.localeCompare(normalized, undefined, { numeric: true }) >= 0,
     );
-    if (!matchedRanges.length) matchedRanges = ranges.slice(0, 3);
     const matches: SearchMatch[] = matchedRanges.slice(0, 8).flatMap((range) => {
       const location = scheme.locations.find((candidate) => candidate.id === range.locationId);
       if (!location) return [];

@@ -27,7 +27,7 @@ function SchemeTable({
 
   return (
     <div className="admin-table-scroll">
-      <table className="admin-table">
+      <table className="admin-table admin-scheme-table">
         <thead>
           <tr><th>Esquema</th><th>Estado</th><th>Actualización</th><th>Acciones</th></tr>
         </thead>
