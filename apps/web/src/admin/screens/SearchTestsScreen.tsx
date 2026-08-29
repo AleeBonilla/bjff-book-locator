@@ -2,12 +2,12 @@ import { type FormEvent, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { useAdmin } from '../AdminContext';
-import { PageLoading } from '../components/Common';
-import { svgDataUrl } from '../svg';
+import { HighlightedMapImage } from '../components/HighlightedMapImage';
+import { PageError, PageLoading } from '../components/Common';
 import { schemeCanRunSearchTests, type SearchTestResult } from '../types';
 
 export function SearchTestsScreen() {
-  const { schemes, loading, gateway, notify } = useAdmin();
+  const { schemes, loading, error, refresh, gateway, notify } = useAdmin();
   const [searchParams] = useSearchParams();
   const [result, setResult] = useState<SearchTestResult | null>(null);
   const [selectedMatch, setSelectedMatch] = useState(0);
@@ -27,6 +27,7 @@ export function SearchTestsScreen() {
   }
 
   if (loading) return <PageLoading label="Cargando esquemas…" />;
+  if (error) return <PageError message={error} onRetry={refresh} />;
   const match = result?.matches[selectedMatch];
   const hasTop = Boolean(result?.maps.topViews.length);
   const hasFront = Boolean(result?.maps.frontViews.length);
@@ -58,8 +59,8 @@ export function SearchTestsScreen() {
                 <button type="button" role="tab" className={mapView === 'front' ? 'is-active' : ''} aria-selected={mapView === 'front'} onClick={() => setMapView('front')} disabled={!hasFront}>Frontal</button>
               </div>
               <div className="admin-search-canvas">
-                {mapView === 'top' && hasTop ? result.maps.topViews.map((view) => <figure key={view.name}><figcaption>{view.name}</figcaption><img src={svgDataUrl(view.source)} alt={`Vista superior ${view.name}`} /></figure>) : null}
-                {mapView === 'front' && hasFront ? result.maps.frontViews.map((view) => <figure key={view.name}><figcaption>{view.name}</figcaption><img src={svgDataUrl(view.source)} alt={`Vista frontal ${view.name}`} /></figure>) : null}
+                {mapView === 'top' && hasTop ? result.maps.topViews.map((view) => <figure key={view.id}><figcaption>{view.name}</figcaption><HighlightedMapImage assetUrl={view.assetUrl} attribute="data-location-code" values={view.highlightLocationCodes} alt={`Vista superior ${view.name}`} /></figure>) : null}
+                {mapView === 'front' && hasFront ? result.maps.frontViews.map((view) => <figure key={view.id}><figcaption>{view.name}</figcaption><HighlightedMapImage assetUrl={view.assetUrl} attribute="data-slot" values={view.highlightSlots} alt={`Vista frontal ${view.name}`} /></figure>) : null}
                 {!hasTop && mapView === 'top' ? <div className="admin-empty"><strong>Resultado sin mapa</strong><span>La ruta textual está disponible en los detalles.</span></div> : null}
               </div>
             </div>

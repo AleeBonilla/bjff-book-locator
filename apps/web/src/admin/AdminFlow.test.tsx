@@ -2,10 +2,11 @@ import { fireEvent, render, screen, waitForElementToBeRemoved, within } from '@t
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { App } from '../App';
+import { MockAdminGateway } from './MockAdminGateway';
 
 async function login() {
   window.history.replaceState({}, '', '/login');
-  const view = render(<App />);
+  const view = render(<App adminGateway={new MockAdminGateway()} />);
   fireEvent.change(screen.getByLabelText('Usuario'), { target: { value: 'admin' } });
   fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'admin' } });
   fireEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
@@ -68,6 +69,28 @@ describe('flujo administrativo', () => {
     expect(within(workflow).getByRole('link', { name: '05 Rangos' })).toBeInTheDocument();
   });
 
+  it('permite exportar rutas CSV por nivel o el árbol completo como TXT', async () => {
+    await login();
+    const readyScheme = screen.getByRole('row', { name: /Colección general 2026/ });
+    fireEvent.click(within(readyScheme).getByRole('link', { name: 'Revisar' }));
+    const workflow = await screen.findByRole('navigation', { name: 'Progreso de configuración' });
+    fireEvent.click(within(workflow).getByRole('link', { name: '03 Ubicaciones' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar ubicaciones' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Exportar ubicaciones' });
+    const format = within(dialog).getByLabelText('Formato');
+    expect(within(format).getByRole('option', { name: 'CSV por rutas' })).toBeInTheDocument();
+    expect(within(format).getByRole('option', { name: 'TXT jerárquico' })).toBeInTheDocument();
+    const selection = within(dialog).getByLabelText('Nivel final');
+    expect(within(selection).getByRole('option', { name: 'Ruta completa hasta Anaquel' })).toBeInTheDocument();
+    expect(within(selection).getByRole('option', { name: 'Hasta Mueble' })).toBeInTheDocument();
+    fireEvent.change(selection, { target: { value: '23-level-4' } });
+    expect(selection).toHaveValue('23-level-4');
+    fireEvent.change(format, { target: { value: 'txt' } });
+    expect(within(dialog).queryByLabelText('Nivel final')).not.toBeInTheDocument();
+    expect(within(dialog).getByText('Incluye todo el árbol indentado con el código de cada ubicación.')).toBeInTheDocument();
+  });
+
   it('ejecuta una búsqueda interna con coincidencias, mapas y ruta textual', async () => {
     await login();
     fireEvent.click(screen.getByRole('link', { name: 'Pruebas de búsqueda' }));
@@ -99,6 +122,56 @@ describe('flujo administrativo', () => {
 
     expect(disclosure).toHaveAttribute('open');
     expect(within(disclosure!).getAllByText('Tres anaqueles')).toHaveLength(2);
+  });
+
+  it('carga mapas superiores y variantes frontales mediante archivos SVG', async () => {
+    await login();
+    const readyScheme = screen.getByRole('row', { name: /Colección general 2026/ });
+    fireEvent.click(within(readyScheme).getByRole('link', { name: 'Revisar' }));
+    const workflow = await screen.findByRole('navigation', { name: 'Progreso de configuración' });
+    fireEvent.click(within(workflow).getByRole('link', { name: '04 Mapas' }));
+
+    fireEvent.change(await screen.findByLabelText('Nombre'), { target: { value: 'Plano adicional' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mueble' }));
+    const topFile = document.querySelector<HTMLInputElement>('input[type="file"]');
+    expect(topFile).not.toBeNull();
+    fireEvent.change(topFile!, {
+      target: {
+        files: [new File([
+          '<svg xmlns="http://www.w3.org/2000/svg"><rect data-location-code="23-1-1-1-1"/></svg>',
+        ], 'plano-adicional.svg', { type: 'image/svg+xml' })],
+      },
+    });
+    fireEvent.submit(topFile!.closest('form')!);
+    expect(await screen.findByRole('status')).toHaveTextContent('Mapa superior guardado.');
+    expect(await screen.findByText('Plano adicional')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Vista frontal' }));
+    const layerForm = screen.getByRole('heading', { name: 'Nueva capa frontal' }).closest('form');
+    expect(layerForm).not.toBeNull();
+    fireEvent.change(within(layerForm!).getByLabelText('Nombre'), { target: { value: 'Anaqueles alternos' } });
+    fireEvent.submit(layerForm!);
+
+    expect((await screen.findAllByRole('option', { name: 'Anaqueles alternos' })).length).toBeGreaterThan(0);
+    const variantForm = screen.getByRole('heading', { name: 'Nueva variante' }).closest('form');
+    expect(variantForm).not.toBeNull();
+    const layerSelect = within(variantForm!).getByLabelText('Capa');
+    const layerOption = within(layerSelect).getByRole('option', { name: 'Anaqueles alternos' });
+    fireEvent.change(layerSelect, { target: { value: layerOption.getAttribute('value') } });
+    fireEvent.change(within(variantForm!).getByLabelText('Variante'), { target: { value: 'Tres espacios alternos' } });
+    fireEvent.change(within(variantForm!).getByLabelText('Código'), { target: { value: 'three-alt' } });
+    fireEvent.change(within(variantForm!).getByLabelText(/Cantidad de/), { target: { value: '3' } });
+    const variantFile = within(variantForm!).getByLabelText(/Archivo SVG/) as HTMLInputElement;
+    fireEvent.change(variantFile, {
+      target: {
+        files: [new File([
+          '<svg xmlns="http://www.w3.org/2000/svg"><rect data-slot="1"/><rect data-slot="2"/><rect data-slot="3"/></svg>',
+        ], 'frontal.svg', { type: 'image/svg+xml' })],
+      },
+    });
+    fireEvent.submit(variantForm!);
+
+    expect((await screen.findAllByText('Tres espacios alternos')).length).toBeGreaterThan(0);
   });
 
   it('advierte el estado y los datos afectados antes de eliminar un esquema', async () => {

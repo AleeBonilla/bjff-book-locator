@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 
-import { useAdmin } from '../AdminContext';
+import { errorMessage, useAdmin } from '../AdminContext';
 import { Modal } from '../components/Common';
 import type { SchemeWorkspaceContext } from '../components/WorkflowLayout';
 import type { Location, Scheme } from '../types';
@@ -50,10 +50,13 @@ function LocationBranch({
 
 export function LocationsScreen() {
   const { scheme } = useOutletContext<SchemeWorkspaceContext>();
-  const { gateway, commit } = useAdmin();
+  const { gateway, commit, notify } = useAdmin();
   const [addParent, setAddParent] = useState<Location | 'root' | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Location | null>(null);
   const [reopen, setReopen] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'txt'>('csv');
+  const [csvLevelId, setCsvLevelId] = useState('all');
   const editable = scheme.status === 'LEVELS_DEFINED' && !scheme.publishedAt;
   const roots = scheme.locations
     .filter((location) => location.parentLocationId === null)
@@ -106,21 +109,35 @@ export function LocationsScreen() {
     }
   }
 
-  async function downloadCsv() {
-    const { data } = await gateway.exportLocationsCsv(scheme.id);
-    const url = URL.createObjectURL(new Blob([data], { type: 'text/csv;charset=utf-8' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `ubicaciones-${scheme.id}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+  async function downloadLocations(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      const selectedLevelId = exportFormat === 'csv' && csvLevelId !== 'all' ? csvLevelId : undefined;
+      const { data } = exportFormat === 'txt'
+        ? await gateway.exportLocationsText(scheme.id)
+        : await gateway.exportLocationsCsv(scheme.id, selectedLevelId);
+      const contentType = exportFormat === 'txt' ? 'text/plain;charset=utf-8' : 'text/csv;charset=utf-8';
+      const url = URL.createObjectURL(new Blob([data], { type: contentType }));
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = exportFormat === 'txt'
+        ? `ubicaciones-${scheme.id}-jerarquia.txt`
+        : selectedLevelId === undefined
+          ? `ubicaciones-${scheme.id}-completo.csv`
+          : `ubicaciones-${scheme.id}-hasta-nivel-${selectedLevelId}.csv`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setCsvOpen(false);
+    } catch (requestError) {
+      notify(errorMessage(requestError), 'error');
+    }
   }
 
   return (
     <section className="admin-stage" aria-labelledby="locations-title">
       <div className="admin-stage-heading">
         <div><h2 id="locations-title">Crear ubicaciones</h2><p>Añade cada rama siguiendo los niveles definidos.</p></div>
-        <button className="admin-button admin-button--quiet" type="button" onClick={() => void downloadCsv()} disabled={!scheme.locations.length}>Generar CSV</button>
+        <button className="admin-button admin-button--quiet" type="button" onClick={() => setCsvOpen(true)} disabled={!scheme.locations.length}>Exportar ubicaciones</button>
       </div>
 
       <div className="admin-card admin-location-card">
@@ -157,6 +174,34 @@ export function LocationsScreen() {
             <div className="admin-form-actions">
               <button className="admin-button" type="submit">Añadir</button>
               <button className="admin-button admin-button--quiet" type="button" onClick={() => setAddParent(null)}>Cancelar</button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
+
+      {csvOpen ? (
+        <Modal title="Exportar ubicaciones" onClose={() => setCsvOpen(false)}>
+          <form className="admin-form" onSubmit={(event) => void downloadLocations(event)}>
+            <label htmlFor="export-format">Formato</label>
+            <select id="export-format" value={exportFormat} onChange={(event) => setExportFormat(event.target.value as 'csv' | 'txt')} autoFocus>
+              <option value="csv">CSV por rutas</option>
+              <option value="txt">TXT jerárquico</option>
+            </select>
+            {exportFormat === 'csv' ? (
+              <>
+                <label htmlFor="csv-content">Nivel final</label>
+                <select id="csv-content" value={csvLevelId} onChange={(event) => setCsvLevelId(event.target.value)}>
+                  <option value="all">Ruta completa hasta {scheme.levels.at(-1)?.name ?? 'el último nivel'}</option>
+                  {scheme.levels.slice(0, -1).map((level) => <option key={level.id} value={level.id}>Hasta {level.name}</option>)}
+                </select>
+                <p className="admin-form-note">Cada nivel ocupa dos columnas: nombre y código.</p>
+              </>
+            ) : (
+              <p className="admin-form-note">Incluye todo el árbol indentado con el código de cada ubicación.</p>
+            )}
+            <div className="admin-form-actions">
+              <button className="admin-button" type="submit">Descargar {exportFormat.toUpperCase()}</button>
+              <button className="admin-button admin-button--quiet" type="button" onClick={() => setCsvOpen(false)}>Cancelar</button>
             </div>
           </form>
         </Modal>

@@ -4,7 +4,7 @@ BJFF Book Locator relaciona signaturas bibliográficas basadas en DDC con ubicac
 
 ## Estado del proyecto
 
-El repositorio contiene la búsqueda pública inicial, el frontend administrativo con datos simulados, la API administrativa V1, las especificaciones funcionales, el esquema PostgreSQL y el package de dominio para interpretar y ordenar signaturas. La autenticación real, la conexión del frontend administrativo y la búsqueda pública mediante API permanecen fuera de esta etapa.
+El repositorio contiene la búsqueda pública inicial, el panel administrativo conectado con la API, las especificaciones funcionales, el esquema PostgreSQL y el package de dominio para interpretar y ordenar signaturas. La autenticación real y la búsqueda pública mediante API permanecen fuera de esta etapa.
 
 ## Tecnologías
 
@@ -21,7 +21,7 @@ El repositorio contiene la búsqueda pública inicial, el frontend administrativ
 
 | Ruta | Contenido |
 |---|---|
-| [`apps/web`](apps/web) | Búsqueda pública, login mock y módulo administrativo React preparado para consumir la API. |
+| [`apps/web`](apps/web) | Búsqueda pública, login mock y panel administrativo React conectado con la API. |
 | [`apps/api`](apps/api) | API Express, acceso a PostgreSQL y pruebas HTTP. |
 | [`packages/call-number`](packages/call-number) | Normalización `base-1`, comparación bibliográfica y codificación binaria `ck1`, con pruebas de conformidad. |
 | [`package.json`](package.json) | Workspaces y comandos compartidos de npm. |
@@ -66,19 +66,20 @@ Servicios de desarrollo:
 
 `npm run dev` mantiene frontend y backend activos en la misma terminal. Vite reenvía las solicitudes `/api` hacia Express durante el desarrollo.
 
-## Frontend administrativo mock
+## Panel administrativo
 
-Para ejecutar solamente el frontend:
+El panel requiere PostgreSQL y la API activos. Inicie el entorno completo con:
 
 ```powershell
-npm run dev:web
+npm run db:up
+npm run dev
 ```
 
 Abra `http://localhost:5173/login` e ingrese con el usuario `admin` y la contraseña `admin`. Estas credenciales solo existen en memoria dentro del frontend y no representan el actor técnico de PostgreSQL.
 
-El módulo administrativo permite recorrer esquemas, niveles, ubicaciones, mapas, rangos, revisión, clonación, publicación y pruebas de búsqueda. `AdminGateway` define el límite de datos y `MockAdminGateway` simula el contrato descrito en [`docs/api/admin-api-v1.md`](docs/api/admin-api-v1.md); esta etapa no realiza solicitudes HTTP.
+El módulo permite gestionar esquemas, niveles, ubicaciones, mapas, rangos, revisión, clonación, publicación y pruebas de búsqueda. `HttpAdminGateway` consume el contrato descrito en [`docs/api/admin-api-v1.md`](docs/api/admin-api-v1.md). `MockAdminGateway` se conserva únicamente para las pruebas del frontend.
 
-La sesión y los cambios simulados se pierden al recargar la página. El prototipo HTML de [`prototypes/admin`](prototypes/admin) permanece como referencia visual hasta validar la integración.
+La sesión mock se pierde al recargar la página; los cambios administrativos permanecen en PostgreSQL. `npm run dev:web` sigue siendo útil para revisar la búsqueda pública y el login, pero el panel mostrará un error de conexión si la API no está activa. El prototipo HTML de [`prototypes/admin`](prototypes/admin) permanece como referencia visual.
 
 ## Base de datos local
 

@@ -14,13 +14,13 @@ export interface ApiSuccess<T> {
 export interface AdminErrorBody {
   code: string;
   message: string;
-  details: string[];
+  details: unknown[];
 }
 
 export class AdminGatewayError extends Error {
   readonly status: number;
   readonly code: string;
-  readonly details: string[];
+  readonly details: unknown[];
 
   constructor(status: number, error: AdminErrorBody) {
     super(error.message);
@@ -59,11 +59,14 @@ export interface LocationRange {
 
 export interface TopMap {
   id: string;
+  svgId: string | null;
   name: string;
   svgName: string;
-  source: string;
+  assetUrl: string | null;
   representedLevelIds: string[];
+  drilldowns: Record<string, string | null>;
   enabled: boolean;
+  svgEnabled: boolean;
 }
 
 export interface FrontMapVariant {
@@ -71,7 +74,8 @@ export interface FrontMapVariant {
   name: string;
   variantCode: string;
   slotCount: number;
-  source: string;
+  assetUrl: string;
+  enabled: boolean;
 }
 
 export interface FrontMapLayer {
@@ -132,25 +136,62 @@ export interface SaveRangeInput {
 export interface SaveTopMapInput {
   name: string;
   svgName: string;
-  source: string;
+  file: File;
   representedLevelIds: string[];
 }
 
-export interface SaveFrontVariantInput {
-  layerId?: string;
-  layerName: string;
+export interface CreateFrontLayerInput {
+  name: string;
   representedLevelId: string;
+}
+
+export interface SaveFrontVariantInput {
+  layerId: string;
   variantName: string;
   variantCode: string;
   slotCount: number;
-  source: string;
+  file: File;
+}
+
+export interface ReplaceMapSvgInput {
+  name?: string;
+  variantCode?: string;
+  slotCount?: number;
+  enabled?: boolean;
+  file?: File;
+}
+
+export interface UpdateMapLayerInput {
+  name?: string;
+  enabled?: boolean;
+}
+
+export interface MapUploadResult {
+  mapLayerId?: string;
+  mapLayerSvgId: string;
+  assetUrl: string;
+  removedItems: number;
+}
+
+export interface MapBlocker {
+  code: string;
+  message: string;
 }
 
 export interface MapValidation {
   ready: boolean;
-  topCoveredLocationIds: string[];
-  missingTopLocationIds: string[];
-  frontWarnings: string[];
+  top: {
+    layerCount: number;
+    coveredTerminalCount: number;
+    terminalCount: number;
+    missingLocationCodes: string[];
+  };
+  front: {
+    layerCount: number;
+    missingAssignmentCount: number;
+    unlinkedLayerCount: number;
+  };
+  blockers: MapBlocker[];
 }
 
 export interface SchemeReview {
@@ -161,7 +202,7 @@ export interface SchemeReview {
   assignedRangeCount: number;
   missingRangeLocationIds: string[];
   mapValidation: MapValidation;
-  blockers: string[];
+  blockers: MapBlocker[];
   publishable: boolean;
 }
 
@@ -180,15 +221,24 @@ export interface SearchMatch {
 }
 
 export interface SearchTopView {
+  id: string;
   name: string;
-  source: string;
+  assetUrl: string;
   highlightLocationCodes: string[];
 }
 
 export interface SearchFrontView {
+  id: string;
   name: string;
-  source: string;
+  assetUrl: string;
   highlightSlots: number[];
+}
+
+export interface DeleteSchemeResult {
+  schemeId: string;
+  deleted: true;
+  wasActive: boolean;
+  wasPublished: boolean;
 }
 
 export interface SearchTestResult {

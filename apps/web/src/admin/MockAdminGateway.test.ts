@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { MockAdminGateway } from './MockAdminGateway';
 import { sanitizeSvgForPreview } from './svg';
 
+function svgSource(assetUrl: string | null | undefined) {
+  return assetUrl ? decodeURIComponent(assetUrl.slice(assetUrl.indexOf(',') + 1)) : '';
+}
+
 const threeLevels = [
   { key: 'floor', parentKey: null, name: 'Piso', sortOrder: 1, isSearchTerminal: false },
   { key: 'furniture', parentKey: 'floor', name: 'Mueble', sortOrder: 2, isSearchTerminal: false },
@@ -104,7 +108,7 @@ describe('MockAdminGateway', () => {
       name: 'Plano',
       svgName: 'plano.svg',
       representedLevelIds: [representedLevelId],
-      source: `<svg xmlns="http://www.w3.org/2000/svg">${groups}</svg>`,
+      file: new File([`<svg xmlns="http://www.w3.org/2000/svg">${groups}</svg>`], 'plano.svg', { type: 'image/svg+xml' }),
     });
 
     expect((await gateway.reviewScheme(schemeId)).data.publishable).toBe(true);
@@ -132,8 +136,8 @@ describe('MockAdminGateway', () => {
     expect(all.status).toBe('ASSIGNED');
     expect(all.publishedAt).toBeNull();
     expect(all.isActive).toBe(false);
-    expect(all.topMaps[0]?.source).toContain(`data-location-code="${all.id}-`);
-    expect(all.topMaps[0]?.source).not.toContain('data-location-code="18-');
+    expect(svgSource(all.topMaps[0]?.assetUrl)).toContain(`data-location-code="${all.id}-`);
+    expect(svgSource(all.topMaps[0]?.assetUrl)).not.toContain('data-location-code="18-');
   });
 });
 

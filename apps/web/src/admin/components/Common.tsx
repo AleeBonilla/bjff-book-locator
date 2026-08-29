@@ -4,8 +4,13 @@ export function PageLoading({ label = 'Cargando…' }: { label?: string }) {
   return <p className="admin-state" role="status">{label}</p>;
 }
 
-export function PageError({ message }: { message: string }) {
-  return <p className="admin-state admin-state--error" role="alert">{message}</p>;
+export function PageError({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="admin-state admin-state--error" role="alert">
+      <p>{message}</p>
+      {onRetry ? <button className="admin-button admin-button--quiet" type="button" onClick={onRetry}>Reintentar</button> : null}
+    </div>
+  );
 }
 
 export function Modal({

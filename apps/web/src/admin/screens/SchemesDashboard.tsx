@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { useAdmin } from '../AdminContext';
 import { type CloneScope, type Scheme, statusLabel } from '../types';
-import { EmptyState, Modal, PageLoading } from '../components/Common';
+import { EmptyState, Modal, PageError, PageLoading } from '../components/Common';
 
 function destinationFor(scheme: Scheme) {
   if (scheme.status === 'DRAFT') return `/admin/schemes/${scheme.id}/levels`;
@@ -52,11 +52,12 @@ function SchemeTable({
 }
 
 export function SchemesDashboard() {
-  const { schemes, loading, gateway, commit } = useAdmin();
+  const { schemes, loading, error, refresh, gateway, commit } = useAdmin();
   const navigate = useNavigate();
   const [cloneSource, setCloneSource] = useState<Scheme | null>(null);
 
   if (loading) return <PageLoading label="Cargando esquemas…" />;
+  if (error) return <PageError message={error} onRetry={refresh} />;
 
   const active = schemes.filter((scheme) => scheme.isActive);
   const ready = schemes.filter((scheme) => !scheme.isActive && !scheme.publishedAt && scheme.status === 'ASSIGNED');

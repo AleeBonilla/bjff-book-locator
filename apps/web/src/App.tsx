@@ -15,8 +15,9 @@ import { AuthProvider } from './auth/AuthContext';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { LoginScreen } from './screens/LoginScreen';
 import { SearchScreen } from './screens/SearchScreen';
+import type { AdminGateway } from './admin/AdminGateway';
 
-export function App() {
+export function App({ adminGateway }: { adminGateway?: AdminGateway | undefined }) {
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -24,7 +25,7 @@ export function App() {
           <Route path="/" element={<SearchScreen />} />
           <Route path="/login" element={<LoginScreen />} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/admin" element={<AdminRoot />}>
+            <Route path="/admin" element={<AdminRoot gateway={adminGateway} />}>
               <Route index element={<SchemesDashboard />} />
               <Route path="search-tests" element={<SearchTestsScreen />} />
               <Route path="schemes/new" element={<NewSchemeScreen />} />

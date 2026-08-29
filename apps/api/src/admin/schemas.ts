@@ -52,6 +52,10 @@ export const addLocationsSchema = z.object({
   quantity: z.number().int().min(1).max(50),
 });
 
+export const locationCsvQuerySchema = z.object({
+  levelId: z.coerce.number().int().positive().optional(),
+});
+
 export const destructiveResetSchema = z.object({
   confirmDataLoss: z.literal(true),
 });
@@ -84,6 +88,14 @@ export const createFrontLayerSchema = z.object({
   name: z.string().trim().min(1).max(120),
   representedLevelId: z.number().int().positive(),
 });
+
+export const updateMapLayerSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  enabled: z.boolean().optional(),
+}).refine(
+  (value) => Object.keys(value).length > 0,
+  'Debe indicar al menos un campo.',
+);
 
 export const assignmentSchema = z.object({
   mapLayerSvgId: z.number().int().positive().nullable(),

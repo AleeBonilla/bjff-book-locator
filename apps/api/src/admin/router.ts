@@ -20,6 +20,7 @@ import {
   drilldownSchema,
   frontVariantMetadataSchema,
   layerParamsSchema,
+  locationCsvQuerySchema,
   locationParamsSchema,
   publishSchema,
   rangeInputSchema,
@@ -29,6 +30,7 @@ import {
   searchTestSchema,
   svgParamsSchema,
   topMapMetadataSchema,
+  updateMapLayerSchema,
   updateSchemeSchema,
 } from './schemas.js';
 import { SchemeService } from './scheme-service.js';
@@ -103,6 +105,12 @@ export function createAdminRouter(options: AdminRouterOptions): Router {
     response.json({ data: await schemes.updateScheme(schemeId, updateSchemeSchema.parse(request.body)) });
   });
 
+  router.delete('/schemes/:schemeId', async (request, response) => {
+    const { schemeId } = schemeIdParamsSchema.parse(request.params);
+    destructiveResetSchema.parse(request.body);
+    response.json({ data: await maps.deleteScheme(schemeId) });
+  });
+
   router.post('/schemes/:schemeId/clone', async (request, response) => {
     const { schemeId } = schemeIdParamsSchema.parse(request.params);
     const input = cloneSchemeSchema.parse(request.body);
@@ -166,10 +174,19 @@ export function createAdminRouter(options: AdminRouterOptions): Router {
 
   router.get('/schemes/:schemeId/locations.csv', async (request, response) => {
     const { schemeId } = schemeIdParamsSchema.parse(request.params);
-    const csv = await schemes.exportLocationsCsv(schemeId);
+    const { levelId } = locationCsvQuerySchema.parse(request.query);
+    const csv = await schemes.exportLocationsCsv(schemeId, levelId);
     response.setHeader('Content-Type', 'text/csv; charset=utf-8');
     response.setHeader('Content-Disposition', `attachment; filename="ubicaciones-esquema-${schemeId}.csv"`);
     response.send(csv);
+  });
+
+  router.get('/schemes/:schemeId/locations.txt', async (request, response) => {
+    const { schemeId } = schemeIdParamsSchema.parse(request.params);
+    const content = await schemes.exportLocationsText(schemeId);
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.setHeader('Content-Disposition', `attachment; filename="ubicaciones-esquema-${schemeId}.txt"`);
+    response.send(content);
   });
 
   router.get('/schemes/:schemeId/ranges', async (request, response) => {
@@ -231,6 +248,11 @@ export function createAdminRouter(options: AdminRouterOptions): Router {
   router.delete('/schemes/:schemeId/maps/layers/:layerId', async (request, response) => {
     const { schemeId, layerId } = layerParamsSchema.parse(request.params);
     response.json({ data: await maps.deleteLayer(schemeId, layerId) });
+  });
+
+  router.patch('/schemes/:schemeId/maps/layers/:layerId', async (request, response) => {
+    const { schemeId, layerId } = layerParamsSchema.parse(request.params);
+    response.json({ data: await maps.updateLayer(schemeId, layerId, updateMapLayerSchema.parse(request.body)) });
   });
 
   router.put('/schemes/:schemeId/maps/layers/:layerId/assignments/:contextLocationId', async (request, response) => {
