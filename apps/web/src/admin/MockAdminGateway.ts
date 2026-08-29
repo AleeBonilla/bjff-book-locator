@@ -967,9 +967,12 @@ export class MockAdminGateway implements AdminGateway {
   async exportLocationsCsv(schemeId: string, levelId?: string) {
     const scheme = this.scheme(schemeId);
     const escape = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
-    const byId = new Map(scheme.locations.map((location) => [location.id, location]));
+    const targetLevel = levelId === undefined ? scheme.levels.at(-1) : scheme.levels.find((level) => level.id === levelId);
+    if (!targetLevel) fail(422, 'INVALID_CSV_LEVEL', 'El nivel solicitado no pertenece al esquema.');
+    const targetIndex = scheme.levels.findIndex((level) => level.id === targetLevel.id);
+    const levelPath = scheme.levels.slice(0, targetIndex + 1);
     const locations = scheme.locations
-      .filter((location) => levelId === undefined || location.levelId === levelId)
+      .filter((location) => location.levelId === targetLevel.id)
       .sort((left, right) => {
         const length = Math.min(left.path.length, right.path.length);
         for (let index = 0; index < length; index += 1) {
@@ -978,17 +981,38 @@ export class MockAdminGateway implements AdminGateway {
         }
         return left.path.length - right.path.length;
       });
+    const headerKey = (name: string) => name.normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('es')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'nivel';
     const lines = [
-      ['location_code', 'level_name', 'full_path', 'parent_code', 'name', 'sort_order'],
-      ...locations.map((location) => [
-        location.code,
-        scheme.levels.find((level) => level.id === location.levelId)?.name ?? '',
-        locationRoute(scheme, location).map((item) => item.name).join(' / '),
-        location.parentLocationId ? (byId.get(location.parentLocationId)?.code ?? '') : '',
-        location.name,
-        location.sortOrder,
-      ]),
+      levelPath.flatMap((level) => [`${headerKey(level.name)}_name`, `${headerKey(level.name)}_code`]),
+      ...locations.map((location) => {
+        const route = locationRoute(scheme, location);
+        return levelPath.flatMap((level) => {
+          const item = route.find((candidate) => candidate.levelId === level.id);
+          return [item?.name ?? '', item?.code ?? ''];
+        });
+      }),
     ];
     return response(`\uFEFF${lines.map((line) => line.map(escape).join(';')).join('\r\n')}`);
+  }
+
+  async exportLocationsText(schemeId: string) {
+    const scheme = this.scheme(schemeId);
+    const rows = [...scheme.locations].sort((left, right) => {
+      const length = Math.min(left.path.length, right.path.length);
+      for (let index = 0; index < length; index += 1) {
+        const difference = (left.path[index] as number) - (right.path[index] as number);
+        if (difference !== 0) return difference;
+      }
+      return left.path.length - right.path.length;
+    });
+    return response(`\uFEFF${[
+      `${scheme.name} [esquema ${scheme.id}]`,
+      '',
+      ...rows.map((location) => `${'  '.repeat(location.path.length - 1)}${location.name} [${location.code}]`),
+    ].join('\r\n')}`);
   }
 }

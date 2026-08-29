@@ -116,6 +116,54 @@ function buildRoutes(rows: LocationRow[]): Map<number, ReturnType<typeof locatio
   return routes;
 }
 
+function orderedLocationRoutes(rows: LocationRow[]) {
+  const visible = visibleLocations(rows);
+  const byId = new Map(visible.map((row) => [row.location_id, row]));
+  const items = visible.map((row) => {
+    const route: LocationRow[] = [];
+    const visited = new Set<number>();
+    let current: LocationRow | undefined = row;
+    while (current !== undefined && !visited.has(current.location_id)) {
+      visited.add(current.location_id);
+      route.unshift(current);
+      current = current.parent_location_id === null
+        ? undefined
+        : byId.get(current.parent_location_id);
+    }
+    return { row, route, order: route.map((item) => item.sort_order) };
+  });
+  items.sort((left, right) => {
+    const length = Math.min(left.order.length, right.order.length);
+    for (let index = 0; index < length; index += 1) {
+      const difference = (left.order[index] as number) - (right.order[index] as number);
+      if (difference !== 0) return difference;
+    }
+    return left.order.length - right.order.length;
+  });
+  return items;
+}
+
+function levelRoute(levels: LevelRow[], levelId: number) {
+  const byId = new Map(levels.map((level) => [level.scheme_level_id, level]));
+  const route: LevelRow[] = [];
+  const visited = new Set<number>();
+  let current = byId.get(levelId);
+  while (current !== undefined && !visited.has(current.scheme_level_id)) {
+    visited.add(current.scheme_level_id);
+    if (current.parent_level_id !== null) route.unshift(current);
+    current = current.parent_level_id === null ? undefined : byId.get(current.parent_level_id);
+  }
+  return route;
+}
+
+function csvHeaderKey(name: string) {
+  return name.normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('es')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'nivel';
+}
+
 function normalizeRange(input: RangeInput): {
   start: NormalizedCallNumber;
   end: NormalizedCallNumber;
@@ -693,50 +741,38 @@ export class SchemeService {
       getLocations(this.pool, schemeId),
       getLevels(this.pool, schemeId),
     ]);
-    if (levelId !== undefined && !levelRows.some((level) => (
-      level.scheme_level_id === levelId && level.parent_level_id !== null
-    ))) {
+    const physicalLevels = levelRows.filter((level) => level.parent_level_id !== null);
+    const targetLevel = levelId === undefined
+      ? physicalLevels.at(-1)
+      : levelRows.find((level) => level.scheme_level_id === levelId && level.parent_level_id !== null);
+    if (targetLevel === undefined) {
       throw new ApiError(422, 'INVALID_CSV_LEVEL', 'El nivel solicitado no pertenece al esquema.');
     }
-    const rows = visibleLocations(locationRows);
-    const byId = new Map(rows.map((row) => [row.location_id, row]));
-    const routeFor = (row: LocationRow) => {
-      const route: LocationRow[] = [];
-      const visited = new Set<number>();
-      let current: LocationRow | undefined = row;
-      while (current !== undefined && !visited.has(current.location_id)) {
-        visited.add(current.location_id);
-        route.unshift(current);
-        current = current.parent_location_id === null
-          ? undefined
-          : byId.get(current.parent_location_id);
-      }
-      return route;
-    };
-    const exportRows = rows.map((row) => {
-      const route = routeFor(row);
-      return { row, route, order: route.map((item) => item.sort_order) };
-    }).filter((item) => levelId === undefined || item.row.scheme_level_id === levelId);
-    exportRows.sort((left, right) => {
-      const length = Math.min(left.order.length, right.order.length);
-      for (let index = 0; index < length; index += 1) {
-        const difference = (left.order[index] as number) - (right.order[index] as number);
-        if (difference !== 0) return difference;
-      }
-      return left.order.length - right.order.length;
-    });
+    const levelPath = levelRoute(levelRows, targetLevel.scheme_level_id);
+    const exportRows = orderedLocationRoutes(locationRows)
+      .filter((item) => item.row.scheme_level_id === targetLevel.scheme_level_id);
     const quote = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
+    const headers = levelPath.flatMap((level) => {
+      const key = csvHeaderKey(level.name);
+      return [`${key}_name`, `${key}_code`];
+    });
     return `\uFEFF${[
-      ['location_code', 'level_name', 'full_path', 'parent_code', 'name', 'sort_order'],
-      ...exportRows.map(({ row, route }) => [
-        row.code,
-        row.level_name,
-        route.map((item) => item.name).join(' / '),
-        row.parent_location_id === null ? '' : (byId.get(row.parent_location_id)?.code ?? ''),
-        row.name,
-        row.sort_order,
-      ]),
+      headers,
+      ...exportRows.map(({ route }) => levelPath.flatMap((level) => {
+        const location = route.find((item) => item.scheme_level_id === level.scheme_level_id);
+        return [location?.name ?? '', location?.code ?? ''];
+      })),
     ].map((row) => row.map(quote).join(';')).join('\r\n')}`;
+  }
+
+  async exportLocationsText(schemeId: number): Promise<string> {
+    const scheme = await getScheme(this.pool, schemeId);
+    const rows = orderedLocationRoutes(await getLocations(this.pool, schemeId));
+    return `\uFEFF${[
+      `${scheme.name} [esquema ${schemeId}]`,
+      '',
+      ...rows.map(({ row, route }) => `${'  '.repeat(route.length - 1)}${row.name} [${row.code}]`),
+    ].join('\r\n')}`;
   }
 
   async searchText(schemeId: number, callNumber: string) {

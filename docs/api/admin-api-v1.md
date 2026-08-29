@@ -59,7 +59,8 @@ Todas las rutas de la tabla parten de `/api/admin/schemes`.
 | `POST /:schemeId/locations/confirm` | Ninguna | Valida ramas y pasa a `LOCATIONS_DEFINED`. |
 | `POST /:schemeId/actions/reopen-locations` | `confirmDataLoss: true` | Elimina mapas y rangos y vuelve a `LEVELS_DEFINED`. |
 | `POST /:schemeId/actions/reopen-levels` | `confirmDataLoss: true` | Elimina la estructura dependiente y vuelve a `DRAFT`. |
-| `GET /:schemeId/locations.csv` | Query opcional `levelId` | CSV jerárquico completo o limitado a un nivel físico. |
+| `GET /:schemeId/locations.csv` | Query opcional `levelId` | Tabla de rutas completa o terminada en un nivel físico. |
+| `GET /:schemeId/locations.txt` | Ninguna | Árbol textual completo con nombres y códigos. |
 | `GET, PUT /:schemeId/ranges` | `PUT`: arreglo `items` | Consulta coberturas o guarda rangos en lote. |
 | `PUT, DELETE /:schemeId/ranges/:locationId` | `PUT`: `rangeStart`, `rangeEnd` | Guarda o retira un rango terminal. |
 | `GET /:schemeId/maps` | Ninguna | Capas, SVG, niveles y asignaciones. |
@@ -106,15 +107,24 @@ La respuesta excluye el nivel y la ubicación raíz internos.
 
 ## Exportación de ubicaciones
 
-Sin `levelId`, `locations.csv` devuelve todas las ubicaciones en recorrido jerárquico: cada padre aparece antes de sus descendientes y las ramas respetan `sort_order`. Con `levelId`, conserva ese orden y devuelve solo las ubicaciones del nivel solicitado. Un nivel ajeno al esquema produce `INVALID_CSV_LEVEL`.
+Sin `levelId`, `locations.csv` crea una fila por ubicación del último nivel físico. Cada fila contiene la ruta completa hasta esa ubicación. Con `levelId`, crea una fila por ubicación del nivel solicitado y termina allí la ruta. Esto permite generar, por ejemplo, una tabla de muebles distinta de la tabla completa de anaqueles. Un nivel ajeno al esquema produce `INVALID_CSV_LEVEL`.
 
-El archivo usa UTF-8 con BOM, punto y coma como separador y estas columnas:
+Cada nivel de la ruta ocupa dos columnas, una para el nombre y otra para el código. Los encabezados se derivan de los nombres de los niveles:
 
 ```text
-location_code;level_name;full_path;parent_code;name;sort_order
+fila_name;fila_code;cara_name;cara_code;mueble_name;mueble_code;anaquel_name;anaquel_code
 ```
 
-`full_path` distingue nombres repetidos mediante la ruta física completa. `parent_code` queda vacío únicamente para las ubicaciones del primer nivel visible.
+El archivo usa UTF-8 con BOM, punto y coma como separador y respeta el `sort_order` de cada rama.
+
+`locations.txt` incluye todas las ubicaciones físicas. Presenta primero cada padre, indenta sus descendientes con dos espacios por nivel y coloca el código entre corchetes:
+
+```text
+Fila 1 [4-1]
+  Cara 1 [4-1-1]
+    Mueble 1 [4-1-1-1]
+      Anaquel 1 [4-1-1-1-1]
+```
 
 ## Cargas SVG
 

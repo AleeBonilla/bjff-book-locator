@@ -69,20 +69,26 @@ describe('flujo administrativo', () => {
     expect(within(workflow).getByRole('link', { name: '05 Rangos' })).toBeInTheDocument();
   });
 
-  it('permite exportar todas las ubicaciones o elegir un nivel', async () => {
+  it('permite exportar rutas CSV por nivel o el árbol completo como TXT', async () => {
     await login();
     const readyScheme = screen.getByRole('row', { name: /Colección general 2026/ });
     fireEvent.click(within(readyScheme).getByRole('link', { name: 'Revisar' }));
     const workflow = await screen.findByRole('navigation', { name: 'Progreso de configuración' });
     fireEvent.click(within(workflow).getByRole('link', { name: '03 Ubicaciones' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Generar CSV' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar ubicaciones' }));
 
-    const dialog = screen.getByRole('dialog', { name: 'Generar CSV' });
-    const selection = within(dialog).getByLabelText('Ubicaciones incluidas');
-    expect(within(selection).getByRole('option', { name: 'Todos los niveles, ordenados' })).toBeInTheDocument();
-    expect(within(selection).getByRole('option', { name: 'Solo Anaquel' })).toBeInTheDocument();
-    fireEvent.change(selection, { target: { value: '23-level-5' } });
-    expect(selection).toHaveValue('23-level-5');
+    const dialog = screen.getByRole('dialog', { name: 'Exportar ubicaciones' });
+    const format = within(dialog).getByLabelText('Formato');
+    expect(within(format).getByRole('option', { name: 'CSV por rutas' })).toBeInTheDocument();
+    expect(within(format).getByRole('option', { name: 'TXT jerárquico' })).toBeInTheDocument();
+    const selection = within(dialog).getByLabelText('Nivel final');
+    expect(within(selection).getByRole('option', { name: 'Ruta completa hasta Anaquel' })).toBeInTheDocument();
+    expect(within(selection).getByRole('option', { name: 'Hasta Mueble' })).toBeInTheDocument();
+    fireEvent.change(selection, { target: { value: '23-level-4' } });
+    expect(selection).toHaveValue('23-level-4');
+    fireEvent.change(format, { target: { value: 'txt' } });
+    expect(within(dialog).queryByLabelText('Nivel final')).not.toBeInTheDocument();
+    expect(within(dialog).getByText('Incluye todo el árbol indentado con el código de cada ubicación.')).toBeInTheDocument();
   });
 
   it('ejecuta una búsqueda interna con coincidencias, mapas y ruta textual', async () => {

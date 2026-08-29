@@ -68,23 +68,34 @@ describe('API administrativa con PostgreSQL', () => {
       parentLocationId: floor.locationId,
       quantity: 2,
     }).expect(201);
-    const firstShelf = shelves.body.data[0] as { locationId: number };
-    const secondShelf = shelves.body.data[1] as { locationId: number };
+    const firstShelf = shelves.body.data[0] as { locationId: number; code: string };
+    const secondShelf = shelves.body.data[1] as { locationId: number; code: string };
     await api.post(`/api/admin/schemes/${schemeId}/locations/confirm`).expect(200);
 
     const completeCsv = await api.get(`/api/admin/schemes/${schemeId}/locations.csv`).expect(200);
     const completeCsvLines = completeCsv.text.replace(/^\uFEFF/, '').split('\r\n');
-    expect(completeCsvLines[0]).toBe('"location_code";"level_name";"full_path";"parent_code";"name";"sort_order"');
-    expect(completeCsvLines[1]).toContain(`"${floor.code}";"Piso";"Piso 1";""`);
-    expect(completeCsvLines[2]).toContain(`"${floor.code}-1";"Anaquel";"Piso 1 / Anaquel 1";"${floor.code}"`);
+    expect(completeCsvLines[0]).toBe('"piso_name";"piso_code";"anaquel_name";"anaquel_code"');
+    expect(completeCsvLines[1]).toBe(`"Piso 1";"${floor.code}";"Anaquel 1";"${firstShelf.code}"`);
+    expect(completeCsvLines[2]).toBe(`"Piso 1";"${floor.code}";"Anaquel 2";"${secondShelf.code}"`);
 
-    const shelfCsv = await api
+    const floorCsv = await api
       .get(`/api/admin/schemes/${schemeId}/locations.csv`)
-      .query({ levelId: shelfLevelId })
+      .query({ levelId: floorLevelId })
       .expect(200);
-    const shelfCsvLines = shelfCsv.text.replace(/^\uFEFF/, '').split('\r\n');
-    expect(shelfCsvLines).toHaveLength(3);
-    expect(shelfCsv.text).not.toContain('"Piso";"Piso 1"');
+    const floorCsvLines = floorCsv.text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(floorCsvLines).toEqual([
+      '"piso_name";"piso_code"',
+      `"Piso 1";"${floor.code}"`,
+    ]);
+    const hierarchyText = await api.get(`/api/admin/schemes/${schemeId}/locations.txt`).expect(200);
+    const hierarchyLines = hierarchyText.text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(hierarchyLines).toEqual([
+      `Biblioteca de prueba [esquema ${schemeId}]`,
+      '',
+      `Piso 1 [${floor.code}]`,
+      `  Anaquel 1 [${firstShelf.code}]`,
+      `  Anaquel 2 [${secondShelf.code}]`,
+    ]);
     await api.get(`/api/admin/schemes/${schemeId}/locations.csv`).query({ levelId: 999_999 }).expect(422);
 
     await api.put(`/api/admin/schemes/${schemeId}/ranges`).send({

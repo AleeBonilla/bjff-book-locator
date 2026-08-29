@@ -76,11 +76,14 @@ describe('HttpAdminGateway', () => {
     expect(detail.frontLayers[0]).toMatchObject({ representedLevelId: '12', assignments: { 101: '91' } });
   });
 
-  it('envía SVG multipart y solicita el CSV del nivel elegido como texto', async () => {
+  it('envía SVG multipart y descarga las exportaciones de ubicaciones como texto', async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       const url = String(input);
       if (url.endsWith('/locations.csv?levelId=12')) {
-        return new Response('\uFEFF"location_code";"name"\r\n"41-1";"Mueble 1"');
+        return new Response('\uFEFF"mueble_name";"mueble_code";"anaquel_name";"anaquel_code"\r\n"Mueble 1";"41-1";"Anaquel 1";"41-1-1"');
+      }
+      if (url.endsWith('/locations.txt')) {
+        return new Response('\uFEFFColección real [esquema 41]\r\n\r\nMueble 1 [41-1]\r\n  Anaquel 1 [41-1-1]');
       }
       const form = init?.body as FormData;
       expect(init?.method).toBe('POST');
@@ -103,9 +106,11 @@ describe('HttpAdminGateway', () => {
       file: new File(['<svg/>'], 'plano.svg', { type: 'image/svg+xml' }),
     });
     const csv = await gateway.exportLocationsCsv('41', '12');
+    const hierarchy = await gateway.exportLocationsText('41');
 
     expect(upload.data).toEqual({ mapLayerId: '80', mapLayerSvgId: '90', assetUrl: '/api/assets/maps/41/top.svg', removedItems: 2 });
-    expect(csv.data).toContain('"41-1";"Mueble 1"');
+    expect(csv.data).toContain('"Anaquel 1";"41-1-1"');
+    expect(hierarchy.data).toContain('  Anaquel 1 [41-1-1]');
   });
 
   it('envía confirmación al eliminar y conserva el error funcional de la API', async () => {

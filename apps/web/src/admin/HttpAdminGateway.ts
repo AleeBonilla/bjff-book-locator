@@ -304,6 +304,26 @@ export class HttpAdminGateway implements AdminGateway {
     };
   }
 
+  private async requestText(path: string, fallbackCode: string) {
+    let response: Response;
+    try {
+      response = await fetch(this.url(path));
+    } catch {
+      throw new AdminGatewayError(0, {
+        code: 'API_UNAVAILABLE',
+        message: 'No se pudo conectar con la API. Comprueba que el backend y PostgreSQL estén activos.',
+        details: [],
+      });
+    }
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as { error?: { code: string; message: string; details: unknown[] } } | null;
+      throw new AdminGatewayError(response.status, body?.error ?? {
+        code: fallbackCode, message: 'No se pudo generar el archivo.', details: [],
+      });
+    }
+    return { data: await response.text() };
+  }
+
   async listSchemes() {
     const response = await this.request<WireScheme[]>('/schemes');
     return { data: response.data.map(baseScheme) };
@@ -579,23 +599,11 @@ export class HttpAdminGateway implements AdminGateway {
   }
 
   async exportLocationsCsv(schemeId: string, levelId?: string) {
-    let response: Response;
-    try {
-      const query = levelId === undefined ? '' : `?levelId=${encodeURIComponent(levelId)}`;
-      response = await fetch(this.url(`/schemes/${encodeURIComponent(schemeId)}/locations.csv${query}`));
-    } catch {
-      throw new AdminGatewayError(0, {
-        code: 'API_UNAVAILABLE',
-        message: 'No se pudo conectar con la API. Comprueba que el backend y PostgreSQL estén activos.',
-        details: [],
-      });
-    }
-    if (!response.ok) {
-      const body = await response.json().catch(() => null) as { error?: { code: string; message: string; details: unknown[] } } | null;
-      throw new AdminGatewayError(response.status, body?.error ?? {
-        code: 'CSV_EXPORT_FAILED', message: 'No se pudo generar el CSV.', details: [],
-      });
-    }
-    return { data: await response.text() };
+    const query = levelId === undefined ? '' : `?levelId=${encodeURIComponent(levelId)}`;
+    return this.requestText(`/schemes/${encodeURIComponent(schemeId)}/locations.csv${query}`, 'CSV_EXPORT_FAILED');
+  }
+
+  async exportLocationsText(schemeId: string) {
+    return this.requestText(`/schemes/${encodeURIComponent(schemeId)}/locations.txt`, 'TEXT_EXPORT_FAILED');
   }
 }

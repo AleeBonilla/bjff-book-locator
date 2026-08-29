@@ -181,6 +181,14 @@ export function createAdminRouter(options: AdminRouterOptions): Router {
     response.send(csv);
   });
 
+  router.get('/schemes/:schemeId/locations.txt', async (request, response) => {
+    const { schemeId } = schemeIdParamsSchema.parse(request.params);
+    const content = await schemes.exportLocationsText(schemeId);
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.setHeader('Content-Disposition', `attachment; filename="ubicaciones-esquema-${schemeId}.txt"`);
+    response.send(content);
+  });
+
   router.get('/schemes/:schemeId/ranges', async (request, response) => {
     const { schemeId } = schemeIdParamsSchema.parse(request.params);
     response.json({ data: await schemes.getRanges(schemeId) });

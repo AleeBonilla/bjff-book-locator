@@ -157,7 +157,7 @@ La base de datos permite varias capas de ambos tipos. La aplicación aplica los 
 
 1. La aplicación crea un `map_layer` con `view_type = TOP` y `render_mode = STATIC`.
 2. El usuario selecciona los niveles físicos representados y la aplicación los registra en `map_layer_scheme_levels`.
-3. El usuario exporta un CSV completo ordenado por jerarquía o uno limitado a un nivel físico. El archivo incluye `location_code`, `level_name`, `full_path`, `parent_code`, `name` y `sort_order`.
+3. El usuario exporta un CSV tabular hasta el nivel físico elegido o un TXT con el árbol físico completo. En el CSV, cada nivel de la ruta ocupa una columna de nombre y otra de código. En el TXT, cada ubicación aparece indentada bajo su padre y muestra su código.
 4. El diseñador crea el SVG y asigna `data-location-code` a cada elemento interactivo.
 5. La aplicación recibe el archivo, lo almacena y registra su `asset_url`.
 6. La aplicación sanitiza el SVG según la política de la sección 11.
@@ -342,7 +342,7 @@ Además de presentar la interfaz, la aplicación debe:
 
 - aplicar el mismo permiso administrativo a todos los usuarios registrados;
 - seleccionar el perfil `ddc-base-v1` sin intervención del usuario;
-- generar nombres, códigos y archivos CSV;
+- generar nombres, códigos y archivos CSV o TXT;
 - interpretar signaturas y producir claves compatibles;
 - ejecutar en una transacción los cambios que combinan estado y datos;
 - calcular la cobertura derivada y la completitud de cada ubicación a partir de sus terminales descendientes;
